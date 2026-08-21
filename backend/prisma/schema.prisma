@@ -1,0 +1,412 @@
+// SkillQuest database schema.
+// Implements docs/05-BACKEND-SCHEMA.md. Read that doc for the reasoning behind
+// each table; this file is the runnable version of it.
+//
+// A few things Prisma's schema language cannot express are applied in a
+// follow-up SQL migration instead (see prisma/migrations and the M0 notes):
+//   - CHECK constraints (numeric ranges: 0..1 ratios, 0..100 score, hours 1..40)
+//   - the partial unique index "one active roadmap per user"
+//   - the FK from profiles.id to Supabase's auth.users(id)
+//   - the skill_prerequisites self-loop guard (skill_id <> prereq_id)
+// The closed value-sets from the doc (status/tier/verdict/...) are implemented
+// as Postgres enums here, which enforce the same rule AND give TypeScript
+// autocomplete — a stronger guarantee than a text+CHECK column.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums (closed value sets) ----------
+
+enum SkillLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+enum RiskTier {
+  healthy
+  watch
+  atrisk
+}
+
+enum ConceptType {
+  conceptual
+  practical
+}
+
+enum RoadmapItemStatus {
+  locked
+  current
+  completed
+}
+
+enum UserLevelStatus {
+  locked
+  unlocked
+  completed
+}
+
+enum Verdict {
+  accepted
+  wrong_answer
+  compile_error
+  runtime_error
+  timeout
+}
+
+// ---------- Core user ----------
+
+model Profile {
+  id             String     @id @db.Uuid // mirrors auth.users.id (FK added in SQL migration)
+  email          String
+  fullName       String?    @map("full_name")
+  college        String?
+  branch         String?
+  year           Int?
+  skillLevel     SkillLevel @default(beginner) @map("skill_level")
+  hoursPerWeek   Int        @default(5) @map("hours_per_week")
+  goalText       String?    @map("goal_text")
+  goalCategory   String?    @map("goal_category")
+  totalXp        Int        @default(0) @map("total_xp")
+  currentStreak  Int        @default(0) @map("current_streak")
+  bestStreak     Int        @default(0) @map("best_streak")
+  lastActiveDate DateTime?  @map("last_active_date") @db.Date
+  onboardingStep Int        @default(0) @map("onboarding_step") // 0..5; 5 = complete
+  riskTier       RiskTier   @default(healthy) @map("risk_tier") // cached latest tier
+  isAdmin        Boolean    @default(false) @map("is_admin")
+  consentVersion String?    @map("consent_version")
+  consentGivenAt DateTime?  @map("consent_given_at")
+  withdrawnAt    DateTime?  @map("withdrawn_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  targetCompanies UserTargetCompany[]
+  roadmaps        Roadmap[]
+  userLevels      UserLevel[]
+  submissions     Submission[]
+  events          Event[]
+  badges          UserBadge[]
+  dropoutScores   DropoutScore[]
+  placementScores PlacementScore[]
+  quizAttempts    QuizAttempt[]
+  nudges          Nudge[]
+
+  @@map("profiles")
+}
+
+model UserTargetCompany {
+  userId    String  @map("user_id") @db.Uuid
+  companyId String  @map("company_id")
+  user      Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, companyId])
+  @@map("user_target_companies")
+}
+
+// ---------- Skill graph (the DAG) ----------
+
+model Skill {
+  id               String      @id // human-readable, stable: 'recursion', 'loops'
+  title            String
+  description      String?
+  conceptType      ConceptType @map("concept_type")
+  tags             String[]    @default([]) // goal-weighting keys: 'oop','arrays','graphs'
+  estimatedMinutes Int         @default(60) @map("estimated_minutes")
+  displayOrder     Int         @default(0) @map("display_order")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  levels        Level[]
+  prerequisites SkillPrerequisite[] @relation("SkillToPrereq")
+  requiredBy    SkillPrerequisite[] @relation("PrereqToSkill")
+  roadmapItems  RoadmapItem[]
+  companySkills CompanySkill[]
+  quizAttempts  QuizAttempt[]
+
+  @@map("skills")
+}
+
+model SkillPrerequisite {
+  skillId  String @map("skill_id")
+  prereqId String @map("prereq_id")
+  skill    Skill  @relation("SkillToPrereq", fields: [skillId], references: [id], onDelete: Cascade)
+  prereq   Skill  @relation("PrereqToSkill", fields: [prereqId], references: [id], onDelete: Cascade)
+
+  @@id([skillId, prereqId])
+  @@map("skill_prerequisites")
+}
+
+// Goal categories carry weight vectors over skill tags; this is what makes the
+// roadmap actually change with the student's goal (TRD 6.2).
+model GoalProfile {
+  goalCategory String @map("goal_category")
+  skillTag     String @map("skill_tag")
+  weight       Float  @default(1) // 0 = optional/unscheduled, >1 = prioritized
+
+  @@id([goalCategory, skillTag])
+  @@map("goal_profiles")
+}
+
+// ---------- Playable content ----------
+
+model Level {
+  id                String   @id // 'recursion-03'
+  skillId           String   @map("skill_id")
+  title             String
+  difficulty        Int      @default(1)
+  statementMd       String   @map("statement_md")
+  starterCode       String   @map("starter_code")
+  referenceSolution String?  @map("reference_solution") // never sent to the client
+  hints             String[] @default([])
+  xpReward          Int      @default(50) @map("xp_reward")
+  timeLimitMs       Int      @default(5000) @map("time_limit_ms")
+  published         Boolean  @default(false)
+  orderInSkill      Int      @default(0) @map("order_in_skill")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  skill       Skill        @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  testCases   TestCase[]
+  userLevels  UserLevel[]
+  submissions Submission[]
+  nudges      Nudge[]
+
+  @@map("levels")
+}
+
+model TestCase {
+  id             Int     @id @default(autoincrement())
+  levelId        String  @map("level_id")
+  stdin          String  @default("")
+  expectedOutput String  @map("expected_output")
+  isHidden       Boolean @default(false) @map("is_hidden") // hidden cases: pass/fail only to client
+  weight         Int     @default(1)
+  ordinal        Int     @default(0)
+  level          Level   @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([levelId, ordinal])
+  @@map("test_cases")
+}
+
+// ---------- Personalized roadmap ----------
+
+model Roadmap {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id") @db.Uuid
+  generatedAt DateTime @default(now()) @map("generated_at")
+  isActive    Boolean  @default(true) @map("is_active") // partial unique index in SQL migration
+  params      Json? // snapshot of inputs (level, hours, goal) for reproducibility
+  user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items RoadmapItem[]
+
+  @@map("roadmaps")
+}
+
+model RoadmapItem {
+  id         Int               @id @default(autoincrement())
+  roadmapId  Int               @map("roadmap_id")
+  skillId    String            @map("skill_id")
+  weekNumber Int               @map("week_number")
+  position   Int
+  status     RoadmapItemStatus @default(locked)
+  roadmap    Roadmap           @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  skill      Skill             @relation(fields: [skillId], references: [id])
+
+  @@unique([roadmapId, skillId])
+  @@unique([roadmapId, weekNumber, position])
+  @@map("roadmap_items")
+}
+
+// ---------- Progress & activity ----------
+
+model UserLevel {
+  userId        String          @map("user_id") @db.Uuid
+  levelId       String          @map("level_id")
+  status        UserLevelStatus @default(locked)
+  bestPassRatio Float           @default(0) @map("best_pass_ratio") // 0..1
+  hintsUsed     Int             @default(0) @map("hints_used")
+  attempts      Int             @default(0)
+  completedAt   DateTime?       @map("completed_at")
+  user          Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level         Level           @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@id([userId, levelId])
+  @@index([userId, status])
+  @@map("user_levels")
+}
+
+model Submission {
+  id         Int      @id @default(autoincrement())
+  userId     String   @map("user_id") @db.Uuid
+  levelId    String   @map("level_id")
+  sourceCode String?  @map("source_code") // nullable: pruned for retention (doc 3.8)
+  passRatio  Float    @default(0) @map("pass_ratio")
+  verdict    Verdict
+  runtimeMs  Int?     @map("runtime_ms")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level      Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([levelId])
+  @@map("submissions")
+}
+
+// The behavioral backbone. Weekly risk features are one GROUP BY over this.
+model Event {
+  id      Int      @id @default(autoincrement())
+  userId  String   @map("user_id") @db.Uuid
+  type    String // login|level_start|level_submit|level_complete|hint_used|...
+  payload Json     @default("{}")
+  ts      DateTime @default(now())
+  user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, ts])
+  @@map("events")
+}
+
+// ---------- Gamification ----------
+
+model Badge {
+  id          String  @id // 'first_quest','week_warrior','code_master','placement_ready'
+  title       String
+  description String
+  icon        String?
+  criteria    String?
+
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  userId   String   @map("user_id") @db.Uuid
+  badgeId  String   @map("badge_id")
+  earnedAt DateTime @default(now()) @map("earned_at")
+  user     Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+  @@map("user_badges")
+}
+
+// ---------- Placement (role skill coverage) ----------
+
+model Company {
+  id   String  @id // 'infosys','tcs','wipro','accenture','cognizant'
+  name String
+  logo String?
+
+  roleProfiles CompanyRoleProfile[]
+  targetedBy   UserTargetCompany[]
+
+  @@map("companies")
+}
+
+model CompanyRoleProfile {
+  id             Int      @id @default(autoincrement())
+  companyId      String   @map("company_id")
+  roleTitle      String   @map("role_title")
+  location       String?
+  sourceUrl      String   @map("source_url") // the public JD we curated from
+  collectedOn    DateTime @map("collected_on") @db.Date
+  profileVersion Int      @default(1) @map("profile_version")
+  isActive       Boolean  @default(true) @map("is_active")
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  skills          CompanySkill[]
+  placementScores PlacementScore[]
+
+  @@unique([companyId, roleTitle, profileVersion])
+  @@map("company_role_profiles")
+}
+
+model CompanySkill {
+  profileId Int                @map("profile_id")
+  skillId   String             @map("skill_id")
+  weight    Float              @default(1)
+  jdPhrase  String?            @map("jd_phrase") // original JD wording, for the report
+  isTracked Boolean            @default(true) @map("is_tracked") // false = we don't teach it yet
+  profile   CompanyRoleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  skill     Skill              @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, skillId])
+  @@map("company_skills")
+}
+
+// ---------- AI outputs (kept as history) ----------
+
+model DropoutScore {
+  id                     Int      @id @default(autoincrement())
+  userId                 String   @map("user_id") @db.Uuid
+  probability            Float // 0..1 from the Random Forest
+  tier                   RiskTier
+  features               Json // exact feature row scored
+  modelVersion           String   @map("model_version")
+  featureSetVersion      String   @map("feature_set_version")
+  thresholdVersion       String   @map("threshold_version")
+  observationWindowStart DateTime @map("observation_window_start") @db.Date
+  observationWindowEnd   DateTime @map("observation_window_end") @db.Date
+  predictionHorizonDays  Int      @map("prediction_horizon_days")
+  scoredAt               DateTime @default(now()) @map("scored_at")
+  user                   Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nudges Nudge[]
+
+  @@unique([userId, observationWindowEnd, modelVersion]) // makes the weekly job idempotent
+  @@map("dropout_scores")
+}
+
+model PlacementScore {
+  id                    Int                @id @default(autoincrement())
+  userId                String             @map("user_id") @db.Uuid
+  profileId             Int                @map("profile_id")
+  score                 Int // 0..100
+  missingTrackedSkills  String[]           @default([]) @map("missing_tracked_skills")
+  missingExternalSkills String[]           @default([]) @map("missing_external_skills")
+  computedAt            DateTime           @default(now()) @map("computed_at")
+  user                  Profile            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile               CompanyRoleProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId, profileId, computedAt])
+  @@map("placement_scores")
+}
+
+// ---------- Evidence for the claims we make ----------
+
+model QuizAttempt {
+  id              Int      @id @default(autoincrement())
+  userId          String   @map("user_id") @db.Uuid
+  questionId      String   @map("question_id")
+  questionVersion Int      @map("question_version")
+  topicSkillId    String   @map("topic_skill_id")
+  chosenOption    Int      @map("chosen_option")
+  isCorrect       Boolean  @map("is_correct")
+  answeredAt      DateTime @default(now()) @map("answered_at")
+  user            Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicSkill      Skill    @relation(fields: [topicSkillId], references: [id])
+
+  @@map("quiz_attempts")
+}
+
+model Nudge {
+  id               Int           @id @default(autoincrement())
+  userId           String        @map("user_id") @db.Uuid
+  dropoutScoreId   Int?          @map("dropout_score_id") // which prediction triggered it
+  variant          String
+  suggestedLevelId String?       @map("suggested_level_id")
+  shownAt          DateTime?     @map("shown_at")
+  clickedAt        DateTime?     @map("clicked_at")
+  dismissedAt      DateTime?     @map("dismissed_at")
+  user             Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dropoutScore     DropoutScore? @relation(fields: [dropoutScoreId], references: [id])
+  suggestedLevel   Level?        @relation(fields: [suggestedLevelId], references: [id])
+
+  @@map("nudges")
+}
