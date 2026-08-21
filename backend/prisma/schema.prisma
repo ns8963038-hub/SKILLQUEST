@@ -18,7 +18,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Runtime: the transaction pooler (port 6543, ?pgbouncer=true).
+  url = env("DATABASE_URL")
+  // Migrations: a direct/session connection (port 5432). The transaction pooler
+  // can't run the advisory locks that `prisma migrate` needs.
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------- Enums (closed value sets) ----------
