@@ -1,3 +1,4 @@
+import 'dotenv/config'; // load .env into process.env before anything reads it
 import { createApp } from './app';
 import { env } from './env';
 
