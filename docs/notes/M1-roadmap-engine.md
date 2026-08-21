@@ -86,9 +86,23 @@ Same model, a fraction of the memory — fastembed runs it through ONNX with no 
 ## The onboarding AI flow now exists end to end
 `free-text goal → /ai/goal-map → goalCategory → /ai/roadmap → personalized plan`. Both halves are built and tested; onboarding (next) just collects the inputs and calls them through the Web API.
 
-## 7. What's next in M1
+---
+
+# M1 Notes — Part 3: Roadmap Screen (frontend)
+
+## What was built
+`frontend/src/features/roadmap/` — the roadmap screen (S5), against mock data for now:
+- `types.ts` — the `RoadmapNode` shape the Web API will return (skill + week + status).
+- `SkillNodeCard.tsx` — one skill tile, with four visual states (completed / current / available / locked). Meaning is carried by an **icon + text label**, never colour alone (colour-blind safe). Min 44px target, visible focus ring, and the "current" tile pulses but stops under `prefers-reduced-motion` — all from the UI/UX doc's accessibility rules.
+- `RoadmapView.tsx` — groups the plan into weeks and renders them top-to-bottom (works on phone and desktop).
+- 3 component tests + the App test (4 total) verify weeks render, locked skills are disabled, and clicking a skill reports its id.
+
+## Not throwaway
+Only the **data source** changes later: today `App.tsx` feeds it `MOCK_ROADMAP`; once auth + the Web API are wired, the same components render `/ai/roadmap` output joined with the student's real progress. The layout, states, and accessibility are done.
+
+## 8. What's next in M1 (needs the Supabase auth keys)
 - [x] `/ai/goal-map` (free-text goal → goalCategory via embeddings)
+- [x] Roadmap screen (frontend) — mock data; swaps to live API after auth
 - [ ] Supabase auth: JWT verification middleware (backend), sign-in (frontend)
 - [ ] Onboarding wizard + quiz (persist attempts) → Web API → `/ai/goal-map` + `/ai/roadmap`
-- [ ] Persist the generated roadmap to `roadmaps` / `roadmap_items`
-- [ ] Roadmap screen (frontend)
+- [ ] Persist the generated roadmap to `roadmaps` / `roadmap_items`, and serve it to the screen

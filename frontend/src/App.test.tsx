@@ -1,21 +1,14 @@
 import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import App from './App';
 
-beforeEach(() => {
-  // Stub fetch so the health check doesn't hit the network during tests.
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ status: 'ok' }) })),
-  );
-});
-
 describe('App', () => {
-  it('renders the brand and the primary CTA', () => {
+  it('renders the brand and the roadmap screen', () => {
     render(<App />);
-    // Accessible name is "Skill Quest" — a space appears between the styled
-    // <span>Skill</span> and the trailing "Quest" text node.
-    expect(screen.getByRole('heading', { name: /skill ?quest/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /start your quest/i })).toBeInTheDocument();
+    // Brand in the header.
+    expect(screen.getByText(/skill/i)).toBeInTheDocument();
+    // The roadmap screen heading and at least one skill from the mock plan.
+    expect(screen.getByRole('heading', { name: /your roadmap/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /java basics/i })).toBeInTheDocument();
   });
 });
