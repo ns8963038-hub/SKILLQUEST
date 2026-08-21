@@ -1,0 +1,32 @@
+{
+  "//": "Goal weight vectors — the data that makes goal personalization REAL (TRD 6.2).",
+  "//how": "The roadmap engine multiplies a skill's priority by the weight of each of its tags for the student's goalCategory. Higher weight => scheduled earlier; weight 0 => optional/unscheduled.",
+  "//default": "Any (goalCategory, skillTag) NOT listed here defaults to 1.0 (neutral). 'general_placement' lists nothing, so it is fully neutral — the balanced default.",
+  "goalProfiles": [
+    { "//": "Service companies (TCS/Infosys/Wipro): fundamentals + light DSA.", "goalCategory": "service_placement", "skillTag": "basics", "weight": 1.5 },
+    { "goalCategory": "service_placement", "skillTag": "control-flow", "weight": 1.5 },
+    { "goalCategory": "service_placement", "skillTag": "arrays", "weight": 1.4 },
+    { "goalCategory": "service_placement", "skillTag": "strings", "weight": 1.4 },
+    { "goalCategory": "service_placement", "skillTag": "oop", "weight": 1.3 },
+    { "goalCategory": "service_placement", "skillTag": "collections", "weight": 1.2 },
+    { "goalCategory": "service_placement", "skillTag": "trees", "weight": 0.6 },
+    { "goalCategory": "service_placement", "skillTag": "patterns", "weight": 0.6 },
+
+    { "//": "Product companies: heavy DSA and problem-solving.", "goalCategory": "product_placement", "skillTag": "recursion", "weight": 1.5 },
+    { "goalCategory": "product_placement", "skillTag": "complexity", "weight": 1.5 },
+    { "goalCategory": "product_placement", "skillTag": "algorithms", "weight": 1.4 },
+    { "goalCategory": "product_placement", "skillTag": "sorting", "weight": 1.4 },
+    { "goalCategory": "product_placement", "skillTag": "searching", "weight": 1.4 },
+    { "goalCategory": "product_placement", "skillTag": "trees", "weight": 1.4 },
+    { "goalCategory": "product_placement", "skillTag": "hashing", "weight": 1.4 },
+    { "goalCategory": "product_placement", "skillTag": "patterns", "weight": 1.5 },
+    { "goalCategory": "product_placement", "skillTag": "interview", "weight": 1.4 },
+
+    { "//": "Higher studies: theory and data-structure depth.", "goalCategory": "higher_studies", "skillTag": "complexity", "weight": 1.5 },
+    { "goalCategory": "higher_studies", "skillTag": "recursion", "weight": 1.4 },
+    { "goalCategory": "higher_studies", "skillTag": "trees", "weight": 1.4 },
+    { "goalCategory": "higher_studies", "skillTag": "ds", "weight": 1.4 },
+    { "goalCategory": "higher_studies", "skillTag": "interview", "weight": 0.7 },
+    { "goalCategory": "higher_studies", "skillTag": "patterns", "weight": 0.8 }
+  ]
+}

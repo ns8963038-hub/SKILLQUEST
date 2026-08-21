@@ -1,0 +1,22 @@
+{
+  "id": "strings-01",
+  "skillId": "strings",
+  "title": "Reverse a String",
+  "difficulty": 1,
+  "statementMd": "Read one line of text and print it reversed.\n\n**Example**\nInput:\n```\nhello\n```\nOutput:\n```\nolleh\n```",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.nextLine();\n        // TODO: print s reversed\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.nextLine();\n        System.out.println(new StringBuilder(s).reverse().toString());\n    }\n}\n",
+  "hints": [
+    "A StringBuilder has a built-in reverse() method.",
+    "Or build the result by walking the string from the last character to the first."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    { "stdin": "hello\n", "expectedOutput": "olleh", "isHidden": false, "weight": 1, "ordinal": 1 },
+    { "stdin": "a\n", "expectedOutput": "a", "isHidden": false, "weight": 1, "ordinal": 2 },
+    { "stdin": "SkillQuest\n", "expectedOutput": "tseuQllikS", "isHidden": true, "weight": 1, "ordinal": 3 }
+  ]
+}

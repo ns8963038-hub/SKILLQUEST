@@ -13,9 +13,14 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
+    "seed": "tsx prisma/seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
+  },
+  "prisma": {
+    "//": "Lets `prisma migrate reset` / `prisma db seed` run our seed script too.",
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

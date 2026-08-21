@@ -1,0 +1,25 @@
+{
+  "//": "Sample level. Copy this shape for every new level. 'skillId' MUST match a skill id in skills.json.",
+  "//testCases": "Each test case is one Judge0 run: stdin is fed to the program, its stdout is compared (trailing whitespace trimmed) to expectedOutput. isHidden:true means the student sees only pass/fail, never the data.",
+  "id": "arrays-01",
+  "skillId": "arrays",
+  "title": "Maximum in an Array",
+  "difficulty": 1,
+  "statementMd": "Read an integer **n**, then **n** integers. Print the largest of them.\n\n**Input**\n```\nn\na1 a2 ... an\n```\n\n**Output**\nThe maximum value.\n\n**Example**\nInput:\n```\n5\n3 7 2 9 4\n```\nOutput:\n```\n9\n```",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        // TODO: find and print the maximum value in a\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int max = Integer.MIN_VALUE;\n        for (int i = 0; i < n; i++) {\n            int x = sc.nextInt();\n            if (x > max) max = x;\n        }\n        System.out.println(max);\n    }\n}\n",
+  "hints": [
+    "Keep a running 'max' as you read each number.",
+    "Start max at the first element (or Integer.MIN_VALUE), then compare each number to it."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    { "stdin": "5\n3 7 2 9 4\n", "expectedOutput": "9", "isHidden": false, "weight": 1, "ordinal": 1 },
+    { "stdin": "1\n-5\n", "expectedOutput": "-5", "isHidden": false, "weight": 1, "ordinal": 2 },
+    { "stdin": "4\n-1 -2 -3 -4\n", "expectedOutput": "-1", "isHidden": true, "weight": 1, "ordinal": 3 },
+    { "stdin": "3\n10 10 10\n", "expectedOutput": "10", "isHidden": true, "weight": 1, "ordinal": 4 }
+  ]
+}
