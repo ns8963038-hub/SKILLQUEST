@@ -1,0 +1,5 @@
+# Runtime dependencies for the SkillQuest AI service.
+# Pinned for reproducibility. Python 3.11 (see .python-version).
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic-settings==2.7.1
