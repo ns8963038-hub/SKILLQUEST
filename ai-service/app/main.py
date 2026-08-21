@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI
 from pydantic import BaseModel, Field
 
 from .db import load_goal_weights, load_skill_graph
+from .goal_map import map_goal
 from .roadmap import generate_roadmap
 from .security import require_internal_key
 
@@ -68,3 +69,28 @@ def roadmap(req: RoadmapRequest) -> list[RoadmapItemOut]:
         RoadmapItemOut(skillId=i.skill_id, weekNumber=i.week_number, position=i.position)
         for i in plan
     ]
+
+
+# ----- /ai/goal-map: free-text goal -> goal category (TRD 6.1) -----
+
+
+class GoalMapRequest(BaseModel):
+    """The student's free-text answer to 'describe your career goal'."""
+
+    text: str
+
+
+class GoalMapResponse(BaseModel):
+    goalCategory: str  # feeds straight into the roadmap request
+    confidence: float  # cosine similarity of the winning match (0..1)
+
+
+@app.post("/ai/goal-map", dependencies=[Depends(require_internal_key)])
+def goal_map(req: GoalMapRequest) -> GoalMapResponse:
+    """Embed the text and pick the closest goal category (neutral default if unsure)."""
+    # Imported lazily so the heavy embedding model isn't needed just to import
+    # this module (keeps startup and tests light).
+    from .embeddings import embed
+
+    result = map_goal(req.text, embed)
+    return GoalMapResponse(goalCategory=result.category, confidence=round(result.confidence, 4))

@@ -5,3 +5,6 @@ uvicorn[standard]==0.34.0
 pydantic-settings==2.7.1
 # Postgres access for reading the skill graph (roadmap generation).
 psycopg[binary]==3.2.3
+# Sentence embeddings for goal mapping (ONNX; far lighter than sentence-transformers).
+# The model itself downloads on first use at runtime, not at install time.
+fastembed==0.8.0

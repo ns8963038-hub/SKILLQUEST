@@ -58,9 +58,37 @@ No — and that's on purpose. It's a deterministic weighted topological sort, so
 **Q: "What stops it from putting recursion before loops?"**
 The prerequisite edges. Recursion depends (transitively) on loops, and a topological sort never places a skill before something it depends on. The goal weights can reorder *independent* skills, never dependent ones.
 
-## 6. What's next in M1
+---
+
+# M1 Notes — Part 2: Goal Mapping (NLP module #1)
+
+## What was built
+`ai-service/app/goal_map.py` (+ `embeddings.py`, `POST /ai/goal-map`, 3 tests). Turns the student's free-text goal into a goal category, which feeds the roadmap engine.
+
+## How it works
+1. We keep a one-sentence **description of each goal category** (service placement, product placement, higher studies).
+2. We **embed** the student's text and each description into vectors with a small ONNX model (`fastembed`, `bge-small-en-v1.5`, 384 dims).
+3. We take the category whose description is **most similar** (cosine similarity) to the student's text.
+4. If the best similarity is **below 0.35**, we don't trust it and fall back to the neutral `general_placement` — a balanced plan beats a confidently wrong one.
+
+The matching logic is pure and tested with injected vectors; the model lives in `embeddings.py` and loads lazily (nothing downloads until the first real call), so importing the app and running tests stays light.
+
+## Proof it works (real model)
+| Student text | → category (confidence) |
+|---|---|
+| "crack the Infosys and TCS campus placement" | service_placement (0.69) |
+| "top product company like Google, strong in DSA" | product_placement (0.67) |
+| "preparing for GATE and a master's" | higher_studies (0.82) |
+
+## Why fastembed, not sentence-transformers? (viva)
+Same model, a fraction of the memory — fastembed runs it through ONNX with no PyTorch, so it fits the free hosting tier's ~512 MB. This was a deliberate stack choice in the TRD.
+
+## The onboarding AI flow now exists end to end
+`free-text goal → /ai/goal-map → goalCategory → /ai/roadmap → personalized plan`. Both halves are built and tested; onboarding (next) just collects the inputs and calls them through the Web API.
+
+## 7. What's next in M1
+- [x] `/ai/goal-map` (free-text goal → goalCategory via embeddings)
 - [ ] Supabase auth: JWT verification middleware (backend), sign-in (frontend)
-- [ ] Onboarding wizard + quiz (persist attempts) → calls the Web API, which calls `/ai/roadmap`
+- [ ] Onboarding wizard + quiz (persist attempts) → Web API → `/ai/goal-map` + `/ai/roadmap`
 - [ ] Persist the generated roadmap to `roadmaps` / `roadmap_items`
 - [ ] Roadmap screen (frontend)
-- [ ] `/ai/goal-map` (free-text goal → goalCategory via embeddings)
