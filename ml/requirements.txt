@@ -1,0 +1,6 @@
+# OULAD experiment dependencies. Python 3.11 (see .python-version).
+pandas==2.2.3
+numpy==2.2.1
+scikit-learn==1.6.0
+joblib==1.4.2
+matplotlib==3.10.0
