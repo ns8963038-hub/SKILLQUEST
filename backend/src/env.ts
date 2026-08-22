@@ -15,6 +15,9 @@ const schema = z.object({
   SUPABASE_JWT_SECRET: z.string().optional(),
   INTERNAL_API_KEY: z.string().optional(),
   AI_SERVICE_URL: z.string().default('http://localhost:8000'),
+  // Which code-execution backend to use. 'mock' is a stub for building the UI;
+  // 'judge0' runs real Java. Swappable without touching the routes (TRD 5.1).
+  EXECUTION_BACKEND: z.enum(['mock', 'judge0']).default('mock'),
 });
 
 export const env = schema.parse(process.env);
