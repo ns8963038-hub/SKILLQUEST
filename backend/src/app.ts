@@ -1,8 +1,11 @@
-import express, { type Express } from 'express';
+import express, { type Express, type ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { ZodError } from 'zod';
 import { env } from './env';
 import { prisma } from './db';
+import { requireAuth } from './auth';
+import { apiRouter } from './routes';
 
 // Builds the Express app. Kept separate from index.ts so tests can create an
 // app instance without starting a listening server.
@@ -27,6 +30,21 @@ export function createApp(): Express {
     }
     res.json({ status: 'ok', db, ts: new Date().toISOString() });
   });
+
+  // All /api routes require a valid Supabase token (requireAuth runs first).
+  app.use('/api', requireAuth, apiRouter);
+
+  // Central error handler. A bad request body (zod) becomes a clean 400; anything
+  // else is logged and returned as a generic 500 (never leak internals).
+  const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+    if (err instanceof ZodError) {
+      res.status(400).json({ error: 'invalid request', details: err.issues });
+      return;
+    }
+    console.error(err);
+    res.status(500).json({ error: 'internal error' });
+  };
+  app.use(errorHandler);
 
   return app;
 }
