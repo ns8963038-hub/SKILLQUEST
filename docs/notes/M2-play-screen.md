@@ -41,8 +41,33 @@ No. It goes through an execution interface. In development that's a mock; for re
 **Q: How are hidden test cases kept hidden?**
 The play view only ever sends visible sample tests. On submit, hidden cases return pass/fail with no input, expected, or actual output — verified in the test.
 
-## What's next in M2
-- [ ] Monaco editor play screen (problem panel + editor + Run Tests + results)
-- [ ] Mobile tab layout for the play screen (Problem / Code / Results)
-- [ ] Wire "Start" on a roadmap skill → open one of its levels
-- [ ] (Team, parallel) self-host Judge0 on an x86 box → the real executor
+---
+
+# M2 Notes — Part 2: The Monaco Play Screen (frontend)
+
+## What was built
+- `features/play/ProblemPanel.tsx` — the problem statement (markdown) + visible examples.
+- `features/play/ResultsPanel.tsx` — per-test pass/fail rows; failing *visible* cases expand to expected vs actual; hidden cases show pass/fail only. `aria-live` announces the outcome.
+- `screens/PlayScreen.tsx` — Monaco editor (Java), a **Run Tests** button, and the results. Desktop = split (problem | editor+results); mobile = a **Problem / Code / Results** tab switcher (a split view is unusable on a phone).
+- Wired into the app: clicking a roadmap skill opens its first level (`<skillId>-01`).
+
+## The core loop, complete (against the mock)
+```
+roadmap skill  →  PlayScreen  →  edit Java in Monaco  →  Run Tests
+                                       ↓
+             POST /api/levels/:id/submit  →  results + XP shown
+```
+This is the whole vertical slice end to end — the only piece still simulated is *real Java execution*, which the mock stands in for until Judge0 is self-hosted. Swapping it in changes nothing on the frontend.
+
+## Accessibility (built in)
+Every result row uses an icon **and** text (not colour alone); the editor sits behind 44px controls; the results area is a live region; the mobile tabs use `role="tab"`/`aria-selected`.
+
+## Notes / follow-ups
+- **Monaco loads from a CDN** via the default `@monaco-editor/react` loader — fine for dev and the deployed app while online. Bundling it locally (so it works offline / under a strict CSP) is a production hardening step.
+- The JS bundle is ~520 KB (Monaco + supabase + markdown). Code-splitting Monaco with a dynamic import is an easy later optimization.
+
+## What's left in M2
+- [x] Monaco play screen (problem + editor + Run Tests + results), mobile tabs, wired to the roadmap
+- [ ] **Judge0 executor** (`Judge0Executor` implementing `ExecutionService`) — real Java, once the team self-hosts Judge0 on an x86 box
+- [ ] Browser-verify the whole click-through (needs the Playwright MCP + a restart)
+- [ ] Pilot #2: 5 students on the play screen

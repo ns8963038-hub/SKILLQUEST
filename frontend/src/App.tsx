@@ -4,6 +4,7 @@ import { api } from './lib/api';
 import { AuthScreen } from './screens/AuthScreen';
 import { OnboardingWizard } from './screens/OnboardingWizard';
 import { RoadmapScreen } from './screens/RoadmapScreen';
+import { PlayScreen } from './screens/PlayScreen';
 
 // The minimal slice of the profile the app-level flow needs.
 interface Profile {
@@ -27,6 +28,8 @@ function AppInner() {
   const { session, loading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  // When set, the play screen for this level is shown instead of the roadmap.
+  const [playLevelId, setPlayLevelId] = useState<string | null>(null);
 
   // Fetch (creating on first login) the profile whenever we have a session.
   const loadProfile = useCallback(async () => {
@@ -48,7 +51,9 @@ function AppInner() {
   if (profileLoading || !profile) return <Splash />;
   // Onboarding gate: incomplete users must finish the wizard first.
   if (profile.onboardingStep < 5) return <OnboardingWizard onComplete={loadProfile} />;
-  return <RoadmapScreen />;
+  // Playing a level, or looking at the roadmap.
+  if (playLevelId) return <PlayScreen levelId={playLevelId} onBack={() => setPlayLevelId(null)} />;
+  return <RoadmapScreen onOpenLevel={setPlayLevelId} />;
 }
 
 export default function App() {

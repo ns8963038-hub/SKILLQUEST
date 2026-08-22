@@ -6,7 +6,8 @@ import type { RoadmapNode } from '../features/roadmap/types';
 
 // The roadmap screen with REAL data: fetches the student's persisted plan from
 // GET /api/roadmap and renders it with the same RoadmapView built earlier.
-export function RoadmapScreen() {
+// Clicking a skill opens its first level (convention: `<skillId>-01`).
+export function RoadmapScreen({ onOpenLevel }: { onOpenLevel: (levelId: string) => void }) {
   const [nodes, setNodes] = useState<RoadmapNode[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +38,9 @@ export function RoadmapScreen() {
         </p>
       )}
       {!error && !nodes && <p className="p-8 text-content-muted">Loading your roadmap…</p>}
-      {nodes && <RoadmapView nodes={nodes} />}
+      {nodes && (
+        <RoadmapView nodes={nodes} onSelectSkill={(skillId) => onOpenLevel(`${skillId}-01`)} />
+      )}
     </div>
   );
 }
