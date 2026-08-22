@@ -18,6 +18,15 @@ const schema = z.object({
   // Which code-execution backend to use. 'mock' is a stub for building the UI;
   // 'judge0' runs real Java. Swappable without touching the routes (TRD 5.1).
   EXECUTION_BACKEND: z.enum(['mock', 'judge0']).default('mock'),
+  // Judge0 base URL — a hosted instance (RapidAPI) or your self-hosted one.
+  // e.g. https://judge0-ce.p.rapidapi.com  or  http://<your-vm-ip>:2358
+  JUDGE0_URL: z.string().optional(),
+  // Set ONLY when using RapidAPI's hosted Judge0 (adds the RapidAPI headers).
+  // Leave empty for a self-hosted instance.
+  JUDGE0_RAPIDAPI_KEY: z.string().optional(),
+  // The Java language id in your Judge0 (62 on common CE builds). The executor
+  // resolves it from /languages at runtime and uses this only as a fallback.
+  JUDGE0_JAVA_LANGUAGE_ID: z.coerce.number().default(62),
 });
 
 export const env = schema.parse(process.env);

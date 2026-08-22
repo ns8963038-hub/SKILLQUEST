@@ -66,8 +66,35 @@ Every result row uses an icon **and** text (not colour alone); the editor sits b
 - **Monaco loads from a CDN** via the default `@monaco-editor/react` loader — fine for dev and the deployed app while online. Bundling it locally (so it works offline / under a strict CSP) is a production hardening step.
 - The JS bundle is ~520 KB (Monaco + supabase + markdown). Code-splitting Monaco with a dynamic import is an easy later optimization.
 
+---
+
+# M2 Notes — Part 3: The Judge0 Executor (real Java)
+
+## What was built
+`execution/judge0Executor.ts` (+ 3 tests) — the real code runner, implementing the same `ExecutionService` interface as the mock. `getExecutor()` returns it when `EXECUTION_BACKEND=judge0`.
+
+## How it works
+For each test case it creates one Judge0 submission (base64-encoded source + stdin + expected output) in a single **batch**, then polls the batch until every submission finishes, and maps the results:
+- A case **passed** iff Judge0 reports **Accepted** (Judge0 grades stdout against the expected output for us).
+- Overall verdict is worst-case first: compile error → timeout → runtime error → else accepted/wrong-answer.
+- Java's language id is **resolved at runtime** from Judge0's `/languages` (it varies by build), falling back to the configured id.
+
+## Works against hosted OR self-hosted — no code change
+The same class talks to **RapidAPI's hosted Judge0** or **your own instance**; only env changes:
+```
+EXECUTION_BACKEND=judge0
+JUDGE0_URL=https://judge0-ce.p.rapidapi.com     # or  http://<your-vm-ip>:2358
+JUDGE0_RAPIDAPI_KEY=<key>                         # only for RapidAPI; empty when self-hosted
+```
+RapidAPI headers are added only when a key is present. Tested against a mocked Judge0 for the accepted / wrong-answer / compile-error paths.
+
+## To go live (team)
+1. **Quickest:** free RapidAPI account → subscribe to "Judge0 CE" → put the key + URL in `backend/.env`, set `EXECUTION_BACKEND=judge0`. Real Java from any machine (incl. the Mac). ~50 runs/day.
+2. **For pilots:** self-host on an x86 Linux box or a GCP `e2-small`/`e2-medium` VM ($300 free credit) → point `JUDGE0_URL` at it, drop the RapidAPI key.
+
 ## What's left in M2
-- [x] Monaco play screen (problem + editor + Run Tests + results), mobile tabs, wired to the roadmap
-- [ ] **Judge0 executor** (`Judge0Executor` implementing `ExecutionService`) — real Java, once the team self-hosts Judge0 on an x86 box
-- [ ] Browser-verify the whole click-through (needs the Playwright MCP + a restart)
+- [x] Monaco play screen, mobile tabs, wired to the roadmap
+- [x] **Judge0 executor** — written + tested; just needs a live Judge0 URL in env to switch on
+- [ ] Point it at a real Judge0 (RapidAPI now / self-hosted before pilots) and run one real Java submission
+- [ ] Browser-verify the whole click-through (Playwright MCP + restart)
 - [ ] Pilot #2: 5 students on the play screen
