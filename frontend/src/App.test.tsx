@@ -1,14 +1,23 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// Mock the Supabase client so the test needs no network and no env vars.
+// getSession resolves to "no session", so the app should show the sign-in screen.
+vi.mock('./lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: async () => ({ data: { session: null } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+    },
+  },
+}));
+
 import App from './App';
 
 describe('App', () => {
-  it('renders the brand and the roadmap screen', () => {
+  it('shows the sign-in screen when there is no session', async () => {
     render(<App />);
-    // Brand in the header.
-    expect(screen.getByText(/skill/i)).toBeInTheDocument();
-    // The roadmap screen heading and at least one skill from the mock plan.
-    expect(screen.getByRole('heading', { name: /your roadmap/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /java basics/i })).toBeInTheDocument();
+    // getSession is async, so wait for the auth screen to appear.
+    expect(await screen.findByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
   });
 });

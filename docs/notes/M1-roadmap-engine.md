@@ -134,9 +134,42 @@ Every request carries the Supabase access token. We verify its HS256 signature w
 **Q: Why is onboarding one endpoint and one transaction?**
 The plan, the profile, the quiz answers, and the target companies must all succeed together — a roadmap saved without the profile marked complete (or vice-versa) would be a broken state. Wrapping them in a transaction makes it all-or-nothing.
 
-## 8. What's next — the final M1 piece (frontend)
-- [x] `/ai/goal-map`, roadmap screen (mock), backend auth + onboarding API
-- [ ] Frontend: supabase-js sign-in screen + session handling
-- [ ] Frontend: onboarding wizard + quiz → `POST /api/onboarding/complete`
-- [ ] Frontend: swap the roadmap screen from mock data to `GET /api/roadmap`
-- [ ] Frontend: route guards (send unauthenticated users to sign-in; incomplete onboarding to the wizard)
+---
+
+# M1 Notes — Part 5: Frontend Auth + Onboarding (M1 complete)
+
+## What was built
+- `lib/supabase.ts` — the Supabase client (auth only).
+- `lib/api.ts` — one wrapper that attaches the user's access token to every Web API call.
+- `auth/AuthProvider.tsx` — React context holding the session, kept in sync with sign-in/out/refresh.
+- `screens/AuthScreen.tsx` — email/password sign-in + sign-up.
+- `screens/OnboardingWizard.tsx` — 5-step wizard: about you → 12-question quiz → hours → companies → goal → submit.
+- `features/onboarding/scoring.ts` (+ quiz bank) — pure quiz scoring (4 tests): a topic is tested out of **only** when all its questions are right.
+- `screens/RoadmapScreen.tsx` — fetches the real plan from `GET /api/roadmap`.
+
+## How the whole flow hangs together
+`App.tsx` picks the screen from two facts — is there a session, and is `onboarding_step` 5?
+```
+not signed in            -> AuthScreen
+signed in, not onboarded -> OnboardingWizard  (submits -> re-fetch profile)
+signed in and onboarded  -> RoadmapScreen (live data)
+```
+No router yet — three states are cleaner as a conditional. Routing comes when dashboard/play/placement screens arrive.
+
+## Auth in one place
+Every data request goes through `api()`, which reads the current Supabase token and adds `Authorization: Bearer`. The backend verifies it. The browser only ever holds the anon key (which RLS makes powerless) and the user's own token.
+
+## To try the full click-through (team)
+Run **both** servers and the frontend:
+```
+backend:    npm run dev         (needs .env)
+ai-service: uvicorn app.main:app --port 8000   (needs .env)
+frontend:   npm run dev
+```
+**One Supabase setting for testing:** email confirmation is ON by default, so a new sign-up can't sign in until confirmed. For development, either confirm via the email link, or turn off Supabase → Authentication → Providers → Email → "Confirm email". (The backend flow itself is already verified end-to-end.)
+
+## ✅ M1 is complete
+Auth, onboarding (goal-map + quiz + roadmap generation + persistence), and the roadmap screen on live data are all built and green in CI. Backend verified end-to-end against the live DB + AI service; frontend typechecks, tests, and builds.
+
+## What's next — M2 (the vertical slice)
+The play screen: Monaco editor + the `ExecutionService` (mock first, then Judge0) + XP on pass. This is the make-or-break milestone.

@@ -1,20 +1,61 @@
-import { RoadmapView } from './features/roadmap/RoadmapView';
-import { MOCK_ROADMAP } from './features/roadmap/mockRoadmap';
+import { useCallback, useEffect, useState } from 'react';
+import { AuthProvider, useAuth } from './auth/AuthProvider';
+import { api } from './lib/api';
+import { AuthScreen } from './screens/AuthScreen';
+import { OnboardingWizard } from './screens/OnboardingWizard';
+import { RoadmapScreen } from './screens/RoadmapScreen';
 
-// App shell. For now it previews the roadmap screen with mock data; once auth
-// and routing are wired (rest of M1), this becomes the authenticated app frame.
-export default function App() {
+// The minimal slice of the profile the app-level flow needs.
+interface Profile {
+  id: string;
+  onboardingStep: number;
+}
+
+// A tiny full-screen loading state used while we check auth / fetch the profile.
+function Splash() {
   return (
-    <div className="min-h-screen">
-      {/* Top bar with the brand. XP/streak will join it once gamification lands. */}
-      <header className="border-b border-line px-4 py-3 sm:px-8">
-        <span className="text-lg font-bold">
-          <span className="text-primary-fg">Skill</span>Quest
-        </span>
-      </header>
+    <div className="flex min-h-screen items-center justify-center text-content-muted">Loading…</div>
+  );
+}
 
-      {/* The roadmap screen, fed mock data until the live API is connected. */}
-      <RoadmapView nodes={MOCK_ROADMAP} />
-    </div>
+// Decides which screen to show based on auth + onboarding state. No router needed
+// yet — there are three states:
+//   not signed in            -> AuthScreen
+//   signed in, not onboarded -> OnboardingWizard
+//   signed in and onboarded  -> RoadmapScreen
+function AppInner() {
+  const { session, loading } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Fetch (creating on first login) the profile whenever we have a session.
+  const loadProfile = useCallback(async () => {
+    setProfileLoading(true);
+    try {
+      setProfile(await api<Profile>('/api/me'));
+    } finally {
+      setProfileLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session) loadProfile();
+    else setProfile(null);
+  }, [session, loadProfile]);
+
+  if (loading) return <Splash />;
+  if (!session) return <AuthScreen />;
+  if (profileLoading || !profile) return <Splash />;
+  // Onboarding gate: incomplete users must finish the wizard first.
+  if (profile.onboardingStep < 5) return <OnboardingWizard onComplete={loadProfile} />;
+  return <RoadmapScreen />;
+}
+
+export default function App() {
+  // AuthProvider makes the session available to the whole tree.
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }
