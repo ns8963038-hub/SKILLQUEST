@@ -100,9 +100,43 @@ Same model, a fraction of the memory — fastembed runs it through ONNX with no 
 ## Not throwaway
 Only the **data source** changes later: today `App.tsx` feeds it `MOCK_ROADMAP`; once auth + the Web API are wired, the same components render `/ai/roadmap` output joined with the student's real progress. The layout, states, and accessibility are done.
 
-## 8. What's next in M1 (needs the Supabase auth keys)
-- [x] `/ai/goal-map` (free-text goal → goalCategory via embeddings)
-- [x] Roadmap screen (frontend) — mock data; swaps to live API after auth
-- [ ] Supabase auth: JWT verification middleware (backend), sign-in (frontend)
-- [ ] Onboarding wizard + quiz (persist attempts) → Web API → `/ai/goal-map` + `/ai/roadmap`
-- [ ] Persist the generated roadmap to `roadmaps` / `roadmap_items`, and serve it to the screen
+---
+
+# M1 Notes — Part 4: Backend Auth + Onboarding API
+
+## What was built
+- `auth.ts` — verifies the Supabase access token and attaches the user id to the request.
+- `aiClient.ts` — calls the AI service (`/ai/goal-map`, `/ai/roadmap`) with the internal key.
+- `routes/` — `GET /api/me`, `POST /api/onboarding/complete`, `GET /api/roadmap`.
+- `events.ts`, `http.ts` (async error wrapper), a central error handler.
+
+## How auth works (the important part)
+Supabase signs each logged-in user's access token with **HS256 using the project's JWT secret**. Our backend has that secret, so it verifies the token **locally** — no call back to Supabase per request. From the verified token we read `sub` (the `auth.users` UUID); that UUID *is* `profiles.id`, which is why creating a profile satisfies the `auth.users` foreign key. The anon/public key is also a signed JWT but has **no `sub`**, so we reject it — only real users get in.
+
+## The onboarding call, end to end
+`POST /api/onboarding/complete` is the one call the wizard makes at the end:
+1. free-text goal → `/ai/goal-map` → `goalCategory`
+2. `goalCategory` + hours + tested-out → `/ai/roadmap` → the plan
+3. profile answers + quiz attempts + target companies + the new roadmap are all saved in **one transaction** (so a mid-way failure leaves nothing half-written), and `onboarding_step` is set to 5.
+
+The browser never calls `/ai/*` — it only calls this Web API route, which is the single gateway.
+
+## Proof (live, against the real DB + AI service)
+Using a minted token for a real auth user:
+- `GET /api/me` → profile created, `onboardingStep = 0`; a **garbage token → 401**.
+- `POST /api/onboarding/complete` with goal "crack the Infosys and TCS placement" → `goalCategory: service_placement`, **19 skills across 5 weeks** persisted.
+- `GET /api/roadmap` → 19 nodes with real titles, first one `current`, rest `locked`.
+
+## Likely viva questions
+**Q: How does your backend know who the user is?**
+Every request carries the Supabase access token. We verify its HS256 signature with our project's JWT secret and read the user id from it — locally, so there's no per-request round-trip to Supabase. Unauthenticated or tampered tokens get a 401.
+
+**Q: Why is onboarding one endpoint and one transaction?**
+The plan, the profile, the quiz answers, and the target companies must all succeed together — a roadmap saved without the profile marked complete (or vice-versa) would be a broken state. Wrapping them in a transaction makes it all-or-nothing.
+
+## 8. What's next — the final M1 piece (frontend)
+- [x] `/ai/goal-map`, roadmap screen (mock), backend auth + onboarding API
+- [ ] Frontend: supabase-js sign-in screen + session handling
+- [ ] Frontend: onboarding wizard + quiz → `POST /api/onboarding/complete`
+- [ ] Frontend: swap the roadmap screen from mock data to `GET /api/roadmap`
+- [ ] Frontend: route guards (send unauthenticated users to sign-in; incomplete onboarding to the wizard)
