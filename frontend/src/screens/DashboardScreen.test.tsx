@@ -22,7 +22,7 @@ import { DashboardScreen } from './DashboardScreen';
 
 describe('DashboardScreen', () => {
   it('shows level, streak, quest, and badges', async () => {
-    render(<DashboardScreen onContinue={() => {}} onViewRoadmap={() => {}} />);
+    render(<DashboardScreen onContinue={() => {}} onViewRoadmap={() => {}} onViewPlacement={() => {}} />);
     expect(await screen.findByText(/level 1/i)).toBeInTheDocument();
     expect(screen.getByText(/3-day streak/i)).toBeInTheDocument();
     expect(screen.getByText(/continue your quest/i)).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('DashboardScreen', () => {
 
   it('opens the quest level when Resume is clicked', async () => {
     const onContinue = vi.fn();
-    render(<DashboardScreen onContinue={onContinue} onViewRoadmap={() => {}} />);
+    render(<DashboardScreen onContinue={onContinue} onViewRoadmap={() => {}} onViewPlacement={() => {}} />);
     (await screen.findByRole('button', { name: /resume/i })).click();
     expect(onContinue).toHaveBeenCalledWith('arrays-01');
   });

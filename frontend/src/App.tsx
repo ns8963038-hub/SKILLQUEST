@@ -6,6 +6,7 @@ import { OnboardingWizard } from './screens/OnboardingWizard';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
+import { PlacementScreen } from './screens/PlacementScreen';
 
 // The minimal slice of the profile the app-level flow needs.
 interface Profile {
@@ -29,11 +30,12 @@ function AppInner() {
   const { session, loading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  // Which authenticated screen is showing: the dashboard (home) or the roadmap.
-  const [view, setView] = useState<'dashboard' | 'roadmap'>('dashboard');
+  // Which authenticated screen is showing.
+  type View = 'dashboard' | 'roadmap' | 'placement';
+  const [view, setView] = useState<View>('dashboard');
   // When set, the play screen for this level is shown; playReturn is where Back goes.
   const [playLevelId, setPlayLevelId] = useState<string | null>(null);
-  const [playReturn, setPlayReturn] = useState<'dashboard' | 'roadmap'>('dashboard');
+  const [playReturn, setPlayReturn] = useState<View>('dashboard');
 
   // Fetch (creating on first login) the profile whenever we have a session.
   const loadProfile = useCallback(async () => {
@@ -57,7 +59,7 @@ function AppInner() {
   if (profile.onboardingStep < 5) return <OnboardingWizard onComplete={loadProfile} />;
 
   // Open a level, remembering which screen to return to.
-  const openLevel = (levelId: string, from: 'dashboard' | 'roadmap') => {
+  const openLevel = (levelId: string, from: View) => {
     setPlayReturn(from);
     setPlayLevelId(levelId);
   };
@@ -82,11 +84,20 @@ function AppInner() {
       />
     );
   }
+  if (view === 'placement') {
+    return (
+      <PlacementScreen
+        onOpenLevel={(id) => openLevel(id, 'placement')}
+        onBack={() => setView('dashboard')}
+      />
+    );
+  }
   // Home.
   return (
     <DashboardScreen
       onContinue={(id) => openLevel(id, 'dashboard')}
       onViewRoadmap={() => setView('roadmap')}
+      onViewPlacement={() => setView('placement')}
     />
   );
 }

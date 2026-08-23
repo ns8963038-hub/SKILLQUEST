@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Flame, Zap, Map } from 'lucide-react';
+import { Flame, Zap, Map, Briefcase } from 'lucide-react';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
 
@@ -22,9 +22,11 @@ interface DashboardData {
 export function DashboardScreen({
   onContinue,
   onViewRoadmap,
+  onViewPlacement,
 }: {
   onContinue: (levelId: string) => void;
   onViewRoadmap: () => void;
+  onViewPlacement: () => void;
 }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,14 +133,23 @@ export function DashboardScreen({
           )}
         </div>
 
-        {/* Link to the full roadmap. */}
-        <button
-          type="button"
-          onClick={onViewRoadmap}
-          className="flex min-h-[44px] items-center gap-2 text-sm text-primary-fg hover:underline"
-        >
-          <Map size={16} aria-hidden /> View full roadmap
-        </button>
+        {/* Links to the roadmap and placement readiness. */}
+        <div className="flex flex-wrap gap-4">
+          <button
+            type="button"
+            onClick={onViewRoadmap}
+            className="flex min-h-[44px] items-center gap-2 text-sm text-primary-fg hover:underline"
+          >
+            <Map size={16} aria-hidden /> View full roadmap
+          </button>
+          <button
+            type="button"
+            onClick={onViewPlacement}
+            className="flex min-h-[44px] items-center gap-2 text-sm text-primary-fg hover:underline"
+          >
+            <Briefcase size={16} aria-hidden /> Placement readiness
+          </button>
+        </div>
       </main>
     </div>
   );
