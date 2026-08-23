@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
-import { RoadmapView } from '../features/roadmap/RoadmapView';
+import { QuestMap } from '../features/quest/QuestMap';
 import type { RoadmapNode } from '../features/roadmap/types';
 
 // The roadmap screen with REAL data: fetches the student's persisted plan from
@@ -49,7 +49,7 @@ export function RoadmapScreen({
       )}
       {!error && !nodes && <p className="p-8 text-content-muted">Loading your roadmap…</p>}
       {nodes && (
-        <RoadmapView nodes={nodes} onSelectSkill={(skillId) => onOpenLevel(`${skillId}-01`)} />
+        <QuestMap nodes={nodes} onSelectSkill={(skillId) => onOpenLevel(`${skillId}-01`)} />
       )}
     </div>
   );
