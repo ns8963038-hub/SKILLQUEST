@@ -8,6 +8,9 @@ vi.mock('@monaco-editor/react', () => ({
   ),
 }));
 
+// canvas-confetti touches a real canvas, which jsdom doesn't have — stub it.
+vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
+
 // Mock the API: the level GET returns a level, the submit POST returns a pass.
 vi.mock('../lib/api', () => ({
   api: vi.fn((path: string) =>
@@ -37,15 +40,15 @@ vi.mock('../lib/api', () => ({
 import { PlayScreen } from './PlayScreen';
 
 describe('PlayScreen', () => {
-  it('loads the level, runs tests, and shows XP on a pass', async () => {
+  it('loads the level, runs tests, and opens the treasure on a pass', async () => {
     render(<PlayScreen levelId="arrays-01" onBack={() => {}} />);
 
     // The level loads and its title shows.
     expect(await screen.findByRole('heading', { name: /max in array/i })).toBeInTheDocument();
 
-    // Running the tests shows the passing result and the XP award.
+    // Running the tests opens the treasure chest and shows the XP.
     screen.getByRole('button', { name: /run tests/i }).click();
-    expect(await screen.findByText(/1\/1 tests passed/i)).toBeInTheDocument();
-    expect(screen.getByText(/\+50 xp/i)).toBeInTheDocument();
+    expect(await screen.findByText(/treasure unlocked/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/\+50 xp/i).length).toBeGreaterThan(0);
   });
 });
