@@ -15,9 +15,19 @@ const schema = z.object({
   SUPABASE_JWT_SECRET: z.string().optional(),
   INTERNAL_API_KEY: z.string().optional(),
   AI_SERVICE_URL: z.string().default('http://localhost:8000'),
-  // Which code-execution backend to use. 'mock' is a stub for building the UI;
-  // 'judge0' runs real Java. Swappable without touching the routes (TRD 5.1).
-  EXECUTION_BACKEND: z.enum(['mock', 'judge0']).default('mock'),
+  // Which code-execution backend to use. All implement the same interface, so
+  // switching is pure config (TRD 5.1):
+  //   'mock'   — stub for building the UI (no real execution)
+  //   'paiza'  — real Java via Paiza.IO's free public runner (no card/account)
+  //   'piston' — real Java via a Piston instance (public API is whitelist-only
+  //              now, so this is mainly for a self-hosted Piston)
+  //   'judge0' — real Java via a Judge0 instance (RapidAPI or self-hosted)
+  EXECUTION_BACKEND: z.enum(['mock', 'paiza', 'piston', 'judge0']).default('mock'),
+  // Paiza.IO base URL + key. Defaults to the free public API with the guest key.
+  PAIZA_URL: z.string().default('https://api.paiza.io'),
+  PAIZA_API_KEY: z.string().default('guest'),
+  // Piston base URL (for a self-hosted instance).
+  PISTON_URL: z.string().default('https://emkc.org/api/v2/piston'),
   // Judge0 base URL — a hosted instance (RapidAPI) or your self-hosted one.
   // e.g. https://judge0-ce.p.rapidapi.com  or  http://<your-vm-ip>:2358
   JUDGE0_URL: z.string().optional(),

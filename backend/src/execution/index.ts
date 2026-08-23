@@ -1,5 +1,7 @@
 import { env } from '../env';
 import { MockExecutor } from './mockExecutor';
+import { PaizaExecutor } from './paizaExecutor';
+import { PistonExecutor } from './pistonExecutor';
 import { Judge0Executor } from './judge0Executor';
 import type { ExecutionService } from './types';
 
@@ -11,6 +13,14 @@ let instance: ExecutionService | null = null;
 export function getExecutor(): ExecutionService {
   if (instance) return instance;
   switch (env.EXECUTION_BACKEND) {
+    case 'paiza':
+      // Real Java via Paiza's free public runner — no key, no account.
+      instance = new PaizaExecutor(env.PAIZA_URL, env.PAIZA_API_KEY);
+      break;
+    case 'piston':
+      // Real Java via a (typically self-hosted) Piston instance.
+      instance = new PistonExecutor(env.PISTON_URL);
+      break;
     case 'judge0':
       if (!env.JUDGE0_URL) {
         throw new Error('EXECUTION_BACKEND=judge0 but JUDGE0_URL is not set');

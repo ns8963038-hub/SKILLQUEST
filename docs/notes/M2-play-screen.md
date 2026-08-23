@@ -92,9 +92,19 @@ RapidAPI headers are added only when a key is present. Tested against a mocked J
 1. **Quickest:** free RapidAPI account → subscribe to "Judge0 CE" → put the key + URL in `backend/.env`, set `EXECUTION_BACKEND=judge0`. Real Java from any machine (incl. the Mac). ~50 runs/day.
 2. **For pilots:** self-host on an x86 Linux box or a GCP `e2-small`/`e2-medium` VM ($300 free credit) → point `JUDGE0_URL` at it, drop the RapidAPI key.
 
+## Real Java is live — via Paiza (free, no card)
+RapidAPI's free Judge0 tier turned out to demand a working card, and the free public Piston went whitelist-only (Feb 2026). So the real executor we actually run is **Paiza.IO's free public runner** — no account, no card, accepts our `public class Main`, works from the Mac.
+
+- `PaizaExecutor` implements the same `ExecutionService`; switching is pure config: `EXECUTION_BACKEND=paiza` (now set in `backend/.env`).
+- **Verified with real OpenJDK, live:** the reference solution → `accepted` (`9`, `-5`); a wrong solution (prints the count) → `wrong_answer` (`5`, `1`). Real compile + run + grade.
+- 3 unit tests (mocked) cover accepted / wrong-answer / compile-error.
+
+We now have **four** interchangeable backends (env-selected): `mock` (offline dev), `paiza` (free real Java, default), `piston` (self-hosted), `judge0` (RapidAPI/self-hosted). All the same interface — the routes never change.
+
+**Caveat:** free public runners are rate-limited and can change (Piston just did). Paiza's guest key is fine for dev + small pilots; for heavy/pilot load, self-host Judge0 or Piston on an x86 Linux box / cheap cloud VM.
+
 ## What's left in M2
 - [x] Monaco play screen, mobile tabs, wired to the roadmap
-- [x] **Judge0 executor** — written + tested; just needs a live Judge0 URL in env to switch on
-- [ ] Point it at a real Judge0 (RapidAPI now / self-hosted before pilots) and run one real Java submission
-- [ ] Browser-verify the whole click-through (Playwright MCP + restart)
+- [x] Real Java execution — **Paiza, verified live**; Judge0/Piston ready for self-host
+- [ ] Browser-verify the whole click-through (Playwright MCP is now active; needs the servers running + "Confirm email" off)
 - [ ] Pilot #2: 5 students on the play screen
