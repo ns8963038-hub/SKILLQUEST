@@ -6,6 +6,7 @@ import { logEvent } from '../events';
 import { getExecutor } from '../execution';
 import { computeStreak } from '../gamification/streak';
 import { badgesToAward } from '../gamification/badges';
+import { advanceRoadmap } from '../roadmap/advance';
 
 export const levelsRouter = Router();
 
@@ -189,6 +190,9 @@ levelsRouter.post(
     });
 
     await logEvent(userId, 'level_submit', { levelId, passRatio, verdict: run.verdict });
+
+    // If this finished the level, advance the roadmap (unlock the next chest).
+    if (justCompleted) await advanceRoadmap(userId);
 
     // Look up display info for any badges just earned (for the celebration).
     const newBadges = newBadgeIds.length

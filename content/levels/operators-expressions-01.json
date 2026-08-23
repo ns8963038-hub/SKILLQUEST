@@ -1,0 +1,19 @@
+{
+  "id": "operators-expressions-01",
+  "skillId": "operators-expressions",
+  "title": "Evaluate a * b + c",
+  "difficulty": 1,
+  "statementMd": "Read three integers **a**, **b**, **c** (space-separated) and print the value of `a * b + c`.\n\n**Example**\nInput:\n```\n2 3 4\n```\nOutput:\n```\n10\n```",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        int c = sc.nextInt();\n        // TODO: print a * b + c\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        int c = sc.nextInt();\n        System.out.println(a * b + c);\n    }\n}\n",
+  "hints": ["Multiplication happens before addition, so a * b + c already does the right thing."],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    { "stdin": "2 3 4\n", "expectedOutput": "10", "isHidden": false, "weight": 1, "ordinal": 1 },
+    { "stdin": "5 0 3\n", "expectedOutput": "3", "isHidden": false, "weight": 1, "ordinal": 2 },
+    { "stdin": "10 10 10\n", "expectedOutput": "110", "isHidden": true, "weight": 1, "ordinal": 3 }
+  ]
+}

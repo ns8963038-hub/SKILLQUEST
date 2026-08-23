@@ -1,0 +1,19 @@
+{
+  "id": "conditionals-01",
+  "skillId": "conditionals",
+  "title": "Even or Odd",
+  "difficulty": 1,
+  "statementMd": "Read an integer **n**. Print `Even` if it is even, otherwise `Odd`.\n\n**Example**\nInput:\n```\n7\n```\nOutput:\n```\nOdd\n```",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        // TODO: print \"Even\" or \"Odd\"\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        System.out.println(n % 2 == 0 ? \"Even\" : \"Odd\");\n    }\n}\n",
+  "hints": ["A number is even when n % 2 equals 0."],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    { "stdin": "4\n", "expectedOutput": "Even", "isHidden": false, "weight": 1, "ordinal": 1 },
+    { "stdin": "7\n", "expectedOutput": "Odd", "isHidden": false, "weight": 1, "ordinal": 2 },
+    { "stdin": "0\n", "expectedOutput": "Even", "isHidden": true, "weight": 1, "ordinal": 3 }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "loops-01",
+  "skillId": "loops",
+  "title": "Sum from 1 to N",
+  "difficulty": 1,
+  "statementMd": "Read an integer **n** and print the sum `1 + 2 + ... + n`.\n\n**Example**\nInput:\n```\n5\n```\nOutput:\n```\n15\n```",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        // TODO: print the sum 1..n using a loop\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int sum = 0;\n        for (int i = 1; i <= n; i++) sum += i;\n        System.out.println(sum);\n    }\n}\n",
+  "hints": ["Start sum at 0 and add each i from 1 to n inside a loop."],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    { "stdin": "5\n", "expectedOutput": "15", "isHidden": false, "weight": 1, "ordinal": 1 },
+    { "stdin": "1\n", "expectedOutput": "1", "isHidden": false, "weight": 1, "ordinal": 2 },
+    { "stdin": "100\n", "expectedOutput": "5050", "isHidden": true, "weight": 1, "ordinal": 3 }
+  ]
+}

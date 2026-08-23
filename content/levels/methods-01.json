@@ -1,0 +1,19 @@
+{
+  "id": "methods-01",
+  "skillId": "methods",
+  "title": "Square of a Number",
+  "difficulty": 1,
+  "statementMd": "Write a method `square(int x)` that returns `x * x`, use it to square the input **n**, and print the result.\n\n**Example**\nInput:\n```\n5\n```\nOutput:\n```\n25\n```",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    // TODO: complete this method\n    static int square(int x) {\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        System.out.println(square(n));\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    static int square(int x) {\n        return x * x;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        System.out.println(square(n));\n    }\n}\n",
+  "hints": ["A method returns a value with the return keyword: return x * x;"],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    { "stdin": "5\n", "expectedOutput": "25", "isHidden": false, "weight": 1, "ordinal": 1 },
+    { "stdin": "0\n", "expectedOutput": "0", "isHidden": false, "weight": 1, "ordinal": 2 },
+    { "stdin": "-3\n", "expectedOutput": "9", "isHidden": true, "weight": 1, "ordinal": 3 }
+  ]
+}
