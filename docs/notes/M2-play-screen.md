@@ -106,5 +106,26 @@ We now have **four** interchangeable backends (env-selected): `mock` (offline de
 ## What's left in M2
 - [x] Monaco play screen, mobile tabs, wired to the roadmap
 - [x] Real Java execution — **Paiza, verified live**; Judge0/Piston ready for self-host
-- [ ] Browser-verify the whole click-through (Playwright MCP is now active; needs the servers running + "Confirm email" off)
+- [x] **Browser-verified the whole click-through** (Playwright) — see Part 3
 - [ ] Pilot #2: 5 students on the play screen
+
+---
+
+# M2 Notes — Part 3: Full Browser Verification (Playwright)
+
+Drove the real app in a real browser, end to end:
+**sign up → 12-question quiz → roadmap → open a level → Monaco → Run Tests → real Java → +50 XP.**
+
+Two things this proved that unit/integration tests could not:
+1. **The quiz test-out is real:** answering all 3 loops questions correctly made **Loops disappear from the generated roadmap** — visible in the browser.
+2. **The play loop is real:** typing a Java solution and clicking Run Tests ran it on Paiza and showed **4/4 passed (2 visible + 2 hidden) · +50 XP**, with hidden cases showing pass/fail only.
+
+## The bug browser-testing caught (viva gold)
+`/api/me` returned **401** with a genuine logged-in user, even though every auth unit test passed. Cause: **new Supabase projects sign user tokens with `ES256`** (asymmetric keys, a `kid` in the header), not the legacy `HS256` shared secret. Our middleware verified with the HS256 secret, so real tokens were rejected. The tests missed it because they *also* used HS256.
+
+Fix: verify against Supabase's public **JWKS** (`/auth/v1/.well-known/jwks.json`) with `jose` — it fetches and caches the public keys and checks the ES256 signature, issuer, and audience. Tests rewritten to generate a real ES256 key + a local JWKS.
+
+**Q an examiner might ask — "how does your API trust the token without calling Supabase every time?"** Supabase publishes its public keys once at a well-known URL; we cache them and verify each token's signature locally. No per-request round-trip, and we never hold a shared secret.
+
+## M2 is complete
+Every layer verified — backend (supertest + live), real Java (Paiza), and the whole UI (Playwright). The vertical slice — the make-or-break milestone — is done.
