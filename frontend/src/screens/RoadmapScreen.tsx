@@ -7,7 +7,13 @@ import type { RoadmapNode } from '../features/roadmap/types';
 // The roadmap screen with REAL data: fetches the student's persisted plan from
 // GET /api/roadmap and renders it with the same RoadmapView built earlier.
 // Clicking a skill opens its first level (convention: `<skillId>-01`).
-export function RoadmapScreen({ onOpenLevel }: { onOpenLevel: (levelId: string) => void }) {
+export function RoadmapScreen({
+  onOpenLevel,
+  onBack,
+}: {
+  onOpenLevel: (levelId: string) => void;
+  onBack: () => void;
+}) {
   const [nodes, setNodes] = useState<RoadmapNode[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,9 +26,13 @@ export function RoadmapScreen({ onOpenLevel }: { onOpenLevel: (levelId: string) 
   return (
     <div className="min-h-screen">
       <header className="flex items-center justify-between border-b border-line px-4 py-3 sm:px-8">
-        <span className="text-lg font-bold">
-          <span className="text-primary-fg">Skill</span>Quest
-        </span>
+        <button
+          type="button"
+          onClick={onBack}
+          className="min-h-[44px] text-sm text-primary-fg hover:underline"
+        >
+          ← Dashboard
+        </button>
         <button
           type="button"
           onClick={() => supabase.auth.signOut()}

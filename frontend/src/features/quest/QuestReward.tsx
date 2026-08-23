@@ -2,10 +2,24 @@ import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { QuestChest } from './QuestChest';
 
+interface RewardBadge {
+  id: string;
+  title: string;
+  icon: string | null;
+}
+
 // The payoff overlay shown when the student's code passes: the chest opens, a
-// burst of confetti fires, and the XP is announced. This is the "treasure opens
-// when you solve it" moment.
-export function QuestReward({ xp, onContinue }: { xp: number; onContinue: () => void }) {
+// burst of confetti fires, and the XP + any new badges are announced. This is
+// the "treasure opens when you solve it" moment.
+export function QuestReward({
+  xp,
+  badges = [],
+  onContinue,
+}: {
+  xp: number;
+  badges?: RewardBadge[];
+  onContinue: () => void;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -39,6 +53,19 @@ export function QuestReward({ xp, onContinue }: { xp: number; onContinue: () => 
         <h2 className="mt-2 text-2xl font-bold">Treasure unlocked! 🎉</h2>
         <p className="mt-1 text-sm text-content-muted">Your code opened the chest.</p>
         {xp > 0 && <p className="mt-3 text-xl font-bold text-accent">+{xp} XP ⚡</p>}
+        {/* Any badges earned by this solve. */}
+        {badges.length > 0 && (
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {badges.map((b) => (
+              <span
+                key={b.id}
+                className="rounded-full border border-line bg-surface-2 px-3 py-1 text-sm"
+              >
+                {b.icon} New badge: {b.title}
+              </span>
+            ))}
+          </div>
+        )}
         <button
           type="button"
           onClick={onContinue}

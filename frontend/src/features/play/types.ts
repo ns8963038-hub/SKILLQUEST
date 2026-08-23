@@ -22,6 +22,13 @@ export interface SubmitCase {
   actualOutput?: string;
 }
 
+// A badge earned by a submission (for the celebration).
+export interface EarnedBadge {
+  id: string;
+  title: string;
+  icon: string | null;
+}
+
 // The response from POST /api/levels/:id/submit.
 export interface SubmitResult {
   verdict: string;
@@ -29,5 +36,7 @@ export interface SubmitResult {
   total: number;
   passRatio: number;
   xpAwarded: number; // > 0 only the first time the level is fully solved
+  currentStreak: number;
+  newBadges: EarnedBadge[];
   cases: SubmitCase[];
 }

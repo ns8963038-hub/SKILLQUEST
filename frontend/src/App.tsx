@@ -5,6 +5,7 @@ import { AuthScreen } from './screens/AuthScreen';
 import { OnboardingWizard } from './screens/OnboardingWizard';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { PlayScreen } from './screens/PlayScreen';
+import { DashboardScreen } from './screens/DashboardScreen';
 
 // The minimal slice of the profile the app-level flow needs.
 interface Profile {
@@ -28,8 +29,11 @@ function AppInner() {
   const { session, loading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  // When set, the play screen for this level is shown instead of the roadmap.
+  // Which authenticated screen is showing: the dashboard (home) or the roadmap.
+  const [view, setView] = useState<'dashboard' | 'roadmap'>('dashboard');
+  // When set, the play screen for this level is shown; playReturn is where Back goes.
   const [playLevelId, setPlayLevelId] = useState<string | null>(null);
+  const [playReturn, setPlayReturn] = useState<'dashboard' | 'roadmap'>('dashboard');
 
   // Fetch (creating on first login) the profile whenever we have a session.
   const loadProfile = useCallback(async () => {
@@ -51,9 +55,40 @@ function AppInner() {
   if (profileLoading || !profile) return <Splash />;
   // Onboarding gate: incomplete users must finish the wizard first.
   if (profile.onboardingStep < 5) return <OnboardingWizard onComplete={loadProfile} />;
-  // Playing a level, or looking at the roadmap.
-  if (playLevelId) return <PlayScreen levelId={playLevelId} onBack={() => setPlayLevelId(null)} />;
-  return <RoadmapScreen onOpenLevel={setPlayLevelId} />;
+
+  // Open a level, remembering which screen to return to.
+  const openLevel = (levelId: string, from: 'dashboard' | 'roadmap') => {
+    setPlayReturn(from);
+    setPlayLevelId(levelId);
+  };
+
+  // Playing a level takes over the screen; Back returns to where it opened from.
+  if (playLevelId) {
+    return (
+      <PlayScreen
+        levelId={playLevelId}
+        onBack={() => {
+          setPlayLevelId(null);
+          setView(playReturn);
+        }}
+      />
+    );
+  }
+  if (view === 'roadmap') {
+    return (
+      <RoadmapScreen
+        onOpenLevel={(id) => openLevel(id, 'roadmap')}
+        onBack={() => setView('dashboard')}
+      />
+    );
+  }
+  // Home.
+  return (
+    <DashboardScreen
+      onContinue={(id) => openLevel(id, 'dashboard')}
+      onViewRoadmap={() => setView('roadmap')}
+    />
+  );
 }
 
 export default function App() {

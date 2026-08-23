@@ -140,7 +140,11 @@ export function PlayScreen({ levelId, onBack }: { levelId: string; onBack: () =>
 
       {/* The treasure-unlocked celebration, shown when all tests pass. */}
       {showReward && (
-        <QuestReward xp={result?.xpAwarded ?? 0} onContinue={() => setShowReward(false)} />
+        <QuestReward
+          xp={result?.xpAwarded ?? 0}
+          badges={result?.newBadges ?? []}
+          onContinue={() => setShowReward(false)}
+        />
       )}
     </div>
   );
