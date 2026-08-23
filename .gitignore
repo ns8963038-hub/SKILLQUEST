@@ -26,6 +26,6 @@ ml/data/
 .vscode/
 .idea/
 
-# Playwright MCP artifacts (browser snapshots/screenshots/logs)
+# Playwright MCP artifacts + screenshots saved at repo root
 .playwright-mcp/
-auth-screen.png
+/*.png

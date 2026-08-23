@@ -1,0 +1,20 @@
+{
+  "id": "java-basics-01",
+  "skillId": "java-basics",
+  "title": "Sum of Two Numbers",
+  "difficulty": 1,
+  "statementMd": "Read two integers **a** and **b** (on one line, space-separated) and print their sum.\n\n**Example**\nInput:\n```\n2 3\n```\nOutput:\n```\n5\n```",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        // TODO: print a + b\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(a + b);\n    }\n}\n",
+  "hints": ["Read both numbers with sc.nextInt(), then print a + b."],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    { "stdin": "2 3\n", "expectedOutput": "5", "isHidden": false, "weight": 1, "ordinal": 1 },
+    { "stdin": "10 20\n", "expectedOutput": "30", "isHidden": false, "weight": 1, "ordinal": 2 },
+    { "stdin": "-4 4\n", "expectedOutput": "0", "isHidden": true, "weight": 1, "ordinal": 3 },
+    { "stdin": "100 250\n", "expectedOutput": "350", "isHidden": true, "weight": 1, "ordinal": 4 }
+  ]
+}

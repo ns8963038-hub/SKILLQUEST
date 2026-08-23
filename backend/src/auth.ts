@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
 import { env } from './env';
 
 // Make the authenticated user's id/email available to every route handler.
@@ -13,39 +13,45 @@ declare global {
   }
 }
 
-// The claims we rely on from a Supabase access token.
-interface SupabaseJwtPayload {
-  sub: string; // the auth.users UUID — this becomes profiles.id
-  email?: string;
-  role?: string; // 'authenticated' for a signed-in user
+// Supabase signs each user's access token with an ASYMMETRIC key (ES256) and
+// publishes the matching PUBLIC keys at /auth/v1/.well-known/jwks.json. We verify
+// tokens against that key set — jose fetches and caches it, and rotates keys
+// automatically. (Older projects used an HS256 shared secret; new ones don't,
+// which is why verifying with the secret failed.)
+let remoteJwks: JWTVerifyGetKey | null = null;
+function jwks(): JWTVerifyGetKey {
+  if (!remoteJwks) {
+    remoteJwks = createRemoteJWKSet(new URL(`${env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+  }
+  return remoteJwks;
 }
 
 /**
- * Verify a Supabase access token and pull out the user id.
+ * Verify a Supabase access token against a JWKS and pull out the user id.
  *
- * Supabase signs access tokens with HS256 using the project's JWT secret, so we
- * can verify them locally — no network call to Supabase per request. Throws if
- * the token is invalid, expired, or isn't a real user token.
- *
- * Kept as a pure function (secret passed in) so it's testable without env or a
- * running server.
+ * The key set + issuer are passed in so this is testable with a locally
+ * generated key (no network). Throws if the token is invalid, expired, from the
+ * wrong issuer/audience, or isn't a real user token.
  */
-export function verifyAccessToken(token: string, secret: string): { userId: string; email?: string } {
-  const payload = jwt.verify(token, secret, { algorithms: ['HS256'] }) as SupabaseJwtPayload;
-  // The anon/public key is also a valid JWT, but it has no `sub`. Requiring a
+export async function verifyAccessToken(
+  token: string,
+  keySet: JWTVerifyGetKey,
+  issuer: string,
+): Promise<{ userId: string; email?: string }> {
+  const { payload } = await jwtVerify(token, keySet, { issuer, audience: 'authenticated' });
+  // The anon/public key is also a signed JWT but has no `sub`. Requiring a
   // subject rejects it, so only real signed-in users get through.
   if (!payload.sub) throw new Error('not a user token');
-  return { userId: payload.sub, email: payload.email };
+  return { userId: payload.sub, email: typeof payload.email === 'string' ? payload.email : undefined };
 }
 
 /**
  * Express middleware guarding every /api route. Reads the Bearer token, verifies
- * it, and attaches userId/userEmail to the request. Any failure ends as 401.
+ * it against Supabase's JWKS, and attaches userId/userEmail. Any failure -> 401.
  */
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
-  if (!env.SUPABASE_JWT_SECRET) {
-    // Misconfiguration, not the caller's fault.
-    res.status(500).json({ error: 'auth not configured (SUPABASE_JWT_SECRET missing)' });
+export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  if (!env.SUPABASE_URL) {
+    res.status(500).json({ error: 'auth not configured (SUPABASE_URL missing)' });
     return;
   }
   const header = req.header('authorization') ?? '';
@@ -55,7 +61,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
   try {
-    const { userId, email } = verifyAccessToken(token, env.SUPABASE_JWT_SECRET);
+    const { userId, email } = await verifyAccessToken(token, jwks(), `${env.SUPABASE_URL}/auth/v1`);
     req.userId = userId;
     req.userEmail = email;
     next();

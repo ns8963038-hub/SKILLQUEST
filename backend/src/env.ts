@@ -12,6 +12,11 @@ const schema = z.object({
     .default('http://localhost:5173')
     .transform((s) => s.split(',').map((o) => o.trim())),
   DATABASE_URL: z.string().optional(),
+  // Supabase project URL — used to fetch the JWKS that verifies user tokens.
+  // e.g. https://<project-ref>.supabase.co
+  SUPABASE_URL: z.string().optional(),
+  // Legacy HS256 secret. New Supabase projects sign tokens with ES256 keys
+  // (verified via JWKS), so this is no longer used for verification.
   SUPABASE_JWT_SECRET: z.string().optional(),
   INTERNAL_API_KEY: z.string().optional(),
   AI_SERVICE_URL: z.string().default('http://localhost:8000'),
