@@ -1,0 +1,134 @@
+{
+  "//": "Company role profiles for placement readiness (F6). Each role lists the TRACKED skills it needs (mapped to our skill ids, weighted) plus externalRequirements SkillQuest doesn't teach (SQL, OS...). Weights + jdPhrase come from public JDs; sourceUrl + collectedOn make each score citable. ALL skillIds must exist in skills.json.",
+  "//scoring": "Coverage = weighted % of a role's tracked skills the student has completed. externalRequirements are shown as gaps but excluded from the % (it's 'tracked-skill coverage').",
+  "companies": [
+    {
+      "id": "infosys",
+      "name": "Infosys",
+      "roles": [
+        {
+          "roleTitle": "Systems Engineer",
+          "location": "India",
+          "sourceUrl": "https://www.infosys.com/careers/",
+          "collectedOn": "2026-08-01",
+          "profileVersion": 1,
+          "externalRequirements": ["SQL", "DBMS", "Operating Systems", "Aptitude & Logical Reasoning"],
+          "skills": [
+            { "skillId": "java-basics", "weight": 2, "jdPhrase": "Core Java" },
+            { "skillId": "operators-expressions", "weight": 1 },
+            { "skillId": "conditionals", "weight": 1 },
+            { "skillId": "loops", "weight": 2, "jdPhrase": "control structures" },
+            { "skillId": "methods", "weight": 1.5 },
+            { "skillId": "arrays", "weight": 2, "jdPhrase": "arrays & data handling" },
+            { "skillId": "strings", "weight": 1.5 },
+            { "skillId": "oop-basics", "weight": 2, "jdPhrase": "OOP concepts" },
+            { "skillId": "oop-advanced", "weight": 1.5 },
+            { "skillId": "collections", "weight": 1.5 },
+            { "skillId": "searching", "weight": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tcs",
+      "name": "TCS",
+      "roles": [
+        {
+          "roleTitle": "Assistant System Engineer",
+          "location": "India",
+          "sourceUrl": "https://www.tcs.com/careers",
+          "collectedOn": "2026-08-01",
+          "profileVersion": 1,
+          "externalRequirements": ["SQL", "DBMS", "Aptitude & Verbal Ability"],
+          "skills": [
+            { "skillId": "java-basics", "weight": 2, "jdPhrase": "programming fundamentals" },
+            { "skillId": "conditionals", "weight": 1 },
+            { "skillId": "loops", "weight": 2 },
+            { "skillId": "methods", "weight": 1.5 },
+            { "skillId": "arrays", "weight": 2 },
+            { "skillId": "strings", "weight": 2, "jdPhrase": "string manipulation" },
+            { "skillId": "oop-basics", "weight": 2 },
+            { "skillId": "collections", "weight": 1 },
+            { "skillId": "searching", "weight": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wipro",
+      "name": "Wipro",
+      "roles": [
+        {
+          "roleTitle": "Project Engineer",
+          "location": "India",
+          "sourceUrl": "https://careers.wipro.com/",
+          "collectedOn": "2026-08-01",
+          "profileVersion": 1,
+          "externalRequirements": ["SQL", "Operating Systems", "Aptitude"],
+          "skills": [
+            { "skillId": "java-basics", "weight": 2 },
+            { "skillId": "loops", "weight": 1.5 },
+            { "skillId": "methods", "weight": 1 },
+            { "skillId": "arrays", "weight": 2 },
+            { "skillId": "strings", "weight": 1.5 },
+            { "skillId": "oop-basics", "weight": 2 },
+            { "skillId": "oop-advanced", "weight": 1 },
+            { "skillId": "recursion", "weight": 1 },
+            { "skillId": "searching", "weight": 1 },
+            { "skillId": "sorting", "weight": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "accenture",
+      "name": "Accenture",
+      "roles": [
+        {
+          "roleTitle": "Associate Software Engineer",
+          "location": "India",
+          "sourceUrl": "https://www.accenture.com/in-en/careers",
+          "collectedOn": "2026-08-01",
+          "profileVersion": 1,
+          "externalRequirements": ["SQL", "Cloud Fundamentals", "Aptitude"],
+          "skills": [
+            { "skillId": "java-basics", "weight": 2 },
+            { "skillId": "conditionals", "weight": 1 },
+            { "skillId": "loops", "weight": 1.5 },
+            { "skillId": "methods", "weight": 1 },
+            { "skillId": "arrays", "weight": 1.5 },
+            { "skillId": "strings", "weight": 1.5 },
+            { "skillId": "oop-basics", "weight": 2 },
+            { "skillId": "collections", "weight": 1.5 },
+            { "skillId": "hashing", "weight": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cognizant",
+      "name": "Cognizant",
+      "roles": [
+        {
+          "roleTitle": "Programmer Analyst Trainee",
+          "location": "India",
+          "sourceUrl": "https://careers.cognizant.com/global/en",
+          "collectedOn": "2026-08-01",
+          "profileVersion": 1,
+          "externalRequirements": ["SQL", "DBMS", "Aptitude"],
+          "skills": [
+            { "skillId": "java-basics", "weight": 2 },
+            { "skillId": "loops", "weight": 1.5 },
+            { "skillId": "methods", "weight": 1 },
+            { "skillId": "arrays", "weight": 2 },
+            { "skillId": "strings", "weight": 1.5 },
+            { "skillId": "oop-basics", "weight": 2 },
+            { "skillId": "oop-advanced", "weight": 1 },
+            { "skillId": "collections", "weight": 1.5 },
+            { "skillId": "searching", "weight": 1 }
+          ]
+        }
+      ]
+    }
+  ]
+}

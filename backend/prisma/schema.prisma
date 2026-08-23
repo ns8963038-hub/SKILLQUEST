@@ -322,7 +322,10 @@ model CompanyRoleProfile {
   collectedOn    DateTime @map("collected_on") @db.Date
   profileVersion Int      @default(1) @map("profile_version")
   isActive       Boolean  @default(true) @map("is_active")
-  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // Role requirements SkillQuest does NOT teach yet (e.g. SQL, OS). Shown as
+  // "external / future track" gaps — informational, no "Train this" action.
+  externalRequirements String[] @default([]) @map("external_requirements")
+  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   skills          CompanySkill[]
   placementScores PlacementScore[]

@@ -92,6 +92,35 @@ function loadBadges(): Badge[] {
   return raw.badges.map((b) => BadgeSchema.parse(b));
 }
 
+// Company role profiles for placement scoring.
+const CompanyRoleSchema = z.object({
+  roleTitle: z.string(),
+  location: z.string().optional(),
+  sourceUrl: z.string(),
+  collectedOn: z.string(), // ISO date
+  profileVersion: z.number().int().positive(),
+  externalRequirements: z.array(z.string()).default([]),
+  skills: z.array(
+    z.object({
+      skillId: z.string(),
+      weight: z.number().positive(),
+      jdPhrase: z.string().optional(),
+    }),
+  ),
+});
+const CompanySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  logo: z.string().nullish(),
+  roles: z.array(CompanyRoleSchema),
+});
+type Company = z.infer<typeof CompanySchema>;
+
+function loadCompanies(): Company[] {
+  const raw = readJson(join(CONTENT_DIR, 'companies.json')) as { companies: unknown[] };
+  return raw.companies.map((c) => CompanySchema.parse(c));
+}
+
 // Load + validate skills.json (the `skills` array; sibling "//" notes are ignored).
 function loadSkills(): Skill[] {
   const raw = readJson(join(CONTENT_DIR, 'skills.json')) as { skills: unknown[] };
@@ -166,10 +195,22 @@ async function seed(): Promise<void> {
   const goalProfiles = loadGoalProfiles();
   const levels = loadLevels();
   const badges = loadBadges();
+  const companies = loadCompanies();
 
   // Validate BEFORE any write — nothing touches the DB unless everything is sound.
   assertValidGraph(skills);
   assertLevelsReferenceSkills(levels, skills);
+  // Every company skill must map to a real (tracked) skill.
+  const skillIds = new Set(skills.map((s) => s.id));
+  for (const c of companies) {
+    for (const r of c.roles) {
+      for (const cs of r.skills) {
+        if (!skillIds.has(cs.skillId)) {
+          throw new Error(`Company "${c.id}" role "${r.roleTitle}" references unknown skill "${cs.skillId}"`);
+        }
+      }
+    }
+  }
 
   // Skills first (everything else points at them). Upsert = insert-or-update by id.
   for (const s of skills) {
@@ -227,9 +268,51 @@ async function seed(): Promise<void> {
     await prisma.badge.upsert({ where: { id: b.id }, create: { id: b.id, ...data }, update: data });
   }
 
+  // Companies -> role profiles -> company skills. Re-authoring a role should
+  // fully replace its skill set, so we clear and rebuild the skills each time.
+  let roleCount = 0;
+  for (const c of companies) {
+    await prisma.company.upsert({
+      where: { id: c.id },
+      create: { id: c.id, name: c.name, logo: c.logo ?? null },
+      update: { name: c.name, logo: c.logo ?? null },
+    });
+    for (const r of c.roles) {
+      const profileData = {
+        location: r.location ?? null,
+        sourceUrl: r.sourceUrl,
+        collectedOn: new Date(r.collectedOn),
+        isActive: true,
+        externalRequirements: r.externalRequirements,
+      };
+      const profile = await prisma.companyRoleProfile.upsert({
+        where: {
+          companyId_roleTitle_profileVersion: {
+            companyId: c.id,
+            roleTitle: r.roleTitle,
+            profileVersion: r.profileVersion,
+          },
+        },
+        create: { companyId: c.id, roleTitle: r.roleTitle, profileVersion: r.profileVersion, ...profileData },
+        update: profileData,
+      });
+      await prisma.companySkill.deleteMany({ where: { profileId: profile.id } });
+      await prisma.companySkill.createMany({
+        data: r.skills.map((s) => ({
+          profileId: profile.id,
+          skillId: s.skillId,
+          weight: s.weight,
+          jdPhrase: s.jdPhrase ?? null,
+          isTracked: true,
+        })),
+      });
+      roleCount++;
+    }
+  }
+
   // A short summary so a successful run is obvious.
   console.log(
-    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${badges.length} badges.`,
+    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${badges.length} badges, ${companies.length} companies (${roleCount} roles).`,
   );
 }
 
