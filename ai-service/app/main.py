@@ -94,3 +94,28 @@ def goal_map(req: GoalMapRequest) -> GoalMapResponse:
 
     result = map_goal(req.text, embed)
     return GoalMapResponse(goalCategory=result.category, confidence=round(result.confidence, 4))
+
+
+# ----- /ai/risk-score: disengagement risk from a feature row (TRD 6.3) -----
+
+
+class RiskScoreRequest(BaseModel):
+    """The feature row the Web API computed from a student's events log."""
+
+    features: dict
+
+
+class RiskScoreResponse(BaseModel):
+    probability: float
+    tier: str  # healthy | watch | atrisk
+    modelVersion: str
+    featureSetVersion: str
+    thresholdVersion: str
+
+
+@app.post("/ai/risk-score", dependencies=[Depends(require_internal_key)])
+def risk_score(req: RiskScoreRequest) -> RiskScoreResponse:
+    """Score one feature row (uses the trained model if present, else baseline)."""
+    from .risk import score
+
+    return RiskScoreResponse(**score(req.features))

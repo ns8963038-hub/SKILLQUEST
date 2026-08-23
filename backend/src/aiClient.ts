@@ -40,3 +40,17 @@ export async function generateRoadmap(params: {
 }): Promise<RoadmapItemDto[]> {
   return callAi('/ai/roadmap', params);
 }
+
+// The disengagement-risk score for one feature row.
+export interface RiskScoreResult {
+  probability: number;
+  tier: 'healthy' | 'watch' | 'atrisk';
+  modelVersion: string;
+  featureSetVersion: string;
+  thresholdVersion: string;
+}
+
+// Score a student's disengagement risk from their computed feature row.
+export async function riskScore(features: Record<string, number>): Promise<RiskScoreResult> {
+  return callAi('/ai/risk-score', { features });
+}
