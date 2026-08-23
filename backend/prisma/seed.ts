@@ -71,9 +71,25 @@ const LevelSchema = z.object({
 });
 type Level = z.infer<typeof LevelSchema>;
 
+// One badge in the catalog (display data; award rules live in the app).
+const BadgeSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  icon: z.string().optional(),
+  criteria: z.string().optional(),
+});
+type Badge = z.infer<typeof BadgeSchema>;
+
 // Read a JSON file and return its parsed object.
 function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+// Load + validate badges.json.
+function loadBadges(): Badge[] {
+  const raw = readJson(join(CONTENT_DIR, 'badges.json')) as { badges: unknown[] };
+  return raw.badges.map((b) => BadgeSchema.parse(b));
 }
 
 // Load + validate skills.json (the `skills` array; sibling "//" notes are ignored).
@@ -149,6 +165,7 @@ async function seed(): Promise<void> {
   const skills = loadSkills();
   const goalProfiles = loadGoalProfiles();
   const levels = loadLevels();
+  const badges = loadBadges();
 
   // Validate BEFORE any write — nothing touches the DB unless everything is sound.
   assertValidGraph(skills);
@@ -204,9 +221,15 @@ async function seed(): Promise<void> {
     });
   }
 
+  // Badge catalog (display data). Upsert by id.
+  for (const b of badges) {
+    const data = { title: b.title, description: b.description, icon: b.icon ?? null, criteria: b.criteria ?? null };
+    await prisma.badge.upsert({ where: { id: b.id }, create: { id: b.id, ...data }, update: data });
+  }
+
   // A short summary so a successful run is obvious.
   console.log(
-    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels.`,
+    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${badges.length} badges.`,
   );
 }
 

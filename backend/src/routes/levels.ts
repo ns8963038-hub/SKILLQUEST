@@ -4,6 +4,8 @@ import { prisma } from '../db';
 import { asyncHandler } from '../http';
 import { logEvent } from '../events';
 import { getExecutor } from '../execution';
+import { computeStreak } from '../gamification/streak';
+import { badgesToAward } from '../gamification/badges';
 
 export const levelsRouter = Router();
 
@@ -91,8 +93,11 @@ levelsRouter.post(
     const passRatio = total === 0 ? 0 : passed / total;
     const allPass = total > 0 && passed === total;
 
-    // Persist progress + (atomically) award XP, all in one transaction.
+    // Persist progress + (atomically) award XP + streak + badges, in one txn.
     let xpAwarded = 0;
+    let justCompleted = false;
+    let newBadgeIds: string[] = [];
+    let currentStreak = 0;
     await prisma.$transaction(async (tx) => {
       // Ensure the user_level row exists and count this attempt.
       const ul = await tx.userLevel.upsert({
@@ -117,6 +122,7 @@ levelsRouter.post(
           data: { status: 'completed', completedAt: new Date() },
         });
         if (claimed.count === 1) {
+          justCompleted = true;
           await tx.profile.update({
             where: { id: userId },
             data: { totalXp: { increment: level.xpReward } },
@@ -128,6 +134,54 @@ levelsRouter.post(
         }
       }
 
+      // --- Streak: every submit counts as activity today (PRD F4).
+      const p = await tx.profile.findUnique({
+        where: { id: userId },
+        select: { currentStreak: true, bestStreak: true, lastActiveDate: true },
+      });
+      const streak = computeStreak(
+        p?.lastActiveDate ?? null,
+        new Date(),
+        p?.currentStreak ?? 0,
+        p?.bestStreak ?? 0,
+      );
+      if (streak.changed) {
+        await tx.profile.update({
+          where: { id: userId },
+          data: {
+            currentStreak: streak.currentStreak,
+            bestStreak: streak.bestStreak,
+            lastActiveDate: streak.lastActiveDate,
+          },
+        });
+      }
+      currentStreak = streak.currentStreak;
+
+      // --- Badges: award any newly-earned ones (idempotent).
+      const earnedRows = await tx.userBadge.findMany({ where: { userId }, select: { badgeId: true } });
+      const earned = new Set(earnedRows.map((e) => e.badgeId));
+      const totalCompleted = justCompleted
+        ? await tx.userLevel.count({ where: { userId, status: 'completed' } })
+        : 0;
+      newBadgeIds = badgesToAward(
+        {
+          justCompletedLevel: justCompleted,
+          totalCompletedLevels: totalCompleted,
+          hintsUsedThisLevel: ul.hintsUsed,
+          currentStreak: streak.currentStreak,
+        },
+        earned,
+      );
+      if (newBadgeIds.length) {
+        await tx.userBadge.createMany({
+          data: newBadgeIds.map((badgeId) => ({ userId, badgeId })),
+          skipDuplicates: true,
+        });
+        for (const badgeId of newBadgeIds) {
+          await tx.event.create({ data: { userId, type: 'badge_earned', payload: { badgeId } } });
+        }
+      }
+
       // Record the submission itself.
       await tx.submission.create({
         data: { userId, levelId, sourceCode, passRatio, verdict: run.verdict },
@@ -135,6 +189,14 @@ levelsRouter.post(
     });
 
     await logEvent(userId, 'level_submit', { levelId, passRatio, verdict: run.verdict });
+
+    // Look up display info for any badges just earned (for the celebration).
+    const newBadges = newBadgeIds.length
+      ? await prisma.badge.findMany({
+          where: { id: { in: newBadgeIds } },
+          select: { id: true, title: true, icon: true },
+        })
+      : [];
 
     // Build the client response — HIDDEN cases reveal pass/fail ONLY.
     const cases = level.testCases.map((t, i) => {
@@ -155,6 +217,8 @@ levelsRouter.post(
       total,
       passRatio,
       xpAwarded, // >0 only the first time the level is fully solved
+      currentStreak, // updated daily streak
+      newBadges, // badges earned by this submission (for the celebration)
       cases,
     });
   }),
