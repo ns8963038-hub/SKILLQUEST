@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Flame, Zap, Map, Briefcase } from 'lucide-react';
+import { Flame, Zap, Map, Briefcase, Code2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabase';
 
@@ -23,10 +23,12 @@ export function DashboardScreen({
   onContinue,
   onViewRoadmap,
   onViewPlacement,
+  onViewDsa,
 }: {
   onContinue: (levelId: string) => void;
   onViewRoadmap: () => void;
   onViewPlacement: () => void;
+  onViewDsa: () => void;
 }) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +150,13 @@ export function DashboardScreen({
             className="flex min-h-[44px] items-center gap-2 text-sm text-primary-fg hover:underline"
           >
             <Briefcase size={16} aria-hidden /> Placement readiness
+          </button>
+          <button
+            type="button"
+            onClick={onViewDsa}
+            className="flex min-h-[44px] items-center gap-2 text-sm text-primary-fg hover:underline"
+          >
+            <Code2 size={16} aria-hidden /> Company DSA prep
           </button>
         </div>
       </main>

@@ -7,6 +7,7 @@ import { RoadmapScreen } from './screens/RoadmapScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { PlacementScreen } from './screens/PlacementScreen';
+import { DSAScreen } from './screens/DSAScreen';
 
 // The minimal slice of the profile the app-level flow needs.
 interface Profile {
@@ -31,8 +32,10 @@ function AppInner() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   // Which authenticated screen is showing.
-  type View = 'dashboard' | 'roadmap' | 'placement';
+  type View = 'dashboard' | 'roadmap' | 'placement' | 'dsa';
   const [view, setView] = useState<View>('dashboard');
+  // Company to preselect on the DSA prep screen (when opened from placement).
+  const [dsaCompany, setDsaCompany] = useState<string | undefined>(undefined);
   // When set, the play screen for this level is shown; playReturn is where Back goes.
   const [playLevelId, setPlayLevelId] = useState<string | null>(null);
   const [playReturn, setPlayReturn] = useState<View>('dashboard');
@@ -88,9 +91,16 @@ function AppInner() {
     return (
       <PlacementScreen
         onOpenLevel={(id) => openLevel(id, 'placement')}
+        onOpenDsa={(companyId) => {
+          setDsaCompany(companyId);
+          setView('dsa');
+        }}
         onBack={() => setView('dashboard')}
       />
     );
+  }
+  if (view === 'dsa') {
+    return <DSAScreen initialCompany={dsaCompany} onBack={() => setView('dashboard')} />;
   }
   // Home.
   return (
@@ -98,6 +108,10 @@ function AppInner() {
       onContinue={(id) => openLevel(id, 'dashboard')}
       onViewRoadmap={() => setView('roadmap')}
       onViewPlacement={() => setView('placement')}
+      onViewDsa={() => {
+        setDsaCompany(undefined);
+        setView('dsa');
+      }}
     />
   );
 }

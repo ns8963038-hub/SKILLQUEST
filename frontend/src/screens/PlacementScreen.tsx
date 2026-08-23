@@ -20,9 +20,11 @@ interface PlacementRole {
 export function PlacementScreen({
   onBack,
   onOpenLevel,
+  onOpenDsa,
 }: {
   onBack: () => void;
   onOpenLevel: (levelId: string) => void;
+  onOpenDsa: (companyId: string) => void;
 }) {
   const [roles, setRoles] = useState<PlacementRole[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -119,14 +121,23 @@ export function PlacementScreen({
               </div>
             )}
 
-            <a
-              href={r.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-block text-xs text-content-muted hover:text-content"
-            >
-              Source: {r.sourceUrl} ↗
-            </a>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenDsa(r.companyId)}
+                className="text-sm text-primary-fg hover:underline"
+              >
+                Practice {r.companyName}&apos;s DSA questions →
+              </button>
+              <a
+                href={r.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-content-muted hover:text-content"
+              >
+                Source ↗
+              </a>
+            </div>
           </div>
         ))}
       </main>
