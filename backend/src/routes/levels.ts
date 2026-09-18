@@ -7,6 +7,7 @@ import { getExecutor } from '../execution';
 import { computeStreak } from '../gamification/streak';
 import { badgesToAward } from '../gamification/badges';
 import { advanceRoadmap } from '../roadmap/advance';
+import { DEFAULT_BKT, bktUpdate, isMastered } from '../tutor/bkt';
 
 export const levelsRouter = Router();
 
@@ -30,12 +31,19 @@ levelsRouter.get(
           orderBy: { ordinal: 'asc' },
           select: { stdin: true, expectedOutput: true },
         },
+        skill: { select: { title: true } }, // display name for the play screen
       },
     });
     if (!level || !level.published) {
       res.status(404).json({ error: 'level not found' });
       return;
     }
+    // The adaptive tutor's current mastery estimate for this skill — only present
+    // once the student has attempted it (no evidence yet = no number shown).
+    const mastery = await prisma.skillMastery.findUnique({
+      where: { userId_skillId: { userId: req.userId!, skillId: level.skillId } },
+      select: { pMastery: true },
+    });
     await logEvent(req.userId!, 'level_start', { levelId: level.id });
     res.json({
       id: level.id,
@@ -47,6 +55,8 @@ levelsRouter.get(
       hints: level.hints,
       xpReward: level.xpReward,
       sampleTests: level.testCases, // visible examples only
+      skillTitle: level.skill.title,
+      mastery: mastery?.pMastery, // omitted from the JSON until there is evidence
     });
   }),
 );
@@ -71,7 +81,7 @@ levelsRouter.post(
     // Load the level with ALL its test cases (hidden included) to run against.
     const level = await prisma.level.findUnique({
       where: { id: levelId },
-      include: { testCases: { orderBy: { ordinal: 'asc' } } },
+      include: { testCases: { orderBy: { ordinal: 'asc' } }, skill: { select: { title: true } } },
     });
     if (!level || !level.published) {
       res.status(404).json({ error: 'level not found' });
@@ -99,6 +109,8 @@ levelsRouter.post(
     let justCompleted = false;
     let newBadgeIds: string[] = [];
     let currentStreak = 0;
+    let masteryBefore = DEFAULT_BKT.pL0;
+    let masteryAfter = DEFAULT_BKT.pL0;
     await prisma.$transaction(async (tx) => {
       // Ensure the user_level row exists and count this attempt.
       const ul = await tx.userLevel.upsert({
@@ -183,6 +195,34 @@ levelsRouter.post(
         }
       }
 
+      // --- Adaptive tutor (M4): one Bayesian Knowledge Tracing update for this
+      // skill. The observation is binary: did EVERY test pass? A student with no
+      // row yet starts from the BKT prior pL0. (Submits are sequential per student —
+      // the Run button is disabled while running — so a read-then-write is safe.)
+      const prior = await tx.skillMastery.findUnique({
+        where: { userId_skillId: { userId, skillId: level.skillId } },
+        select: { pMastery: true },
+      });
+      masteryBefore = prior?.pMastery ?? DEFAULT_BKT.pL0;
+      masteryAfter = bktUpdate(masteryBefore, allPass);
+      await tx.skillMastery.upsert({
+        where: { userId_skillId: { userId, skillId: level.skillId } },
+        create: {
+          userId,
+          skillId: level.skillId,
+          pMastery: masteryAfter,
+          attempts: 1,
+          correct: allPass ? 1 : 0,
+          lastResult: allPass,
+        },
+        update: {
+          pMastery: masteryAfter,
+          attempts: { increment: 1 },
+          correct: { increment: allPass ? 1 : 0 },
+          lastResult: allPass,
+        },
+      });
+
       // Record the submission itself.
       await tx.submission.create({
         data: { userId, levelId, sourceCode, passRatio, verdict: run.verdict },
@@ -224,6 +264,14 @@ levelsRouter.post(
       currentStreak, // updated daily streak
       newBadges, // badges earned by this submission (for the celebration)
       cases,
+      // How this attempt moved the tutor's estimate (shown in the reward).
+      mastery: {
+        skillId: level.skillId,
+        title: level.skill.title,
+        before: masteryBefore,
+        after: masteryAfter,
+        mastered: isMastered(masteryAfter),
+      },
     });
   }),
 );

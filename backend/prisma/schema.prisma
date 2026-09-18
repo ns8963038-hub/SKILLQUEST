@@ -100,6 +100,7 @@ model Profile {
   placementScores PlacementScore[]
   quizAttempts    QuizAttempt[]
   nudges          Nudge[]
+  skillMastery    SkillMastery[]
 
   @@map("profiles")
 }
@@ -132,6 +133,7 @@ model Skill {
   roadmapItems  RoadmapItem[]
   companySkills CompanySkill[]
   quizAttempts  QuizAttempt[]
+  skillMastery  SkillMastery[]
 
   @@map("skills")
 }
@@ -243,6 +245,27 @@ model UserLevel {
   @@id([userId, levelId])
   @@index([userId, status])
   @@map("user_levels")
+}
+
+// Per-(student, skill) mastery estimate maintained by Bayesian Knowledge Tracing
+// (M4 adaptive tutor). pMastery is the BKT P(known); it starts at the prior pL0
+// and is updated on every submission from whether all tests passed. See
+// src/tutor/bkt.ts and docs/notes/M4-adaptive-tutor.md.
+model SkillMastery {
+  userId     String   @map("user_id") @db.Uuid
+  skillId    String   @map("skill_id")
+  pMastery   Float    @default(0.2) @map("p_mastery") // BKT P(known), 0..1; seed = pL0
+  attempts   Int      @default(0) // total observed attempts on this skill
+  correct    Int      @default(0) // how many of those fully passed
+  lastResult Boolean? @map("last_result") // did the most recent attempt pass
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user  Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+  @@index([userId])
+  @@map("skill_mastery")
 }
 
 model Submission {

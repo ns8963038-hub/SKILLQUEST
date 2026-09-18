@@ -31,6 +31,14 @@ roadmapRouter.get(
       return;
     }
 
+    // The adaptive tutor's mastery estimates for this student (M4). Only skills
+    // with at least one attempt have a row — others get no number at all.
+    const masteryRows = await prisma.skillMastery.findMany({
+      where: { userId },
+      select: { skillId: true, pMastery: true },
+    });
+    const mastery = new Map(masteryRows.map((m) => [m.skillId, m.pMastery]));
+
     // Flatten to the RoadmapNode shape the frontend renders.
     const nodes = roadmap.items.map((item) => ({
       skillId: item.skillId,
@@ -38,6 +46,7 @@ roadmapRouter.get(
       weekNumber: item.weekNumber,
       position: item.position,
       status: item.status, // 'locked' | 'current' | 'completed'
+      mastery: mastery.get(item.skillId), // BKT P(known), omitted when no evidence
     }));
 
     await logEvent(userId, 'roadmap_view');
