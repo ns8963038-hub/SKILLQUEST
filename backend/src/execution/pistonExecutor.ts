@@ -1,4 +1,5 @@
 import type { ExecutionService, RunResult, TestCaseInput, Verdict } from './types';
+import { outputsMatch } from './compare';
 
 // Real Java execution via Piston (https://github.com/engineer-man/piston). The
 // public instance at emkc.org is FREE — no key, no account, no card — and runs
@@ -95,7 +96,7 @@ export class PistonExecutor implements ExecutionService {
           results.push({ passed: false, actualOutput: r.runErr });
         } else {
           // Compare stdout to the expected output, ignoring trailing whitespace.
-          const passed = r.stdout.trim() === t.expectedOutput.trim();
+          const passed = outputsMatch(r.stdout, t.expectedOutput);
           results.push({ passed, actualOutput: r.stdout });
         }
       } catch {

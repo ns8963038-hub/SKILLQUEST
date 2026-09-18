@@ -12,6 +12,8 @@ import { MasteryRing } from '../ui/MasteryRing';
 import { AnimatedNumber } from '../ui/AnimatedNumber';
 import { Typewriter } from '../ui/Typewriter';
 import { Nova, type NovaMood } from '../ui/Nova';
+import { NudgeCard } from '../features/engagement/NudgeCard';
+import { FeedbackCard } from '../features/engagement/FeedbackCard';
 
 // The shape returned by GET /api/dashboard.
 interface DashboardData {
@@ -39,14 +41,18 @@ function greeting(now = new Date()): string {
 // Knowledge Constellation, consistency, badges, and the placement tools.
 export function DashboardScreen({
   onContinue,
+  onOpenSkill,
   onViewRoadmap,
   onViewPlacement,
   onViewDsa,
+  onGiveFeedback,
 }: {
   onContinue: (levelId: string) => void;
+  onOpenSkill?: (skillId: string) => void; // opens the skill's next unfinished level
   onViewRoadmap: () => void;
   onViewPlacement: () => void;
   onViewDsa: () => void;
+  onGiveFeedback?: () => void;
 }) {
   const dash = useApi<DashboardData>('/api/dashboard');
   const roadmap = useApi<{ nodes?: RoadmapNode[] }>('/api/roadmap');
@@ -66,6 +72,9 @@ export function DashboardScreen({
 
   return (
     <motion.div initial="hidden" animate="show" variants={stagger} className="space-y-6">
+      {/* The tutor's "quick win" invitation — only when the risk model flagged a dip. */}
+      <NudgeCard onPlay={onContinue} />
+
       {/* ================= HERO: briefing + level ================= */}
       <div className="grid gap-6 lg:grid-cols-[1.55fr_1fr]">
         <motion.section variants={rise}>
@@ -175,7 +184,11 @@ export function DashboardScreen({
 
           <div className="dot-grid mt-5 rounded-2xl">
             {nodes ? (
-              <Constellation nodes={nodes} compact onSelectSkill={(id) => onContinue(`${id}-01`)} />
+              <Constellation
+                nodes={nodes}
+                compact
+                onSelectSkill={(id) => (onOpenSkill ? onOpenSkill(id) : onContinue(`${id}-01`))}
+              />
             ) : roadmap.loading ? (
               <Skeleton className="h-[260px] w-full" />
             ) : (
@@ -277,14 +290,17 @@ export function DashboardScreen({
         </GlassCard>
       </motion.div>
 
+      {/* The UAT questionnaire invite, once they've used SkillQuest enough to judge it. */}
+      {onGiveFeedback && <FeedbackCard onOpen={onGiveFeedback} />}
+
       {/* ================= PLACEMENT TOOLS ================= */}
       <motion.div variants={rise} className="grid gap-6 md:grid-cols-2">
         <ActionCard
           icon={Briefcase}
           tone="ion"
           eyebrow="Placement readiness"
-          title="How ready are you for Infosys, TCS & more?"
-          body="Coverage of each company’s published requirements — and the exact skills to close the gap."
+          title="See your coverage for Infosys, TCS & more"
+          body="Tracked-skill coverage of each company’s published requirements — and the exact skills to close the gap."
           onClick={onViewPlacement}
         />
         <ActionCard

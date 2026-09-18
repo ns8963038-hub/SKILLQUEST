@@ -19,6 +19,17 @@ const schema = z.object({
   // (verified via JWKS), so this is no longer used for verification.
   SUPABASE_JWT_SECRET: z.string().optional(),
   INTERNAL_API_KEY: z.string().optional(),
+  // Comma-separated emails that get the internal admin view (risk tiers, UAT
+  // metrics, research exports). Matched case-insensitively on sign-in.
+  ADMIN_EMAILS: z
+    .string()
+    .default('')
+    .transform((s) =>
+      s
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+    ),
   AI_SERVICE_URL: z.string().default('http://localhost:8000'),
   // Which code-execution backend to use. All implement the same interface, so
   // switching is pure config (TRD 5.1):

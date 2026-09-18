@@ -20,4 +20,6 @@ export interface RoadmapNode {
   // when the API doesn't send it yet, the UI shows status only — it never
   // invents a percentage.
   mastery?: number;
+  levelsTotal?: number; // published levels in this skill
+  levelsCompleted?: number; // how many of them this student has finished
 }

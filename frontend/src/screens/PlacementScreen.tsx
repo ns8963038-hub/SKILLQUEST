@@ -18,13 +18,14 @@ interface PlacementRole {
 }
 
 // Placement readiness (F6). Deliberately framed as COVERAGE of published role
-// requirements, NOT a hiring prediction. Gaps SkillQuest teaches get a one-click
-// "train" action; gaps it doesn't teach are shown as information only.
+// requirements, NOT a hiring prediction — the PRD bans phrasing like "You're 62%
+// ready for Infosys". Gaps SkillQuest teaches get a one-click "train" action; gaps
+// it doesn't teach are shown as information only.
 export function PlacementScreen({
-  onOpenLevel,
+  onOpenSkill,
   onOpenDsa,
 }: {
-  onOpenLevel: (levelId: string) => void;
+  onOpenSkill: (skillId: string) => void;
   onOpenDsa: (companyId: string) => void;
 }) {
   const { data, error, reload } = useApi<{ roles: PlacementRole[] }>('/api/placement');
@@ -36,14 +37,14 @@ export function PlacementScreen({
         eyebrow="Placement readiness"
         title={
           <>
-            How ready are you for <span className="text-gradient-ion">the companies you want?</span>
+            Your coverage of <span className="text-gradient-ion">company requirements</span>
           </>
         }
         description={
           <>
-            Coverage of each company’s published role requirements, based on the skills you’ve mastered.{' '}
+            Tracked-skill coverage: based on published requirements currently represented in SkillQuest.{' '}
             <strong className="font-medium text-content">Not a hiring prediction</strong> — a map of what to
-            learn next.
+            learn next. Reach 75% for any target company to earn the Placement Ready badge.
           </>
         }
       />
@@ -69,7 +70,7 @@ export function PlacementScreen({
         <motion.div initial="hidden" animate="show" variants={stagger} className="grid gap-5 md:grid-cols-2">
           {roles.map((role, i) => (
             <motion.div key={`${role.companyId}-${role.roleTitle}`} variants={rise}>
-              <RoleCard role={role} top={i === 0} onOpenLevel={onOpenLevel} onOpenDsa={onOpenDsa} />
+              <RoleCard role={role} top={i === 0} onOpenSkill={onOpenSkill} onOpenDsa={onOpenDsa} />
             </motion.div>
           ))}
         </motion.div>
@@ -81,12 +82,12 @@ export function PlacementScreen({
 function RoleCard({
   role,
   top,
-  onOpenLevel,
+  onOpenSkill,
   onOpenDsa,
 }: {
   role: PlacementRole;
   top: boolean;
-  onOpenLevel: (levelId: string) => void;
+  onOpenSkill: (skillId: string) => void;
   onOpenDsa: (companyId: string) => void;
 }) {
   const tone = role.score >= 70 ? 'mint' : role.score >= 50 ? 'ion' : 'gold';
@@ -104,10 +105,10 @@ function RoleCard({
           <div className="min-w-0 flex-1 pt-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-display text-xl font-semibold tracking-tight">{role.companyName}</h2>
-              {top && <Chip tone="mint">Closest match</Chip>}
+              {top && <Chip tone="mint">Highest coverage</Chip>}
             </div>
             <p className="mt-0.5 text-sm text-content-muted">{role.roleTitle}</p>
-            <p className="mt-2 text-xs text-content-muted">of tracked requirements covered</p>
+            <p className="mt-2 text-xs text-content-muted">tracked-skill coverage</p>
           </div>
         </div>
 
@@ -120,7 +121,7 @@ function RoleCard({
                 <button
                   key={s.skillId}
                   type="button"
-                  onClick={() => onOpenLevel(`${s.skillId}-01`)}
+                  onClick={() => onOpenSkill(s.skillId)}
                   className="group inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-ion/30 bg-ion-tint px-3 text-sm text-ion transition-shadow hover:shadow-glow-ion"
                 >
                   {s.title}

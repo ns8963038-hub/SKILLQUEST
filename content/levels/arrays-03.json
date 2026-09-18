@@ -1,0 +1,47 @@
+{
+  "id": "arrays-03",
+  "skillId": "arrays",
+  "title": "Runner-Up",
+  "difficulty": 2,
+  "statementMd": "Print the **second largest distinct** value among n integers. If every value is the same (there is no second distinct value), print `-1`.\n\n**Input**\nLine 1: `n` (2 ≤ n ≤ 1000). Line 2: n integers (between −10⁶ and 10⁶).\n\n**Output**\nThe second largest distinct value, or `-1`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        // TODO: find the second largest distinct value\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        long first = Long.MIN_VALUE, second = Long.MIN_VALUE;\n        for (int x : a) {\n            if (x > first) {\n                second = first;\n                first = x;\n            } else if (x < first && x > second) {\n                second = x;\n            }\n        }\n        System.out.println(second == Long.MIN_VALUE ? -1 : second);\n    }\n}\n",
+  "hints": [
+    "Track two values while scanning once: the largest and the second largest so far.",
+    "When you find a new largest, the old largest becomes second. Skip values equal to the largest."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "5\n3 9 2 7 4\n",
+      "expectedOutput": "7",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "4\n5 5 5 5\n",
+      "expectedOutput": "-1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "3\n10 10 9\n",
+      "expectedOutput": "9",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "6\n-3 -1 -7 -1 -2 -9\n",
+      "expectedOutput": "-2",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

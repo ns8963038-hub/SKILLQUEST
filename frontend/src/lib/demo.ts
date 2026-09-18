@@ -9,7 +9,8 @@ import type { RoadmapNode, SkillStatus } from '../features/roadmap/types';
 //
 // Turn it on by adding `?demo` to the URL (remembered for that browser tab) or by
 // setting VITE_DEMO=1. It is never on by default and never touches real data.
-// State lives in memory, so a page refresh starts the demo over.
+// State lives in memory, so a page refresh starts the demo over. Everything shown
+// in demo mode is SAMPLE data — the admin console says so in a banner.
 // =============================================================================
 
 function detectDemo(): boolean {
@@ -41,7 +42,7 @@ export function exitDemo(): void {
 
 // -----------------------------------------------------------------------------
 // The in-memory "student". A mid-journey learner, so every screen has something
-// real to show: 3 skills mastered, 1 tested out, Methods in progress at 58%.
+// real to show: 3 skills completed, 1 tested out, Methods in progress at 58%.
 // -----------------------------------------------------------------------------
 
 type DemoStatus = SkillStatus | 'tested-out';
@@ -59,13 +60,30 @@ const SEED: Record<string, DemoSkill> = {
   arrays: { status: 'available', mastery: 0.24 },
 };
 
+const HINT_COST = 5;
+
 const state = {
   totalXp: 520,
+  weekXp: 110,
   currentStreak: 6,
   bestStreak: 9,
   activeToday: false,
   badges: ['first_quest', 'code_master'],
   solved: new Set<string>(['java-basics-01', 'conditionals-01', 'loops-01']),
+  hintsUsed: {} as Record<string, number>,
+  surveyDone: false,
+  nudgeClosed: false,
+  // ?demo&consent shows the consent screen first (for demonstrating F1).
+  consentPending: typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('consent'),
+  settings: {
+    displayName: 'Demo Student' as string | null,
+    hoursPerWeek: 8,
+    goalText: 'Crack the Infosys and TCS coding rounds',
+    goalCategory: 'service_company',
+    targetCompanies: ['infosys', 'tcs'],
+    leaderboardOptOut: false,
+    researchParticipating: true,
+  },
   skills: Object.fromEntries(
     SKILL_GRAPH.map((s) => [s.id, { ...(SEED[s.id] ?? { status: 'locked', mastery: 0 }) }]),
   ) as Record<string, DemoSkill>,
@@ -73,17 +91,18 @@ const state = {
 
 const BADGES: Record<string, { title: string; description: string }> = {
   first_quest: { title: 'First Quest', description: 'Solved your first level.' },
-  code_master: { title: 'Code Master', description: 'Solved a level on the first attempt.' },
+  code_master: { title: 'Code Master', description: 'Solved a level without any hints.' },
   week_warrior: { title: 'Week Warrior', description: 'Kept a 7-day streak.' },
+  placement_ready: { title: 'Placement Ready', description: 'Reached 75% coverage for a target company.' },
 };
 
-// A skill counts as done once mastered or tested out.
+// A skill counts as done once completed or tested out.
 function isDone(id: string): boolean {
   const s = state.skills[id];
   return !!s && (s.status === 'completed' || s.status === 'tested-out');
 }
 
-// After a skill is mastered: unlock skills whose prerequisites are all done, and
+// After a skill is completed: unlock skills whose prerequisites are all done, and
 // make sure exactly one skill is the student's current frontier.
 function recomputeStatuses(): void {
   for (const skill of SKILL_GRAPH) {
@@ -98,6 +117,10 @@ function recomputeStatuses(): void {
   }
 }
 
+function currentSkill() {
+  return SKILL_GRAPH.find((s) => state.skills[s.id]?.status === 'current');
+}
+
 // ---- GET /api/roadmap -------------------------------------------------------
 function roadmapNodes(): RoadmapNode[] {
   // Tested-out skills are not part of the plan (exactly like the real API).
@@ -110,7 +133,9 @@ function roadmapNodes(): RoadmapNode[] {
       weekNumber: Math.floor(i / 3) + 1,
       position: i % 3,
       status: sk.status as SkillStatus,
-      mastery: sk.mastery,
+      mastery: sk.status === 'locked' ? undefined : sk.mastery,
+      levelsTotal: 1,
+      levelsCompleted: sk.status === 'completed' ? 1 : 0,
     };
   });
 }
@@ -118,7 +143,7 @@ function roadmapNodes(): RoadmapNode[] {
 // ---- GET /api/dashboard -----------------------------------------------------
 const LEVEL_SIZE = 150; // same as backend/src/routes/dashboard.ts
 function dashboard() {
-  const current = SKILL_GRAPH.find((s) => state.skills[s.id]?.status === 'current');
+  const current = currentSkill();
   return {
     totalXp: state.totalXp,
     level: Math.floor(state.totalXp / LEVEL_SIZE) + 1,
@@ -246,7 +271,7 @@ function genericLevel(skillTitle: string): DemoLevel {
       '}',
       '',
     ].join('\n'),
-    hints: ['Use in.nextLine() to read the whole line.'],
+    hints: ['Use in.nextLine() to read the whole line.', 'Then System.out.println(...) prints it back.'],
     xpReward: 50,
     samples: [{ stdin: 'hello quest', expectedOutput: 'hello quest' }],
     hidden: 3,
@@ -266,6 +291,7 @@ function levelData(levelId: string): DemoLevel {
 function levelView(levelId: string) {
   const skillId = skillIdOf(levelId);
   const lvl = levelData(levelId);
+  const skill = state.skills[skillId];
   return {
     id: levelId,
     skillId,
@@ -273,12 +299,27 @@ function levelView(levelId: string) {
     difficulty: lvl.difficulty,
     statementMd: lvl.statementMd,
     starterCode: lvl.starterCode,
-    hints: lvl.hints,
+    hints: lvl.hints.slice(0, state.hintsUsed[levelId] ?? 0),
+    hintCount: lvl.hints.length,
+    hintCost: HINT_COST,
+    completed: state.solved.has(levelId),
     xpReward: lvl.xpReward,
     sampleTests: lvl.samples,
     skillTitle: SKILL_GRAPH.find((s) => s.id === skillId)?.title,
-    mastery: state.skills[skillId]?.mastery,
+    mastery: skill && skill.status !== 'locked' && skill.status !== 'tested-out' ? skill.mastery : undefined,
   };
+}
+
+// ---- POST /api/levels/:id/hint ----------------------------------------------
+function revealHint(levelId: string) {
+  const lvl = levelData(levelId);
+  const used = state.hintsUsed[levelId] ?? 0;
+  if (used >= lvl.hints.length) throw new Error('Request failed (409)');
+  state.hintsUsed[levelId] = used + 1;
+  const deducted = Math.min(state.totalXp, HINT_COST);
+  state.totalXp -= deducted;
+  state.weekXp = Math.max(0, state.weekXp - deducted);
+  return { hint: lvl.hints[used], index: used, hintsUsed: used + 1, hintCount: lvl.hints.length, xpCost: deducted, totalXp: state.totalXp };
 }
 
 // ---- POST /api/levels/:id/submit --------------------------------------------
@@ -312,6 +353,7 @@ function submitLevel(levelId: string, sourceCode: string) {
   if (allPass && !state.solved.has(levelId)) {
     state.solved.add(levelId);
     state.totalXp += lvl.xpReward;
+    state.weekXp += lvl.xpReward;
     xpAwarded = lvl.xpReward;
   }
 
@@ -330,20 +372,28 @@ function submitLevel(levelId: string, sourceCode: string) {
   }
 
   // The adaptive tutor: one Bayesian Knowledge Tracing update for this skill.
+  // Like the real backend, a skill is COMPLETED when its level passes (demo skills
+  // have one level each); mastery is the tutor's separate estimate.
   const skill = state.skills[view.skillId];
   let mastery;
   if (skill && skill.status !== 'tested-out') {
     const before = skill.mastery;
     const after = bktUpdate(before, allPass);
     skill.mastery = after;
-    const mastered = after >= MASTERY_THRESHOLD;
-    if (mastered && skill.status !== 'completed') {
+    if (allPass && skill.status !== 'completed') {
       skill.status = 'completed';
       recomputeStatuses(); // unlock what this skill was blocking
     }
-    mastery = { skillId: view.skillId, title: view.skillTitle ?? view.skillId, before, after, mastered };
+    mastery = {
+      skillId: view.skillId,
+      title: view.skillTitle ?? view.skillId,
+      before,
+      after,
+      mastered: after >= MASTERY_THRESHOLD,
+    };
   }
 
+  const next = currentSkill();
   return {
     verdict: allPass ? 'accepted' : 'wrong_answer',
     passed,
@@ -352,6 +402,7 @@ function submitLevel(levelId: string, sourceCode: string) {
     xpAwarded,
     currentStreak: state.currentStreak,
     newBadges,
+    nextLevelId: allPass && next ? `${next.id}-01` : null,
     cases,
     mastery,
   };
@@ -422,6 +473,153 @@ function placementRoles() {
   }));
 }
 
+// ---- GET /api/leaderboard ---------------------------------------------------
+const RIVALS = [
+  { id: 'r1', name: 'Riya S', week: 310, all: 1240 },
+  { id: 'r2', name: 'Arjun K', week: 260, all: 980 },
+  { id: 'r3', name: null, tag: '7F2A', week: 190, all: 610 },
+  { id: 'r4', name: 'Kavya R', week: 150, all: 890 },
+  { id: 'r5', name: 'Mohammed A', week: 95, all: 450 },
+  { id: 'r6', name: null, tag: 'C41D', week: 60, all: 300 },
+  { id: 'r7', name: 'Sneha P', week: 45, all: 205 },
+];
+
+function leaderboard(period: 'week' | 'all') {
+  const you = { id: 'you', name: state.settings.displayName, tag: 'DEMO', xp: period === 'week' ? state.weekXp : state.totalXp };
+  const rows = [
+    ...RIVALS.map((r) => ({ id: r.id, name: r.name, tag: r.tag ?? '', xp: period === 'week' ? r.week : r.all })),
+    you,
+  ].sort((a, b) => b.xp - a.xp);
+  let rank = 0;
+  let prev: number | null = null;
+  const ranked = rows.map((r, i) => {
+    if (r.xp !== prev) {
+      rank = i + 1;
+      prev = r.xp;
+    }
+    return { rank, name: r.name || `Quester ${r.tag}`, xp: r.xp, isYou: r.id === 'you' };
+  });
+  return { period, top: ranked, you: ranked.find((r) => r.isYou) ?? null, players: ranked.length };
+}
+
+// ---- /api/settings ----------------------------------------------------------
+function settings() {
+  return {
+    email: 'demo@skillquest.app',
+    ...state.settings,
+    companies: ROLES.map((r) => ({ id: r.companyId, name: r.companyName })).sort((a, b) => a.name.localeCompare(b.name)),
+  };
+}
+
+function saveSettings(body: Record<string, unknown>) {
+  const s = state.settings;
+  const hours = typeof body.hoursPerWeek === 'number' ? body.hoursPerWeek : s.hoursPerWeek;
+  const goal = typeof body.goalText === 'string' ? body.goalText : s.goalText;
+  const replanned = hours !== s.hoursPerWeek || goal.trim() !== s.goalText.trim();
+  s.hoursPerWeek = hours;
+  s.goalText = goal;
+  if ('displayName' in body) s.displayName = (body.displayName as string | null) || null;
+  if (Array.isArray(body.targetCompanies)) s.targetCompanies = body.targetCompanies as string[];
+  if (typeof body.leaderboardOptOut === 'boolean') s.leaderboardOptOut = body.leaderboardOptOut;
+  if (typeof body.researchParticipation === 'boolean') s.researchParticipating = body.researchParticipation;
+  return {
+    ...settings(),
+    replanned,
+    weeks: replanned ? Math.max(4, Math.round(60 / hours)) : null,
+    plannedSkills: replanned ? 18 : null,
+  };
+}
+
+// ---- GET /api/nudges/active -------------------------------------------------
+// The demo student isn't at risk, so the intervention card only appears when the
+// URL asks for it (?demo&nudge) — for demonstrating and screenshotting F5.
+function demoNudge() {
+  const wanted = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('nudge');
+  if (!wanted || state.nudgeClosed) return null;
+  return {
+    id: 1,
+    variant: 'confidence_booster',
+    suggestedLevel: { id: 'arrays-01', title: 'Tallest Tower', skillTitle: 'Arrays' },
+  };
+}
+
+// ---- /api/survey ------------------------------------------------------------
+function susScore(answers: number[]): number {
+  return answers.reduce((t, a, i) => t + (i % 2 === 0 ? a - 1 : 5 - a), 0) * 2.5;
+}
+
+// ---- /api/admin (SAMPLE data, labelled as such in the UI) --------------------
+const DAY_MS = 86_400_000;
+function adminOverview() {
+  const today = new Date();
+  const sample = [
+    { tier: 'healthy', p: 0.07, xp: 1240, lv: 21, streak: 9, away: 0, nudges: [0, 0, 0, 0] },
+    { tier: 'healthy', p: 0.11, xp: 980, lv: 17, streak: 5, away: 1, nudges: [0, 0, 0, 0] },
+    { tier: 'watch', p: 0.41, xp: 610, lv: 11, streak: 0, away: 6, nudges: [0, 0, 0, 0] },
+    { tier: 'healthy', p: 0.09, xp: 890, lv: 15, streak: 4, away: 0, nudges: [0, 0, 0, 0] },
+    { tier: 'atrisk', p: 0.78, xp: 450, lv: 8, streak: 0, away: 13, nudges: [1, 1, 1, 0] },
+    { tier: 'watch', p: 0.38, xp: 300, lv: 5, streak: 1, away: 3, nudges: [0, 0, 0, 0] },
+    { tier: 'atrisk', p: 0.71, xp: 205, lv: 4, streak: 0, away: 17, nudges: [1, 1, 0, 1] },
+    { tier: 'healthy', p: 0.14, xp: state.totalXp, lv: state.solved.size, streak: state.currentStreak, away: 0, nudges: [0, 0, 0, 0] },
+  ];
+  return {
+    generatedAt: today.toISOString(),
+    students: sample.map((s, i) => ({
+      participant: `P${String(i + 1).padStart(2, '0')}`,
+      email: `s${i + 1}•••@college.edu`,
+      onboarded: true,
+      research: i === 5 ? 'withdrawn' : 'consented',
+      totalXp: s.xp,
+      levelsCompleted: s.lv,
+      currentStreak: s.streak,
+      lastActive: new Date(today.getTime() - s.away * DAY_MS).toISOString(),
+      riskTier: s.tier,
+      prediction: {
+        probability: s.p,
+        tier: s.tier,
+        modelVersion: 'sample',
+        featureSetVersion: 'fs-v2',
+        thresholdVersion: 'thr-v2',
+        observationWindowStart: new Date(today.getTime() - 28 * DAY_MS).toISOString(),
+        observationWindowEnd: today.toISOString(),
+        scoredAt: today.toISOString(),
+        features: {
+          active_days_in_window: Math.max(0, 20 - s.away),
+          mean_session_gap_days: 1 + s.away / 4,
+          days_since_last_activity: s.away,
+          completion_ratio: Math.min(1, s.lv / 22),
+          avg_score: 0.6 + (1 - s.p) * 0.35,
+          activity_trend: s.away > 5 ? -6 : 3,
+          current_streak: s.streak,
+        },
+      },
+      nudges: { total: s.nudges[0]!, shown: s.nudges[1]!, clicked: s.nudges[2]!, dismissed: s.nudges[3]! },
+    })),
+  };
+}
+
+function adminMetrics() {
+  return {
+    api: { n: 1240, p50: 58, p95: 184, byRoute: [] },
+    execution: { n: 312, p50: 6100, p95: 11800 },
+    survey: state.surveyDone
+      ? { n: 1, susMean: 82.5, susSd: 0, engagementMean: 5, recommendPct: 100 }
+      : { n: 0, susMean: null, susSd: null, engagementMean: null, recommendPct: null },
+    nudges: { created: 2, shown: 2, clicked: 1, dismissed: 1 },
+    riskTiers: { healthy: 4, watch: 2, atrisk: 2 },
+  };
+}
+
+// ---- GET /api/admin/export/:kind (SAMPLE file) -------------------------------
+export function demoCsv(path: string): Blob {
+  const kind = path.split('/').pop() ?? 'export';
+  const rows = adminOverview().students.map((s) =>
+    [s.participant, s.research, s.totalXp, s.levelsCompleted, s.riskTier, s.prediction.probability].join(','),
+  );
+  const csv = [`# SAMPLE ${kind} export (demo mode) - not real participants`, 'participant,research,total_xp,levels_completed,risk_tier,probability', ...rows].join('\r\n');
+  return new Blob([csv], { type: 'text/csv' });
+}
+
 // ---- The request router -----------------------------------------------------
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const as = <T>(value: unknown) => value as T;
@@ -432,19 +630,51 @@ export async function demoApi<T>(
   options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
   const method = options.method ?? 'GET';
+  const body = (options.body ?? {}) as Record<string, unknown>;
   await wait(path.endsWith('/submit') ? 1500 : 260);
 
-  if (path === '/api/me') return as<T>({ id: 'demo-student', onboardingStep: 5 });
+  if (path === '/api/me')
+    return as<T>({
+      id: 'demo-student',
+      onboardingStep: 5,
+      isAdmin: true, // the demo shows the research console too
+      consentRequired: state.consentPending,
+      currentConsentVersion: 'v1-2026-09',
+    });
   if (path === '/api/dashboard') return as<T>(dashboard());
   if (path === '/api/roadmap') return as<T>({ nodes: roadmapNodes() });
   if (path === '/api/placement') return as<T>({ roles: placementRoles() });
   if (path === '/api/onboarding/complete' && method === 'POST') return as<T>({ ok: true });
+  if (path === '/api/consent' && method === 'POST') {
+    state.consentPending = false;
+    return as<T>({ ok: true });
+  }
+  if (path === '/api/settings') return as<T>(method === 'PUT' ? saveSettings(body) : settings());
+  if (path.startsWith('/api/leaderboard')) return as<T>(leaderboard(path.includes('period=all') ? 'all' : 'week'));
+  if (path === '/api/nudges/active') return as<T>({ nudge: demoNudge() });
+  if (path.startsWith('/api/nudges/')) {
+    if (/\/(clicked|dismissed)$/.test(path)) state.nudgeClosed = true;
+    return as<T>({ ok: true, recorded: true });
+  }
+  if (path === '/api/survey' && method === 'GET')
+    return as<T>({ submitted: state.surveyDone, eligible: true, completedLevels: state.solved.size, minLevels: 3 });
+  if (path === '/api/survey' && method === 'POST') {
+    state.surveyDone = true;
+    return as<T>({ ok: true, susScore: susScore((body.answers as number[]) ?? []) });
+  }
+  if (path === '/api/admin/overview') return as<T>(adminOverview());
+  if (path === '/api/admin/metrics') return as<T>(adminMetrics());
+  if (path === '/api/admin/run-scoring') return as<T>({ scored: 8, nudged: 0, windowEnd: new Date() });
+
+  const nextLevel = path.match(/^\/api\/skills\/([^/]+)\/next-level$/);
+  if (nextLevel?.[1]) return as<T>({ levelId: `${nextLevel[1]}-01` });
+
+  const hint = path.match(/^\/api\/levels\/([^/]+)\/hint$/);
+  if (hint?.[1] && method === 'POST') return as<T>(revealHint(hint[1]));
 
   const submit = path.match(/^\/api\/levels\/([^/]+)\/submit$/);
-  if (submit?.[1] && method === 'POST') {
-    const body = options.body as { sourceCode?: string } | undefined;
-    return as<T>(submitLevel(submit[1], body?.sourceCode ?? ''));
-  }
+  if (submit?.[1] && method === 'POST') return as<T>(submitLevel(submit[1], (body.sourceCode as string) ?? ''));
+
   const level = path.match(/^\/api\/levels\/([^/]+)$/);
   if (level?.[1]) return as<T>(levelView(level[1]));
 

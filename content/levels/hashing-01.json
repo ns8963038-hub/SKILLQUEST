@@ -1,0 +1,47 @@
+{
+  "id": "hashing-01",
+  "skillId": "hashing",
+  "title": "Two Sum",
+  "difficulty": 2,
+  "statementMd": "Find the two positions whose values add up to the **target**, in one pass with a `HashMap` from value → index (O(n) instead of checking every pair). Exactly one answer exists. Print the two indices `i j` (0-based, i < j).\n\n**Input**\nLine 1: `n`. Line 2: n integers. Line 3: `target`.\n\n**Output**\n`i j`",
+  "starterCode": "import java.util.HashMap;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int target = sc.nextInt();\n        HashMap<Integer, Integer> seen = new HashMap<>();\n        // TODO: for each a[j], check whether target - a[j] was seen earlier\n    }\n}\n",
+  "referenceSolution": "import java.util.HashMap;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int target = sc.nextInt();\n        HashMap<Integer, Integer> seen = new HashMap<>();\n        for (int j = 0; j < n; j++) {\n            Integer i = seen.get(target - a[j]);\n            if (i != null) {\n                System.out.println(i + \" \" + j);\n                return;\n            }\n            seen.put(a[j], j);\n        }\n    }\n}\n",
+  "hints": [
+    "Walk the array once. For a[j], the partner you need is target - a[j].",
+    "Check the map BEFORE adding a[j], so an element is never paired with itself."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "4\n2 7 11 15\n9\n",
+      "expectedOutput": "0 1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "3\n3 2 4\n6\n",
+      "expectedOutput": "1 2",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "2\n3 3\n6\n",
+      "expectedOutput": "0 1",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "5\n-3 4 3 90 1\n0\n",
+      "expectedOutput": "0 2",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

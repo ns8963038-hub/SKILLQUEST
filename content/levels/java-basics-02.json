@@ -1,0 +1,47 @@
+{
+  "id": "java-basics-02",
+  "skillId": "java-basics",
+  "title": "Hello, Name!",
+  "difficulty": 1,
+  "statementMd": "Read a person's name (one full line — it may contain spaces) and greet them: print `Hello, <name>!`.\n\n**Input**\nOne line: the name.\n\n**Output**\n`Hello, ` followed by the name and `!`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String name = sc.nextLine();\n        // TODO: print the greeting\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String name = sc.nextLine();\n        System.out.println(\"Hello, \" + name + \"!\");\n    }\n}\n",
+  "hints": [
+    "Join strings with +: \"Hello, \" + name + \"!\"",
+    "Use System.out.println to print the whole greeting on one line."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "Asha\n",
+      "expectedOutput": "Hello, Asha!",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "Ravi Kumar\n",
+      "expectedOutput": "Hello, Ravi Kumar!",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "Z\n",
+      "expectedOutput": "Hello, Z!",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "Priya Sharma\n",
+      "expectedOutput": "Hello, Priya Sharma!",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

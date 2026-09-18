@@ -1,0 +1,47 @@
+{
+  "id": "linked-lists-02",
+  "skillId": "linked-lists",
+  "title": "Middle of the List",
+  "difficulty": 2,
+  "statementMd": "Return the **middle node** of a linked list in one pass, using two pointers: `slow` moves one step and `fast` moves two. When `fast` reaches the end, `slow` is in the middle. If there are two middles, return the **second** one.\n\n**Input**\nLine 1: `n` (1 ≤ n ≤ 1000). Line 2: n integers.\n\n**Output**\nThe value of the middle node.",
+  "starterCode": "import java.util.Scanner;\n\nclass Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n\npublic class Main {\n    // Return the middle node (the second middle for even lengths).\n    static Node middle(Node head) {\n        // TODO: slow / fast pointers\n        return head;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        Node head = null, tail = null;\n        for (int i = 0; i < n; i++) {\n            Node node = new Node(sc.nextInt());\n            if (head == null) head = node;\n            else tail.next = node;\n            tail = node;\n        }\n        System.out.println(middle(head).value);\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\nclass Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n\npublic class Main {\n    static Node middle(Node head) {\n        Node slow = head, fast = head;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        return slow;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        Node head = null, tail = null;\n        for (int i = 0; i < n; i++) {\n            Node node = new Node(sc.nextInt());\n            if (head == null) head = node;\n            else tail.next = node;\n            tail = node;\n        }\n        System.out.println(middle(head).value);\n    }\n}\n",
+  "hints": [
+    "Start slow and fast at head. Loop while fast != null && fast.next != null.",
+    "Each step: slow = slow.next; fast = fast.next.next; then return slow."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "5\n1 2 3 4 5\n",
+      "expectedOutput": "3",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "6\n1 2 3 4 5 6\n",
+      "expectedOutput": "4",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1\n9\n",
+      "expectedOutput": "9",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "2\n4 8\n",
+      "expectedOutput": "8",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

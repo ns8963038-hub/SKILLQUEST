@@ -1,0 +1,47 @@
+{
+  "id": "sorting-01",
+  "skillId": "sorting",
+  "title": "Bubble Sort, Counted",
+  "difficulty": 2,
+  "statementMd": "Implement **bubble sort** (repeatedly swap neighbours that are in the wrong order) and count how many swaps it makes. Print the sorted array, then `Swaps: k`.\n\n**Input**\nLine 1: `n` (1 ≤ n ≤ 1000). Line 2: n integers.\n\n**Output**\nLine 1: the sorted array, space-separated. Line 2: `Swaps: k`.\n\nThe swap count equals the number of pairs that were out of order — a classic interview fact.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int swaps = 0;\n        // TODO: bubble sort a, counting every swap\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int swaps = 0;\n        for (int pass = 0; pass < n - 1; pass++) {\n            for (int i = 0; i < n - 1 - pass; i++) {\n                if (a[i] > a[i + 1]) {\n                    int t = a[i]; a[i] = a[i + 1]; a[i + 1] = t;\n                    swaps++;\n                }\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n; i++) sb.append(i > 0 ? \" \" : \"\").append(a[i]);\n        System.out.println(sb);\n        System.out.println(\"Swaps: \" + swaps);\n    }\n}\n",
+  "hints": [
+    "Outer loop: n - 1 passes. Inner loop: compare a[i] and a[i + 1], swap if a[i] is bigger.",
+    "Swap with a temporary variable, and add 1 to swaps each time. Equal neighbours are NOT swapped."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "5\n5 1 4 2 8\n",
+      "expectedOutput": "1 2 4 5 8\nSwaps: 4",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "3\n1 2 3\n",
+      "expectedOutput": "1 2 3\nSwaps: 0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "4\n4 3 2 1\n",
+      "expectedOutput": "1 2 3 4\nSwaps: 6",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "6\n3 3 1 2 1 5\n",
+      "expectedOutput": "1 1 2 3 3 5\nSwaps: 7",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

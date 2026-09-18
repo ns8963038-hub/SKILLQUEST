@@ -1,0 +1,47 @@
+{
+  "id": "oop-basics-01",
+  "skillId": "oop-basics",
+  "title": "Bank Account",
+  "difficulty": 2,
+  "statementMd": "Complete the `BankAccount` class. `deposit` adds money; `withdraw` removes it **only if the balance is enough** and returns whether it succeeded; `getBalance` returns the balance. The `main` method is already written: it runs the operations, prints `Insufficient funds` for each failed withdrawal, then the final balance.\n\n**Input**\nLine 1: the opening balance. Line 2: `q`, the number of operations. Then q lines: `D amount` (deposit) or `W amount` (withdraw).\n\n**Output**\nOne `Insufficient funds` line per failed withdrawal, then `Balance: X`.",
+  "starterCode": "import java.util.Scanner;\n\nclass BankAccount {\n    private long balance;\n\n    BankAccount(long openingBalance) {\n        // TODO: store the opening balance\n    }\n\n    void deposit(long amount) {\n        // TODO\n    }\n\n    // Withdraw only if there is enough money. Return true if it worked.\n    boolean withdraw(long amount) {\n        // TODO\n        return true;\n    }\n\n    long getBalance() {\n        // TODO\n        return 0;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        BankAccount account = new BankAccount(sc.nextLong());\n        int q = sc.nextInt();\n        for (int i = 0; i < q; i++) {\n            String op = sc.next();\n            long amount = sc.nextLong();\n            if (op.equals(\"D\")) account.deposit(amount);\n            else if (!account.withdraw(amount)) System.out.println(\"Insufficient funds\");\n        }\n        System.out.println(\"Balance: \" + account.getBalance());\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\nclass BankAccount {\n    private long balance;\n\n    BankAccount(long openingBalance) {\n        balance = openingBalance;\n    }\n\n    void deposit(long amount) {\n        balance += amount;\n    }\n\n    boolean withdraw(long amount) {\n        if (amount > balance) return false;\n        balance -= amount;\n        return true;\n    }\n\n    long getBalance() {\n        return balance;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        BankAccount account = new BankAccount(sc.nextLong());\n        int q = sc.nextInt();\n        for (int i = 0; i < q; i++) {\n            String op = sc.next();\n            long amount = sc.nextLong();\n            if (op.equals(\"D\")) account.deposit(amount);\n            else if (!account.withdraw(amount)) System.out.println(\"Insufficient funds\");\n        }\n        System.out.println(\"Balance: \" + account.getBalance());\n    }\n}\n",
+  "hints": [
+    "The field balance is private — only the class's own methods change it (that's encapsulation).",
+    "In withdraw: if amount > balance, return false without changing anything."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "100\n3\nD 50\nW 30\nW 500\n",
+      "expectedOutput": "Insufficient funds\nBalance: 120",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "0\n1\nW 1\n",
+      "expectedOutput": "Insufficient funds\nBalance: 0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1000\n4\nW 1000\nW 1\nD 5\nW 5\n",
+      "expectedOutput": "Insufficient funds\nBalance: 0",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "250\n2\nD 250\nD 0\n",
+      "expectedOutput": "Balance: 500",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

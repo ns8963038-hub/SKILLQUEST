@@ -1,0 +1,47 @@
+{
+  "id": "operators-expressions-02",
+  "skillId": "operators-expressions",
+  "title": "Sharing Sweets",
+  "difficulty": 1,
+  "statementMd": "**a** sweets are shared equally among **b** friends. Using Java's integer division `/` and remainder `%`, print how many each friend gets, then how many are left over.\n\n**Input**\nTwo integers `a b` (b > 0; a may be negative).\n\n**Output**\nLine 1: `a / b`. Line 2: `a % b`.\n\nNote: Java's `/` on ints truncates toward zero, and `%` takes the sign of `a`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        // TODO: print a / b, then a % b\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(a / b);\n        System.out.println(a % b);\n    }\n}\n",
+  "hints": [
+    "With two ints, / gives a whole-number result — no decimals.",
+    "% gives the remainder. Try -17 / 5 and -17 % 5 on paper: Java truncates toward zero."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "17 5\n",
+      "expectedOutput": "3\n2",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "20 4\n",
+      "expectedOutput": "5\n0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "7 9\n",
+      "expectedOutput": "0\n7",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "-17 5\n",
+      "expectedOutput": "-3\n-2",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

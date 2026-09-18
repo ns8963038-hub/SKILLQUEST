@@ -10,8 +10,9 @@ import { Chip, ErrorState, GlassCard, PageHeader, Skeleton, rise, stagger } from
 
 // The roadmap as the full Knowledge Constellation (the tutor's live model of the
 // student), plus the same plan laid out week by week — a readable, keyboard- and
-// screen-reader-friendly companion to the star map.
-export function RoadmapScreen({ onOpenLevel }: { onOpenLevel: (levelId: string) => void }) {
+// screen-reader-friendly companion to the star map. Selecting a skill opens its
+// next unfinished level.
+export function RoadmapScreen({ onOpenSkill }: { onOpenSkill: (skillId: string) => void }) {
   const { data, error, reload } = useApi<{ nodes: RoadmapNode[] }>('/api/roadmap');
   const nodes = data?.nodes ?? null;
 
@@ -69,7 +70,7 @@ export function RoadmapScreen({ onOpenLevel }: { onOpenLevel: (levelId: string) 
           <motion.div variants={rise}>
             <GlassCard edge className="overflow-hidden p-4 sm:p-6">
               <div className="dot-grid rounded-2xl">
-                <Constellation nodes={nodes} onSelectSkill={(id) => onOpenLevel(`${id}-01`)} />
+                <Constellation nodes={nodes} onSelectSkill={onOpenSkill} />
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 px-1">
                 <ConstellationLegend />
@@ -94,7 +95,7 @@ export function RoadmapScreen({ onOpenLevel }: { onOpenLevel: (levelId: string) 
                   </div>
                   <ul className="mt-4 space-y-1.5">
                     {items.map((n) => (
-                      <PlanRow key={n.skillId} node={n} onPlay={() => onOpenLevel(`${n.skillId}-01`)} />
+                      <PlanRow key={n.skillId} node={n} onPlay={() => onOpenSkill(n.skillId)} />
                     ))}
                   </ul>
                 </GlassCard>
@@ -137,7 +138,15 @@ function PlanRow({ node, onPlay }: { node: RoadmapNode; onPlay: () => void }) {
           )}
         />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{node.title}</span>
+          <span className="flex items-baseline justify-between gap-2">
+            <span className="truncate text-sm font-medium">{node.title}</span>
+            {/* Level progress inside the skill (skills have 2–3 levels). */}
+            {!locked && node.levelsTotal !== undefined && node.levelsTotal > 1 && (
+              <span className="shrink-0 font-mono text-[10px] text-content-muted">
+                {node.levelsCompleted ?? 0}/{node.levelsTotal} levels
+              </span>
+            )}
+          </span>
           {pct !== null && !locked && (
             <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-surface-3">
               <span

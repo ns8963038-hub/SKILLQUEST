@@ -12,6 +12,19 @@ export interface LevelView {
   sampleTests: { stdin: string; expectedOutput: string }[];
   skillTitle?: string; // display name of the skill, when the API provides it
   mastery?: number; // the tutor's current BKT estimate for this skill (0..1), when provided
+  hintCount?: number; // how many hints exist (`hints` holds only the ones unlocked)
+  hintCost?: number; // XP charged per hint revealed
+  completed?: boolean; // has this student already solved the level
+}
+
+// The response from POST /api/levels/:id/hint.
+export interface HintResult {
+  hint: string;
+  index: number;
+  hintsUsed: number;
+  hintCount: number;
+  xpCost: number; // XP actually deducted (never below zero)
+  totalXp: number;
 }
 
 // One test-case result in a submission response. For hidden cases only `hidden`
@@ -51,4 +64,5 @@ export interface SubmitResult {
   newBadges: EarnedBadge[];
   cases: SubmitCase[];
   mastery?: MasteryUpdate; // present once the backend returns the BKT update
+  nextLevelId?: string | null; // where "Next level" goes after a pass
 }

@@ -1,0 +1,54 @@
+{
+  "id": "conditionals-02",
+  "skillId": "conditionals",
+  "title": "Grade Calculator",
+  "difficulty": 1,
+  "statementMd": "Convert exam marks into a grade: **A** for 90 and above, **B** for 75–89, **C** for 60–74, **D** for 40–59, and **F** below 40.\n\n**Input**\nOne integer `marks` (0 ≤ marks ≤ 100).\n\n**Output**\nA single letter: `A`, `B`, `C`, `D` or `F`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int marks = sc.nextInt();\n        // TODO: print the grade letter\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int marks = sc.nextInt();\n        if (marks >= 90) System.out.println(\"A\");\n        else if (marks >= 75) System.out.println(\"B\");\n        else if (marks >= 60) System.out.println(\"C\");\n        else if (marks >= 40) System.out.println(\"D\");\n        else System.out.println(\"F\");\n    }\n}\n",
+  "hints": [
+    "Use an if / else-if chain, checking the highest band first.",
+    "Watch the boundaries: exactly 75 is a B, exactly 40 is a D."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "95\n",
+      "expectedOutput": "A",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "62\n",
+      "expectedOutput": "C",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "40\n",
+      "expectedOutput": "D",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "39\n",
+      "expectedOutput": "F",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    },
+    {
+      "stdin": "75\n",
+      "expectedOutput": "B",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 5
+    }
+  ]
+}

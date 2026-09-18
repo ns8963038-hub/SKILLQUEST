@@ -1,0 +1,47 @@
+{
+  "id": "linked-lists-01",
+  "skillId": "linked-lists",
+  "title": "Reverse a Linked List",
+  "difficulty": 2,
+  "statementMd": "Complete `reverse(Node head)` so it reverses a singly linked list **in place** (by re-pointing the `next` links — no arrays, no new nodes) and returns the new head. `main` builds the list and prints the result.\n\n**Input**\nLine 1: `n` (1 ≤ n ≤ 1000). Line 2: n integers.\n\n**Output**\nThe reversed list, space-separated.",
+  "starterCode": "import java.util.Scanner;\n\nclass Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n\npublic class Main {\n    // Reverse the list and return its new head.\n    static Node reverse(Node head) {\n        // TODO: walk the list, flipping each next pointer\n        return head;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        Node head = null, tail = null;\n        for (int i = 0; i < n; i++) {\n            Node node = new Node(sc.nextInt());\n            if (head == null) head = node;\n            else tail.next = node;\n            tail = node;\n        }\n        head = reverse(head);\n        StringBuilder sb = new StringBuilder();\n        for (Node cur = head; cur != null; cur = cur.next) {\n            if (sb.length() > 0) sb.append(' ');\n            sb.append(cur.value);\n        }\n        System.out.println(sb);\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\nclass Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n\npublic class Main {\n    static Node reverse(Node head) {\n        Node prev = null;\n        Node cur = head;\n        while (cur != null) {\n            Node next = cur.next;\n            cur.next = prev;\n            prev = cur;\n            cur = next;\n        }\n        return prev;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        Node head = null, tail = null;\n        for (int i = 0; i < n; i++) {\n            Node node = new Node(sc.nextInt());\n            if (head == null) head = node;\n            else tail.next = node;\n            tail = node;\n        }\n        head = reverse(head);\n        StringBuilder sb = new StringBuilder();\n        for (Node cur = head; cur != null; cur = cur.next) {\n            if (sb.length() > 0) sb.append(' ');\n            sb.append(cur.value);\n        }\n        System.out.println(sb);\n    }\n}\n",
+  "hints": [
+    "Keep three pointers: prev (starts null), cur (starts at head), and next.",
+    "In the loop: save next = cur.next, point cur.next back to prev, then move prev and cur one step forward. Return prev."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "5\n1 2 3 4 5\n",
+      "expectedOutput": "5 4 3 2 1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1\n7\n",
+      "expectedOutput": "7",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "2\n10 20\n",
+      "expectedOutput": "20 10",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "6\n3 1 4 1 5 9\n",
+      "expectedOutput": "9 5 1 4 1 3",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

@@ -8,7 +8,7 @@ import { cn } from '../lib/cn';
 import { ProblemPanel } from '../features/play/ProblemPanel';
 import { ResultsPanel } from '../features/play/ResultsPanel';
 import { QuestReward } from '../features/quest/QuestReward';
-import type { LevelView, SubmitResult } from '../features/play/types';
+import type { HintResult, LevelView, SubmitResult } from '../features/play/types';
 import { AmbientBackground } from '../ui/AmbientBackground';
 import { Button, Chip, Skeleton } from '../ui/primitives';
 
@@ -58,8 +58,17 @@ const EDITOR_THEME = {
 
 // The play screen (S6) — a focused, full-screen "mission" view. Desktop: problem
 // on the left, editor + console on the right. Phone: Problem / Code / Results tabs.
-// Ctrl/Cmd+Enter runs the tests from anywhere.
-export function PlayScreen({ levelId, onBack }: { levelId: string; onBack: () => void }) {
+// Ctrl/Cmd+Enter runs the tests from anywhere. `onOpenLevel` lets the reward's
+// "Next level" button move straight on to the following level.
+export function PlayScreen({
+  levelId,
+  onBack,
+  onOpenLevel,
+}: {
+  levelId: string;
+  onBack: () => void;
+  onOpenLevel?: (levelId: string) => void;
+}) {
   const [level, setLevel] = useState<LevelView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [code, setCode] = useState('');
@@ -68,6 +77,8 @@ export function PlayScreen({ levelId, onBack }: { levelId: string; onBack: () =>
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [tab, setTab] = useState<Tab>('problem');
   const [showReward, setShowReward] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+  const [hintError, setHintError] = useState<string | null>(null);
   const runningRef = useRef(false); // guards against double submits (button + shortcut)
 
   // Load the level, restoring any code the student left unsubmitted.
@@ -124,6 +135,22 @@ export function PlayScreen({ levelId, onBack }: { levelId: string; onBack: () =>
     }
   }
 
+  // Unlock the next hint on the server (it costs XP), then show it.
+  async function revealHint() {
+    if (revealing) return;
+    setRevealing(true);
+    setHintError(null);
+    try {
+      const res = await api<HintResult>(`/api/levels/${levelId}/hint`, { method: 'POST' });
+      setLevel((l) => (l ? { ...l, hints: [...l.hints, res.hint], hintCount: res.hintCount } : l));
+      invalidate('/api/'); // XP changed (top bar, dashboard, leaderboard)
+    } catch {
+      setHintError('Could not unlock the hint. Check your connection and try again.');
+    } finally {
+      setRevealing(false);
+    }
+  }
+
   // The keyboard shortcut always calls the latest runTests.
   const runRef = useRef(runTests);
   runRef.current = runTests;
@@ -160,6 +187,9 @@ export function PlayScreen({ levelId, onBack }: { levelId: string; onBack: () =>
       </div>
     );
   }
+
+  // Where "Next level" goes after a pass (never back to this same level).
+  const nextLevelId = result?.nextLevelId && result.nextLevelId !== levelId ? result.nextLevelId : null;
 
   const difficulty = Math.max(1, Math.min(3, level.difficulty));
   const difficultyLabel = difficulty === 1 ? 'Easy' : difficulty === 2 ? 'Medium' : 'Hard';
@@ -250,7 +280,12 @@ export function PlayScreen({ levelId, onBack }: { levelId: string; onBack: () =>
             'h-full overflow-y-auto p-4 sm:p-6 md:block md:border-r md:border-white/[0.05]',
           )}
         >
-          <ProblemPanel level={level} />
+          <ProblemPanel
+            level={level}
+            onRevealHint={() => void revealHint()}
+            revealing={revealing}
+            hintError={hintError}
+          />
         </section>
 
         <div className={cn(tab === 'problem' ? 'hidden' : 'flex', 'h-full min-h-0 flex-col gap-3 p-3 sm:p-4 md:flex')}>
@@ -337,6 +372,7 @@ export function PlayScreen({ levelId, onBack }: { levelId: string; onBack: () =>
             mastery={result.mastery}
             onContinue={() => setShowReward(false)}
             onBackToMap={onBack}
+            onNextLevel={nextLevelId && onOpenLevel ? () => onOpenLevel(nextLevelId) : undefined}
           />
         )}
       </AnimatePresence>

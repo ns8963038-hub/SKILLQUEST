@@ -1,0 +1,47 @@
+{
+  "id": "interview-patterns-02",
+  "skillId": "interview-patterns",
+  "title": "Maximum Subarray (Kadane)",
+  "difficulty": 2,
+  "statementMd": "Find the largest sum of any **non-empty contiguous** part of the array. Kadane's algorithm does it in one pass: at each element, either extend the best run ending at the previous element or start fresh here.\n\n**Input**\nLine 1: `n` (1 ≤ n ≤ 10⁵). Line 2: n integers (|value| ≤ 10⁴).\n\n**Output**\nThe maximum subarray sum.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        // TODO: Kadane's algorithm\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        long bestEndingHere = a[0], best = a[0];\n        for (int i = 1; i < n; i++) {\n            bestEndingHere = Math.max(a[i], bestEndingHere + a[i]);\n            best = Math.max(best, bestEndingHere);\n        }\n        System.out.println(best);\n    }\n}\n",
+  "hints": [
+    "Keep bestEndingHere = the best sum of a run that ends at the current index.",
+    "bestEndingHere = max(a[i], bestEndingHere + a[i]); best = max(best, bestEndingHere). Start both at a[0] so all-negative arrays work."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "9\n-2 1 -3 4 -1 2 1 -5 4\n",
+      "expectedOutput": "6",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1\n-7\n",
+      "expectedOutput": "-7",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "5\n1 2 3 4 5\n",
+      "expectedOutput": "15",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "6\n-3 -1 -2 -8 -1 -4\n",
+      "expectedOutput": "-1",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

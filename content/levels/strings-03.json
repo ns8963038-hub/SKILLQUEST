@@ -1,0 +1,47 @@
+{
+  "id": "strings-03",
+  "skillId": "strings",
+  "title": "Vowel Counter",
+  "difficulty": 1,
+  "statementMd": "Count the vowels (**a, e, i, o, u** — upper or lower case) in a line of text.\n\n**Input**\nOne line of text (1–1000 characters).\n\n**Output**\nThe number of vowels.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String line = sc.nextLine();\n        // TODO: count and print the vowels\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String line = sc.nextLine();\n        int count = 0;\n        for (char c : line.toLowerCase().toCharArray()) {\n            if (\"aeiou\".indexOf(c) >= 0) count++;\n        }\n        System.out.println(count);\n    }\n}\n",
+  "hints": [
+    "Loop over each character of the line.",
+    "A neat test: \"aeiou\".indexOf(Character.toLowerCase(c)) >= 0."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "Hello World\n",
+      "expectedOutput": "3",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "sky\n",
+      "expectedOutput": "0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "AEIOU aeiou\n",
+      "expectedOutput": "10",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "Programming in Java\n",
+      "expectedOutput": "6",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

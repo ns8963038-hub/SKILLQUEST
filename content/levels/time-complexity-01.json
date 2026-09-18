@@ -1,0 +1,47 @@
+{
+  "id": "time-complexity-01",
+  "skillId": "time-complexity",
+  "title": "Count Without Counting",
+  "difficulty": 2,
+  "statementMd": "How many integers from 1 to **n** are divisible by 3 **or** 5?\n\nn can be as large as 10¹⁸, so a loop would run for centuries. Find an **O(1)** formula instead.\n\n**Input**\nOne integer `n` (1 ≤ n ≤ 10¹⁸).\n\n**Output**\nThe count.\n\nHint of the maths: multiples of 3 up to n = n / 3. Some numbers are multiples of both.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        long n = sc.nextLong();\n        // TODO: an O(1) formula — no loops over 1..n\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        long n = sc.nextLong();\n        System.out.println(n / 3 + n / 5 - n / 15);\n    }\n}\n",
+  "hints": [
+    "There are n / 3 multiples of 3 and n / 5 multiples of 5 up to n.",
+    "Multiples of 15 were counted twice — subtract n / 15 once (inclusion–exclusion). Use long."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "10\n",
+      "expectedOutput": "5",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "15\n",
+      "expectedOutput": "7",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1\n",
+      "expectedOutput": "0",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "1000000000000000000\n",
+      "expectedOutput": "466666666666666667",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

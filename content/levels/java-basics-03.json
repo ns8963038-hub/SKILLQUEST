@@ -1,0 +1,47 @@
+{
+  "id": "java-basics-03",
+  "skillId": "java-basics",
+  "title": "Garden Fence",
+  "difficulty": 1,
+  "statementMd": "A rectangular garden is **L** metres long and **W** metres wide. Print its **area** on the first line and the length of fence needed to surround it (its **perimeter**) on the second.\n\n**Input**\nTwo integers `L W` (0 ≤ L, W ≤ 10000).\n\n**Output**\nLine 1: the area. Line 2: the perimeter.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int l = sc.nextInt();\n        int w = sc.nextInt();\n        // TODO: print the area, then the perimeter\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int l = sc.nextInt();\n        int w = sc.nextInt();\n        System.out.println(l * w);\n        System.out.println(2 * (l + w));\n    }\n}\n",
+  "hints": [
+    "Area = L × W.",
+    "Perimeter = 2 × (L + W). Print each on its own line with println."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "5 3\n",
+      "expectedOutput": "15\n16",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1 1\n",
+      "expectedOutput": "1\n4",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "100 200\n",
+      "expectedOutput": "20000\n600",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "7 0\n",
+      "expectedOutput": "0\n14",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

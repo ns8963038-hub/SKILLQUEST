@@ -1,0 +1,47 @@
+{
+  "id": "recursion-02",
+  "skillId": "recursion",
+  "title": "Fibonacci, Remembered",
+  "difficulty": 2,
+  "statementMd": "The Fibonacci numbers are F(0) = 0, F(1) = 1, and F(n) = F(n−1) + F(n−2). Print **F(n)**.\n\nA plain recursive version recomputes the same values billions of times and is far too slow for n = 45 — **remember** each answer the first time you compute it (memoization).\n\n**Input**\nOne integer `n` (0 ≤ n ≤ 45).\n\n**Output**\nF(n).",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    static long[] memo = new long[46];\n\n    // Return the n-th Fibonacci number.\n    static long fib(int n) {\n        // TODO: base cases, then use memo[] so each value is computed once\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.println(fib(sc.nextInt()));\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    static long[] memo = new long[46];\n\n    static long fib(int n) {\n        if (n < 2) return n;\n        if (memo[n] != 0) return memo[n];\n        return memo[n] = fib(n - 1) + fib(n - 2);\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.println(fib(sc.nextInt()));\n    }\n}\n",
+  "hints": [
+    "Base cases: fib(0) = 0 and fib(1) = 1.",
+    "Before recursing, check memo[n]; after computing, store it: memo[n] = fib(n-1) + fib(n-2)."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 3000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "10\n",
+      "expectedOutput": "55",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1\n",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "0\n",
+      "expectedOutput": "0",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "45\n",
+      "expectedOutput": "1134903170",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

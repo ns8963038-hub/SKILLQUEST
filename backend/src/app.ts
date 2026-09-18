@@ -7,6 +7,7 @@ import { prisma } from './db';
 import { requireAuth } from './auth';
 import { apiRouter } from './routes';
 import { jobsRouter } from './routes/jobs';
+import { timingMiddleware } from './metrics/timing';
 
 // Builds the Express app. Kept separate from index.ts so tests can create an
 // app instance without starting a listening server.
@@ -33,7 +34,8 @@ export function createApp(): Express {
   });
 
   // All /api routes require a valid Supabase token (requireAuth runs first).
-  app.use('/api', requireAuth, apiRouter);
+  // timingMiddleware records each request's latency for the admin metrics panel.
+  app.use('/api', timingMiddleware, requireAuth, apiRouter);
 
   // Internal jobs (scheduler-triggered) authenticate with the internal key.
   app.use('/internal', jobsRouter);

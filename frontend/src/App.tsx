@@ -11,6 +11,11 @@ import { PlayScreen } from './screens/PlayScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { PlacementScreen } from './screens/PlacementScreen';
 import { DSAScreen } from './screens/DSAScreen';
+import { ConsentScreen } from './screens/ConsentScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
+import { LeaderboardScreen } from './screens/LeaderboardScreen';
+import { AdminScreen } from './screens/AdminScreen';
+import { FeedbackScreen } from './screens/FeedbackScreen';
 import { AppShell, type NavView } from './ui/AppShell';
 import { AmbientBackground } from './ui/AmbientBackground';
 import { Nova } from './ui/Nova';
@@ -20,6 +25,9 @@ import { Button } from './ui/primitives';
 interface Profile {
   id: string;
   onboardingStep: number;
+  isAdmin?: boolean;
+  consentRequired?: boolean; // hasn't answered the current consent text yet
+  currentConsentVersion?: string;
 }
 
 // Full-screen loading state while we check auth / fetch the profile.
@@ -72,11 +80,13 @@ function ServerUnavailable({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-// Decides which screen to show from auth + onboarding state. No router needed:
-//   not signed in            -> AuthScreen
-//   signed in, not onboarded -> OnboardingWizard
-//   signed in and onboarded  -> the app shell (dashboard / roadmap / placement / DSA)
-//   playing a level          -> the full-screen PlayScreen
+// Decides which screen to show from auth + consent + onboarding state. No router:
+//   not signed in                 -> AuthScreen
+//   consent not answered (v1)     -> ConsentScreen (research consent comes FIRST)
+//   signed in, not onboarded      -> OnboardingWizard
+//   signed in and onboarded       -> the app shell (home / map / placement / DSA /
+//                                    leaderboard / settings / feedback / admin)
+//   playing a level               -> the full-screen PlayScreen
 function AppInner() {
   const { session, loading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -125,6 +135,10 @@ function AppInner() {
   if (!session) return <AuthScreen />;
   if (profileFailed) return <ServerUnavailable onRetry={() => void loadProfile()} />;
   if (profileLoading || !profile) return <Splash />;
+  // Consent gate (Backend Schema §5.1): answered before any research data is
+  // collected — agreeing or declining both continue into the app.
+  if (profile.consentRequired)
+    return <ConsentScreen version={profile.currentConsentVersion} onDone={() => void loadProfile()} />;
   // Onboarding gate: incomplete users must finish the wizard first.
   if (profile.onboardingStep < 5) return <OnboardingWizard onComplete={() => void loadProfile()} />;
 
@@ -134,11 +148,22 @@ function AppInner() {
     setPlayLevelId(levelId);
   };
 
-  // Playing a level takes over the whole screen; Back returns to where it opened from.
+  // Open a SKILL: ask the server for its next unfinished level (skills have
+  // several levels now), falling back to the first level if that fails.
+  const openSkill = (skillId: string, from: NavView) => {
+    api<{ levelId: string }>(`/api/skills/${skillId}/next-level`)
+      .then(({ levelId }) => openLevel(levelId, from))
+      .catch(() => openLevel(`${skillId}-01`, from));
+  };
+
+  // Playing a level takes over the whole screen; Back returns to where it opened
+  // from. The key remounts it cleanly when "Next level" swaps the level.
   if (playLevelId) {
     return (
       <PlayScreen
+        key={playLevelId}
         levelId={playLevelId}
+        onOpenLevel={(id) => setPlayLevelId(id)}
         onBack={() => {
           setPlayLevelId(null);
           setView(playReturn);
@@ -154,11 +179,11 @@ function AppInner() {
 
   let screen: ReactNode;
   if (view === 'roadmap') {
-    screen = <RoadmapScreen onOpenLevel={(id) => openLevel(id, 'roadmap')} />;
+    screen = <RoadmapScreen onOpenSkill={(id) => openSkill(id, 'roadmap')} />;
   } else if (view === 'placement') {
     screen = (
       <PlacementScreen
-        onOpenLevel={(id) => openLevel(id, 'placement')}
+        onOpenSkill={(id) => openSkill(id, 'placement')}
         onOpenDsa={(companyId) => {
           setDsaCompany(companyId);
           setView('dsa');
@@ -167,19 +192,29 @@ function AppInner() {
     );
   } else if (view === 'dsa') {
     screen = <DSAScreen initialCompany={dsaCompany} />;
+  } else if (view === 'leaderboard') {
+    screen = <LeaderboardScreen onOpenSettings={() => navigate('settings')} />;
+  } else if (view === 'settings') {
+    screen = <SettingsScreen />;
+  } else if (view === 'feedback') {
+    screen = <FeedbackScreen onDone={() => navigate('dashboard')} />;
+  } else if (view === 'admin' && profile.isAdmin) {
+    screen = <AdminScreen />;
   } else {
     screen = (
       <DashboardScreen
         onContinue={(id) => openLevel(id, 'dashboard')}
+        onOpenSkill={(id) => openSkill(id, 'dashboard')}
         onViewRoadmap={() => navigate('roadmap')}
         onViewPlacement={() => navigate('placement')}
         onViewDsa={() => navigate('dsa')}
+        onGiveFeedback={() => navigate('feedback')}
       />
     );
   }
 
   return (
-    <AppShell current={view} onNavigate={navigate}>
+    <AppShell current={view} onNavigate={navigate} isAdmin={profile.isAdmin}>
       {/* Pages cross-fade with a slight lift and blur. */}
       <AnimatePresence mode="wait">
         <motion.div

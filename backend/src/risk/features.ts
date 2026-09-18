@@ -12,6 +12,23 @@ function utcDay(d: Date): number {
   return Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / DAY_MS);
 }
 
+/**
+ * Consecutive active days ending on `endDay` — or the day before, since "today"
+ * may simply not have happened yet. Computed from the events log (not the cached
+ * profile streak, which only updates on activity and so goes stale), and mirrored
+ * exactly in ml/dataset.py so the feature means the same thing on OULAD.
+ */
+export function streakEndingAt(activeDays: number[], endDay: number): number {
+  const active = new Set(activeDays);
+  let day = active.has(endDay) ? endDay : endDay - 1;
+  let streak = 0;
+  while (active.has(day)) {
+    streak += 1;
+    day -= 1;
+  }
+  return streak;
+}
+
 export interface RiskFeatures {
   active_days_in_window: number;
   mean_session_gap_days: number;
@@ -53,9 +70,10 @@ export async function computeRiskFeatures(
   const firstHalf = submits.filter((e) => e.ts.getTime() < midMs).length;
   const activity_trend = submits.length - firstHalf - firstHalf;
 
-  // Days since the student's last activity of ANY kind.
+  // Days since the student's last activity of ANY kind before the window end
+  // (never anything after it — the same no-leakage rule as training).
   const last = await prisma.event.findFirst({
-    where: { userId },
+    where: { userId, ts: { lt: windowEnd } },
     orderBy: { ts: 'desc' },
     select: { ts: true },
   });
@@ -75,11 +93,6 @@ export async function computeRiskFeatures(
     ? userLevels.reduce((s, u) => s + u.bestPassRatio, 0) / attempted
     : 0;
 
-  const profile = await prisma.profile.findUnique({
-    where: { id: userId },
-    select: { currentStreak: true },
-  });
-
   return {
     active_days_in_window,
     mean_session_gap_days,
@@ -87,6 +100,6 @@ export async function computeRiskFeatures(
     completion_ratio,
     avg_score,
     activity_trend,
-    current_streak: profile?.currentStreak ?? 0,
+    current_streak: streakEndingAt(days, utcDay(windowEnd)),
   };
 }

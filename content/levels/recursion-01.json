@@ -1,0 +1,47 @@
+{
+  "id": "recursion-01",
+  "skillId": "recursion",
+  "title": "Recursive Factorial",
+  "difficulty": 1,
+  "statementMd": "Write a **recursive** method `factorial(int n)` (n! = n × (n−1)!, and 0! = 1) and print `factorial(n)`.\n\n**Input**\nOne integer `n` (0 ≤ n ≤ 20).\n\n**Output**\nn! (it fits in a `long`).",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    // Return n! using recursion.\n    static long factorial(int n) {\n        // TODO: base case, then the recursive case\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.println(factorial(sc.nextInt()));\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    static long factorial(int n) {\n        if (n <= 1) return 1;\n        return n * factorial(n - 1);\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.println(factorial(sc.nextInt()));\n    }\n}\n",
+  "hints": [
+    "Every recursion needs a base case that stops it: factorial(0) = 1.",
+    "Recursive case: return n * factorial(n - 1);"
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "5\n",
+      "expectedOutput": "120",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "0\n",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "20\n",
+      "expectedOutput": "2432902008176640000",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "1\n",
+      "expectedOutput": "1",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

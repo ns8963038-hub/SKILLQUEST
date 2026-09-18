@@ -1,16 +1,28 @@
 import { Router } from 'express';
 import { meRouter } from './me';
+import { consentRouter } from './consent';
+import { settingsRouter } from './settings';
 import { onboardingRouter } from './onboarding';
 import { roadmapRouter } from './roadmap';
 import { levelsRouter } from './levels';
 import { dashboardRouter } from './dashboard';
 import { placementRouter } from './placement';
+import { nudgesRouter } from './nudges';
+import { leaderboardRouter } from './leaderboard';
+import { surveyRouter } from './survey';
+import { adminRouter } from './admin';
 
 // All authenticated API routes, combined. Mounted under /api behind requireAuth.
 export const apiRouter = Router();
 apiRouter.use(meRouter);
+apiRouter.use(consentRouter);
+apiRouter.use(settingsRouter);
 apiRouter.use(onboardingRouter);
 apiRouter.use(roadmapRouter);
 apiRouter.use(levelsRouter);
 apiRouter.use(dashboardRouter);
 apiRouter.use(placementRouter);
+apiRouter.use(nudgesRouter);
+apiRouter.use(leaderboardRouter);
+apiRouter.use(surveyRouter);
+apiRouter.use(adminRouter);

@@ -1,0 +1,47 @@
+{
+  "id": "methods-03",
+  "skillId": "methods",
+  "title": "Power Up",
+  "difficulty": 2,
+  "statementMd": "Write a method `power(int base, int exp)` that returns base raised to exp **using a loop** (not `Math.pow`), and print the result.\n\n**Input**\nTwo integers `base exp` (−10 ≤ base ≤ 10, 0 ≤ exp ≤ 18).\n\n**Output**\nbase^exp as a whole number.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    // Return base raised to the power exp.\n    static long power(int base, int exp) {\n        // TODO: multiply in a loop\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int base = sc.nextInt();\n        int exp = sc.nextInt();\n        System.out.println(power(base, exp));\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    static long power(int base, int exp) {\n        long result = 1;\n        for (int i = 0; i < exp; i++) result *= base;\n        return result;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int base = sc.nextInt();\n        int exp = sc.nextInt();\n        System.out.println(power(base, exp));\n    }\n}\n",
+  "hints": [
+    "Start result at 1 (anything to the power 0 is 1).",
+    "Multiply result by base, exp times. Use long so 10^18 fits."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "2 10\n",
+      "expectedOutput": "1024",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "5 0\n",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "3 13\n",
+      "expectedOutput": "1594323",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "-2 5\n",
+      "expectedOutput": "-32",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

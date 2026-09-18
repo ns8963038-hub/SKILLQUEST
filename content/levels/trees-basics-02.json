@@ -1,0 +1,47 @@
+{
+  "id": "trees-basics-02",
+  "skillId": "trees-basics",
+  "title": "How Tall Is the Tree?",
+  "difficulty": 2,
+  "statementMd": "The BST is built for you. Complete `height(TreeNode root)`: the number of nodes on the **longest path from the root down to a leaf** (an empty tree has height 0, a single node has height 1).\n\n**Input**\nLine 1: `n` (1 ≤ n ≤ 1000). Line 2: n distinct integers, inserted in order.\n\n**Output**\nThe height.",
+  "starterCode": "import java.util.Scanner;\n\nclass TreeNode {\n    int value;\n    TreeNode left, right;\n\n    TreeNode(int value) {\n        this.value = value;\n    }\n}\n\npublic class Main {\n    // Insert value into the BST rooted at root; return the (possibly new) root.\n    static TreeNode insert(TreeNode root, int value) {\n        if (root == null) return new TreeNode(value);\n        if (value < root.value) root.left = insert(root.left, value);\n        else root.right = insert(root.right, value);\n        return root;\n    }\n\n    // Number of nodes on the longest root-to-leaf path.\n    static int height(TreeNode root) {\n        // TODO: recursion\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        TreeNode root = null;\n        for (int i = 0; i < n; i++) root = insert(root, sc.nextInt());\n        System.out.println(height(root));\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\nclass TreeNode {\n    int value;\n    TreeNode left, right;\n\n    TreeNode(int value) {\n        this.value = value;\n    }\n}\n\npublic class Main {\n    // Insert value into the BST rooted at root; return the (possibly new) root.\n    static TreeNode insert(TreeNode root, int value) {\n        if (root == null) return new TreeNode(value);\n        if (value < root.value) root.left = insert(root.left, value);\n        else root.right = insert(root.right, value);\n        return root;\n    }\n\n    static int height(TreeNode root) {\n        if (root == null) return 0;\n        return 1 + Math.max(height(root.left), height(root.right));\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        TreeNode root = null;\n        for (int i = 0; i < n; i++) root = insert(root, sc.nextInt());\n        System.out.println(height(root));\n    }\n}\n",
+  "hints": [
+    "Base case: an empty tree (null) has height 0.",
+    "Otherwise: 1 + Math.max(height(root.left), height(root.right))."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "7\n50 30 70 20 40 60 80\n",
+      "expectedOutput": "3",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1\n5\n",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "5\n1 2 3 4 5\n",
+      "expectedOutput": "5",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "6\n8 3 10 1 6 14\n",
+      "expectedOutput": "3",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

@@ -15,9 +15,9 @@ PREDICTION_HORIZON_DAYS = 21  # how far ahead we predict withdrawal
 CUTOFF_DAY = 100
 
 # Versions stamped onto every prediction for reproducibility (TRD 6.3.8)
-FEATURE_SET_VERSION = "fs-v1"
-MODEL_VERSION = "rf-v1"
-THRESHOLD_VERSION = "thr-v1"
+FEATURE_SET_VERSION = "fs-v2"  # v2: the seven runtime features (v1 used click features the app cannot compute)
+MODEL_VERSION = "lr-v2"  # set by the deployment rule in run_experiment.py
+THRESHOLD_VERSION = "thr-v2"  # percentile-based tiers (see run_experiment.py)
 
 # Temporal split (TRD 6.3.3): train on earlier presentations, test on a later
 # one, to mimic deploying on learners/periods never seen in training.

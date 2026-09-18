@@ -1,0 +1,47 @@
+{
+  "id": "sorting-02",
+  "skillId": "sorting",
+  "title": "Merge Two Sorted Lists",
+  "difficulty": 2,
+  "statementMd": "Merge two already-sorted arrays into one sorted array in **O(n + m)** — the key step of merge sort. Walk both arrays with two pointers, always taking the smaller front element.\n\n**Input**\nLine 1: `n`, then n sorted integers. Next line: `m`, then m sorted integers. (n, m ≥ 0, n + m ≥ 1)\n\n**Output**\nAll n + m integers in sorted order, space-separated.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int m = sc.nextInt();\n        int[] b = new int[m];\n        for (int i = 0; i < m; i++) b[i] = sc.nextInt();\n        // TODO: merge a and b with two pointers and print the result\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int m = sc.nextInt();\n        int[] b = new int[m];\n        for (int i = 0; i < m; i++) b[i] = sc.nextInt();\n        StringBuilder sb = new StringBuilder();\n        int i = 0, j = 0;\n        while (i < n || j < m) {\n            int next = (j >= m || (i < n && a[i] <= b[j])) ? a[i++] : b[j++];\n            if (sb.length() > 0) sb.append(' ');\n            sb.append(next);\n        }\n        System.out.println(sb);\n    }\n}\n",
+  "hints": [
+    "Keep index i into a and j into b. Take a[i] if it is ≤ b[j], else b[j], and advance that index.",
+    "When one array runs out, copy the rest of the other."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "3\n1 4 7\n4\n2 3 8 9\n",
+      "expectedOutput": "1 2 3 4 7 8 9",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "0\n3\n5 6 7\n",
+      "expectedOutput": "5 6 7",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "4\n1 1 2 2\n2\n1 2\n",
+      "expectedOutput": "1 1 1 2 2 2",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "3\n-5 0 5\n3\n-6 1 6\n",
+      "expectedOutput": "-6 -5 0 1 5 6",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

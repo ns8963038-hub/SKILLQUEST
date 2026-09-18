@@ -1,0 +1,47 @@
+{
+  "id": "interview-patterns-03",
+  "skillId": "interview-patterns",
+  "title": "Longest Unique Stretch",
+  "difficulty": 3,
+  "statementMd": "Find the length of the **longest substring with no repeated characters**. Grow a window to the right; when a character repeats, jump the window's left edge past its previous position. Remember each character's last index.\n\n**Input**\nOne word of lowercase letters (1–10⁵ characters).\n\n**Output**\nThe length of the longest substring without repeating characters.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.next();\n        // TODO: sliding window + last-seen index of each character\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.next();\n        int[] last = new int[128];\n        java.util.Arrays.fill(last, -1);\n        int best = 0, left = 0;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (last[c] >= left) left = last[c] + 1;\n            last[c] = right;\n            best = Math.max(best, right - left + 1);\n        }\n        System.out.println(best);\n    }\n}\n",
+  "hints": [
+    "Keep left (start of the window) and last[c] = the most recent index of character c.",
+    "If c was last seen INSIDE the window (last[c] >= left), move left to last[c] + 1 — never move it backwards."
+  ],
+  "xpReward": 100,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "skillquest\n",
+      "expectedOutput": "6",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "aaaa\n",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "abcdefg\n",
+      "expectedOutput": "7",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "abba\n",
+      "expectedOutput": "2",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

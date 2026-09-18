@@ -31,3 +31,12 @@ export function badgesToAward(ctx: BadgeContext, alreadyEarned: Set<string>): st
 
   return toAward;
 }
+
+// Placement Ready — reaching 75% tracked-skill coverage for at least one target
+// role (content/badges.json). Evaluated after a completion, because only a
+// completion can move placement coverage.
+export const PLACEMENT_READY_THRESHOLD = 75;
+
+export function earnsPlacementReady(roleScores: number[]): boolean {
+  return roleScores.some((score) => score >= PLACEMENT_READY_THRESHOLD);
+}

@@ -1,0 +1,47 @@
+{
+  "id": "loops-02",
+  "skillId": "loops",
+  "title": "Multiplication Table",
+  "difficulty": 1,
+  "statementMd": "Print the multiplication table of **n** from 1 to 10, one line each, in the form `n x i = product`.\n\n**Input**\nOne integer `n` (1 ≤ n ≤ 1000).\n\n**Output**\nTen lines: `n x 1 = …` up to `n x 10 = …`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        // TODO: print n x 1 = ... through n x 10 = ...\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        for (int i = 1; i <= 10; i++) {\n            System.out.println(n + \" x \" + i + \" = \" + (n * i));\n        }\n    }\n}\n",
+  "hints": [
+    "A for loop from i = 1 to 10 prints one line per step.",
+    "Build each line as n + \" x \" + i + \" = \" + (n * i) — note the brackets around the product."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "5\n",
+      "expectedOutput": "5 x 1 = 5\n5 x 2 = 10\n5 x 3 = 15\n5 x 4 = 20\n5 x 5 = 25\n5 x 6 = 30\n5 x 7 = 35\n5 x 8 = 40\n5 x 9 = 45\n5 x 10 = 50",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "12\n",
+      "expectedOutput": "12 x 1 = 12\n12 x 2 = 24\n12 x 3 = 36\n12 x 4 = 48\n12 x 5 = 60\n12 x 6 = 72\n12 x 7 = 84\n12 x 8 = 96\n12 x 9 = 108\n12 x 10 = 120",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1\n",
+      "expectedOutput": "1 x 1 = 1\n1 x 2 = 2\n1 x 3 = 3\n1 x 4 = 4\n1 x 5 = 5\n1 x 6 = 6\n1 x 7 = 7\n1 x 8 = 8\n1 x 9 = 9\n1 x 10 = 10",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "999\n",
+      "expectedOutput": "999 x 1 = 999\n999 x 2 = 1998\n999 x 3 = 2997\n999 x 4 = 3996\n999 x 5 = 4995\n999 x 6 = 5994\n999 x 7 = 6993\n999 x 8 = 7992\n999 x 9 = 8991\n999 x 10 = 9990",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

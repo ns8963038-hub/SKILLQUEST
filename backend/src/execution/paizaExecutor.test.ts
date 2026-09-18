@@ -37,3 +37,42 @@ describe('PaizaExecutor', () => {
     expect(r.results[0]?.passed).toBe(false);
   });
 });
+
+describe('PaizaExecutor scheduling', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const fourTests = [1, 2, 3, 4].map((n) => ({ stdin: String(n), expectedOutput: String(n), isHidden: false }));
+
+  it('compiles once: a compile error on the first test fails the rest without more runs', async () => {
+    const fetchMock = mockPaiza({ status: 'completed', build_result: 'failure', build_stderr: 'error: ; expected', exit_code: '' });
+    vi.stubGlobal('fetch', fetchMock);
+    const r = await new PaizaExecutor().run('code', fourTests, 5000);
+    expect(r.verdict).toBe('compile_error');
+    expect(r.results).toHaveLength(4);
+    expect(r.results.every((x) => !x.passed && x.actualOutput.includes('; expected'))).toBe(true);
+    const creates = fetchMock.mock.calls.filter(([u]) => String(u).includes('/runners/create'));
+    expect(creates).toHaveLength(1);
+  });
+
+  it('keeps results in test order when the rest run in parallel', async () => {
+    // Echo the stdin back, so each result must line up with its own test.
+    let lastInput = '';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string | URL, init?: { body?: URLSearchParams }) => {
+        const u = String(url);
+        if (u.includes('/runners/create')) {
+          const input = init?.body?.get('input') ?? '';
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ id: `id-${input}` }) });
+        }
+        lastInput = new URL(u).searchParams.get('id')!.slice(3);
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ status: 'completed', build_result: 'success', result: 'success', stdout: lastInput, exit_code: '0' }),
+        });
+      }),
+    );
+    const r = await new PaizaExecutor().run('code', fourTests, 5000);
+    expect(r.verdict).toBe('accepted');
+    expect(r.results.map((x) => x.actualOutput)).toEqual(['1', '2', '3', '4']);
+  });
+});

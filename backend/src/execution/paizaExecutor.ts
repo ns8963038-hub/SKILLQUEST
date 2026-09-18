@@ -1,4 +1,5 @@
 import type { ExecutionService, RunResult, TestCaseInput, Verdict } from './types';
+import { outputsMatch } from './compare';
 
 // Real Java execution via Paiza.IO's public runner API — FREE, no card, no
 // account (uses the built-in `guest` key). It accepts our `public class Main`
@@ -13,6 +14,10 @@ import type { ExecutionService, RunResult, TestCaseInput, Verdict } from './type
 // (Judge0/Piston) is the durable choice for heavy use.
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// How many test cases run on Paiza at once (after the first). Kept small to stay
+// polite to the shared guest key; a 429 is retried with backoff in runOne.
+const CONCURRENCY = 3;
 
 interface PaizaDetails {
   status: string; // 'running' | 'completed'
@@ -45,10 +50,12 @@ export class PaizaExecutor implements ExecutionService {
       input: stdin,
       api_key: this.apiKey,
     });
-    const createRes = await fetch(`${this.baseUrl}/runners/create`, {
-      method: 'POST',
-      body: createBody,
-    });
+    let createRes = await fetch(`${this.baseUrl}/runners/create`, { method: 'POST', body: createBody });
+    // Rate-limited: back off and retry a couple of times before giving up.
+    for (let attempt = 1; createRes.status === 429 && attempt <= 3; attempt++) {
+      await sleep(1000 * attempt);
+      createRes = await fetch(`${this.baseUrl}/runners/create`, { method: 'POST', body: createBody });
+    }
     if (!createRes.ok) throw new Error(`Paiza create failed: ${createRes.status}`);
     const { id } = (await createRes.json()) as { id: string };
 
@@ -79,32 +86,49 @@ export class PaizaExecutor implements ExecutionService {
   }
 
   async run(sourceCode: string, tests: TestCaseInput[], timeLimitMs: number): Promise<RunResult> {
-    const results: { passed: boolean; actualOutput: string }[] = [];
+    const start = Date.now();
+    const results: { passed: boolean; actualOutput: string }[] = new Array(tests.length);
     let sawCompileError = false;
     let sawTimeout = false;
     let sawRuntimeError = false;
-    const start = Date.now();
 
-    // Sequential — respects the guest rate limit and keeps it simple.
-    for (const t of tests) {
+    // Run test i and record its outcome in results[i].
+    const runTest = async (i: number) => {
+      const t = tests[i]!;
       try {
         const r = await this.runOne(sourceCode, t.stdin, timeLimitMs);
         if (r.compileErr) {
           sawCompileError = true;
-          results.push({ passed: false, actualOutput: r.compileErr });
+          results[i] = { passed: false, actualOutput: r.compileErr };
         } else if (r.timedOut) {
           sawTimeout = true;
-          results.push({ passed: false, actualOutput: '(time limit exceeded)' });
+          results[i] = { passed: false, actualOutput: '(time limit exceeded)' };
         } else if (r.runErr) {
           sawRuntimeError = true;
-          results.push({ passed: false, actualOutput: r.runErr });
+          results[i] = { passed: false, actualOutput: r.runErr };
         } else {
-          const passed = r.stdout.trim() === t.expectedOutput.trim();
-          results.push({ passed, actualOutput: r.stdout });
+          results[i] = { passed: outputsMatch(r.stdout, t.expectedOutput), actualOutput: r.stdout };
         }
       } catch {
         sawRuntimeError = true;
-        results.push({ passed: false, actualOutput: '(execution error)' });
+        results[i] = { passed: false, actualOutput: '(execution error)' };
+      }
+    };
+
+    if (tests.length > 0) {
+      // 1) The first test alone. If the code doesn't compile, every test would
+      //    fail the same way — report that at once instead of compiling N times.
+      await runTest(0);
+      if (sawCompileError) {
+        for (let i = 1; i < tests.length; i++) results[i] = { passed: false, actualOutput: results[0]!.actualOutput };
+      } else {
+        // 2) The rest in parallel, at most CONCURRENCY at a time (each Paiza run
+        //    takes ~3-4 s, so sequential runs of 4-5 tests blew the 15 s budget).
+        let next = 1;
+        const worker = async () => {
+          while (next < tests.length) await runTest(next++);
+        };
+        await Promise.all(Array.from({ length: Math.min(CONCURRENCY, tests.length - 1) }, worker));
       }
     }
 

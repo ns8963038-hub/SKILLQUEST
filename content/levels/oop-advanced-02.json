@@ -1,0 +1,47 @@
+{
+  "id": "oop-advanced-02",
+  "skillId": "oop-advanced",
+  "title": "Merit List (Comparable)",
+  "difficulty": 2,
+  "statementMd": "Make `Student` implement `Comparable<Student>` so that `Collections.sort` orders students by **marks, highest first**, and students with equal marks **alphabetically by name**. `main` is already written.\n\n**Input**\nLine 1: `n`. Then n lines: `name marks` (a name has no spaces).\n\n**Output**\nThe students in merit order, one `name marks` per line.",
+  "starterCode": "import java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.List;\nimport java.util.Scanner;\n\nclass Student implements Comparable<Student> {\n    final String name;\n    final int marks;\n\n    Student(String name, int marks) {\n        this.name = name;\n        this.marks = marks;\n    }\n\n    // Negative if this student comes BEFORE other in the merit list.\n    @Override\n    public int compareTo(Student other) {\n        return 0; // TODO: marks descending, then name ascending\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        List<Student> list = new ArrayList<>();\n        for (int i = 0; i < n; i++) list.add(new Student(sc.next(), sc.nextInt()));\n        Collections.sort(list);\n        for (Student s : list) System.out.println(s.name + \" \" + s.marks);\n    }\n}\n",
+  "referenceSolution": "import java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.List;\nimport java.util.Scanner;\n\nclass Student implements Comparable<Student> {\n    final String name;\n    final int marks;\n\n    Student(String name, int marks) {\n        this.name = name;\n        this.marks = marks;\n    }\n\n    @Override\n    public int compareTo(Student other) {\n        if (marks != other.marks) return Integer.compare(other.marks, marks);\n        return name.compareTo(other.name);\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        List<Student> list = new ArrayList<>();\n        for (int i = 0; i < n; i++) list.add(new Student(sc.next(), sc.nextInt()));\n        Collections.sort(list);\n        for (Student s : list) System.out.println(s.name + \" \" + s.marks);\n    }\n}\n",
+  "hints": [
+    "compareTo returns negative / zero / positive. Integer.compare(other.marks, marks) sorts marks high → low.",
+    "Only when marks are equal, fall back to name.compareTo(other.name)."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "4\nRavi 82\nAsha 91\nKiran 82\nNeha 75\n",
+      "expectedOutput": "Asha 91\nKiran 82\nRavi 82\nNeha 75",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "2\nZed 50\nAmy 60\n",
+      "expectedOutput": "Amy 60\nZed 50",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "3\nmeera 70\narjun 70\nlata 70\n",
+      "expectedOutput": "arjun 70\nlata 70\nmeera 70",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "5\nA 1\nB 2\nC 3\nD 4\nE 5\n",
+      "expectedOutput": "E 5\nD 4\nC 3\nB 2\nA 1",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

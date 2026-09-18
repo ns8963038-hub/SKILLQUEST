@@ -1,0 +1,47 @@
+{
+  "id": "oop-basics-02",
+  "skillId": "oop-basics",
+  "title": "Rectangle Class",
+  "difficulty": 1,
+  "statementMd": "Complete the `Rectangle` class: a constructor that stores width and height, and methods `area()`, `perimeter()` and `isSquare()`. `main` is already written.\n\n**Input**\nTwo integers `w h` (1 ≤ w, h ≤ 10000).\n\n**Output**\nThree lines: `Area: …`, `Perimeter: …`, `Square: Yes` or `Square: No`.",
+  "starterCode": "import java.util.Scanner;\n\nclass Rectangle {\n    private final int width;\n    private final int height;\n\n    Rectangle(int width, int height) {\n        // TODO: store width and height\n        this.width = 0;\n        this.height = 0;\n    }\n\n    int area() {\n        return 0; // TODO\n    }\n\n    int perimeter() {\n        return 0; // TODO\n    }\n\n    boolean isSquare() {\n        return false; // TODO\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        Rectangle r = new Rectangle(sc.nextInt(), sc.nextInt());\n        System.out.println(\"Area: \" + r.area());\n        System.out.println(\"Perimeter: \" + r.perimeter());\n        System.out.println(\"Square: \" + (r.isSquare() ? \"Yes\" : \"No\"));\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\nclass Rectangle {\n    private final int width;\n    private final int height;\n\n    Rectangle(int width, int height) {\n        this.width = width;\n        this.height = height;\n    }\n\n    int area() {\n        return width * height;\n    }\n\n    int perimeter() {\n        return 2 * (width + height);\n    }\n\n    boolean isSquare() {\n        return width == height;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        Rectangle r = new Rectangle(sc.nextInt(), sc.nextInt());\n        System.out.println(\"Area: \" + r.area());\n        System.out.println(\"Perimeter: \" + r.perimeter());\n        System.out.println(\"Square: \" + (r.isSquare() ? \"Yes\" : \"No\"));\n    }\n}\n",
+  "hints": [
+    "In the constructor, this.width = width; copies the parameter into the field.",
+    "isSquare() is just width == height."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "4 5\n",
+      "expectedOutput": "Area: 20\nPerimeter: 18\nSquare: No",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "3 3\n",
+      "expectedOutput": "Area: 9\nPerimeter: 12\nSquare: Yes",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1 10\n",
+      "expectedOutput": "Area: 10\nPerimeter: 22\nSquare: No",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "7 7\n",
+      "expectedOutput": "Area: 49\nPerimeter: 28\nSquare: Yes",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

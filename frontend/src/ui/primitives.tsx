@@ -144,6 +144,60 @@ export function Chip({
   );
 }
 
+// ---- Switch ------------------------------------------------------------------
+
+// An accessible on/off switch (role="switch" + aria-checked), labelled by its
+// visible text so screen readers announce "Show me on the leaderboard, on".
+export function Switch({
+  id,
+  checked,
+  onChange,
+  label,
+  description,
+}: {
+  id: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+  description?: ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-5">
+      <div className="min-w-0">
+        <p id={`${id}-label`} className="text-sm font-medium text-content">
+          {label}
+        </p>
+        {description && (
+          <p id={`${id}-desc`} className="mt-1 text-sm text-content-muted">
+            {description}
+          </p>
+        )}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby={`${id}-label`}
+        aria-describedby={description ? `${id}-desc` : undefined}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          'relative mt-0.5 h-7 w-12 shrink-0 rounded-full border transition-colors duration-200',
+          checked ? 'border-ion/60 bg-ion' : 'border-line-strong bg-surface-3',
+        )}
+      >
+        <motion.span
+          layout
+          transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+          className={cn(
+            'absolute top-[2px] h-[22px] w-[22px] rounded-full shadow',
+            checked ? 'right-[2px] bg-ink' : 'left-[2px] bg-content-muted',
+          )}
+        />
+      </button>
+    </div>
+  );
+}
+
 // ---- Skeleton ----------------------------------------------------------------
 
 // A shimmering placeholder block (loading states use skeletons, not spinners).

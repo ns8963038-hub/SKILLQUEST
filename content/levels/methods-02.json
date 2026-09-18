@@ -1,0 +1,47 @@
+{
+  "id": "methods-02",
+  "skillId": "methods",
+  "title": "Greatest Common Divisor",
+  "difficulty": 2,
+  "statementMd": "Write a method `gcd(int a, int b)` that returns the greatest common divisor of two non-negative integers, then use it to print `gcd(a, b)`.\n\n**Input**\nTwo integers `a b` (0 ≤ a, b ≤ 10⁹, not both 0).\n\n**Output**\nTheir GCD.\n\nEuclid's rule: gcd(a, b) = gcd(b, a % b), and gcd(a, 0) = a.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    // Return the greatest common divisor of a and b.\n    static int gcd(int a, int b) {\n        // TODO: Euclid's algorithm\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(gcd(a, b));\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    static int gcd(int a, int b) {\n        while (b != 0) {\n            int t = a % b;\n            a = b;\n            b = t;\n        }\n        return a;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(gcd(a, b));\n    }\n}\n",
+  "hints": [
+    "Loop while b != 0: replace (a, b) with (b, a % b).",
+    "When b reaches 0, a is the answer. gcd(0, 9) is 9."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "12 18\n",
+      "expectedOutput": "6",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "17 5\n",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "100 75\n",
+      "expectedOutput": "25",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "0 9\n",
+      "expectedOutput": "9",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

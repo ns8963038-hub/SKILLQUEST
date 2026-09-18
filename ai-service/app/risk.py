@@ -1,21 +1,28 @@
 """Disengagement-risk scoring (TRD 6.3).
 
-At runtime this loads the trained Random Forest (`risk_rf.joblib`) if it's
-present. Until the team trains it on OULAD (ml/run_experiment.py), a transparent
-**baseline** stands in — risk rises with days since last activity — so the whole
-pipeline (features -> score -> tier -> stored prediction) is wired and testable
-NOW. Swapping in the real model changes nothing downstream.
+The deployed model is `risk_model.json`, exported by ml/run_experiment.py: a
+logistic regression trained on OULAD with the SAME seven features the app
+computes (feature set fs-v2). It is stored as plain numbers — feature means and
+scales, weights, intercept, and tier thresholds — so scoring is a dot product
+and a sigmoid, with no scikit-learn in this service and nothing opaque to load.
+
+If the file is missing, a transparent **baseline** stands in (risk rises with
+days since last activity), so the pipeline always works and says which one ran.
 
 Framed as an experimental transfer-based risk indicator, never a validated
-dropout predictor (TRD 6.3).
+dropout predictor (TRD 6.3). The score ranks students; it is not a calibrated
+probability (the model was trained with balanced class weights).
 """
 
 from __future__ import annotations
 
+import json
+import math
 from functools import lru_cache
 from pathlib import Path
 
-# The feature columns, in the order the trained model expects them.
+# The feature columns, in the order the model expects them (the contract shared
+# with backend/src/risk/features.ts and ml/dataset.py FEATURE_COLUMNS).
 FEATURE_ORDER = [
     "active_days_in_window",
     "mean_session_gap_days",
@@ -26,51 +33,66 @@ FEATURE_ORDER = [
     "current_streak",
 ]
 
-MODEL_PATH = Path(__file__).parent / "risk_rf.joblib"
+MODEL_PATH = Path(__file__).parent / "risk_model.json"
 
-# Probability thresholds -> tier (TRD 6.3.8).
+# Baseline tiers, used only when no trained model is present.
 WATCH_THRESHOLD = 0.35
 ATRISK_THRESHOLD = 0.65
 
 
-def tier_from_probability(p: float) -> str:
-    if p >= ATRISK_THRESHOLD:
+def tier_from_probability(p: float, watch: float = WATCH_THRESHOLD, atrisk: float = ATRISK_THRESHOLD) -> str:
+    """Map a risk score to a tier using the given thresholds."""
+    if p >= atrisk:
         return "atrisk"
-    if p >= WATCH_THRESHOLD:
+    if p >= watch:
         return "watch"
     return "healthy"
 
 
 @lru_cache(maxsize=1)
-def _load_model():
-    """Load the trained model once, if it exists. Returns None otherwise."""
-    if MODEL_PATH.exists():
-        import joblib
+def load_model() -> dict | None:
+    """Read the exported model once. None if it isn't there (-> baseline)."""
+    if not MODEL_PATH.exists():
+        return None
+    model = json.loads(MODEL_PATH.read_text())
+    # Refuse a model trained on a different feature list — silently scoring the
+    # wrong columns would be worse than falling back to the baseline.
+    if model.get("features") != FEATURE_ORDER:
+        raise ValueError(f"{MODEL_PATH.name} was trained on {model.get('features')}, expected {FEATURE_ORDER}")
+    return model
 
-        return joblib.load(MODEL_PATH)
-    return None
+
+def _logistic(model: dict, features: dict) -> float:
+    """Standardise each feature with the TRAINING mean/scale, then sigmoid(w·x + b)."""
+    z = model["intercept"]
+    for name, mean, scale, weight in zip(FEATURE_ORDER, model["mean"], model["scale"], model["coef"]):
+        x = float(features.get(name, 0.0))
+        z += weight * (x - mean) / (scale or 1.0)
+    return 1.0 / (1.0 + math.exp(-z))
 
 
-def score(features: dict) -> dict:
-    """Score one feature row -> probability + tier + version metadata."""
-    model = _load_model()
-    if model is not None:
-        import numpy as np
+def score(features: dict, model: dict | None = None) -> dict:
+    """Score one feature row -> risk score + tier + version metadata."""
+    model = model if model is not None else load_model()
+    if model is not None and model.get("type") == "logistic_regression":
+        probability = _logistic(model, features)
+        t = model["thresholds"]
+        return {
+            "probability": probability,
+            "tier": tier_from_probability(probability, t["watch"], t["atrisk"]),
+            "modelVersion": model["modelVersion"],
+            "featureSetVersion": model["featureSetVersion"],
+            "thresholdVersion": model["thresholdVersion"],
+        }
 
-        row = np.array([[float(features.get(k, 0.0)) for k in FEATURE_ORDER]])
-        probability = float(model.predict_proba(row)[0, 1])
-        model_version = "rf-v1"
-    else:
-        # Baseline: the days-since-activity rule (the one the RF must beat).
-        # Normalised over the 21-day horizon and clamped to [0, 1].
-        days_since = float(features.get("days_since_last_activity", 0.0))
-        probability = max(0.0, min(1.0, days_since / 21.0))
-        model_version = "baseline-days-since-activity"
-
+    # Baseline: the days-since-activity rule (the one the model must beat).
+    # Normalised over the 21-day horizon and clamped to [0, 1].
+    days_since = float(features.get("days_since_last_activity", 0.0))
+    probability = max(0.0, min(1.0, days_since / 21.0))
     return {
         "probability": probability,
         "tier": tier_from_probability(probability),
-        "modelVersion": model_version,
-        "featureSetVersion": "fs-v1",
-        "thresholdVersion": "thr-v1",
+        "modelVersion": "baseline-days-since-activity",
+        "featureSetVersion": "fs-v2",
+        "thresholdVersion": "thr-baseline",
     }

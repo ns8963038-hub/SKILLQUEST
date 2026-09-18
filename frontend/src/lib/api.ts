@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { DEMO, demoApi } from './demo';
+import { DEMO, demoApi, demoCsv } from './demo';
 
 // Base URL of the Node Web API.
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
@@ -31,4 +31,17 @@ export async function api<T>(
     throw new Error(`Request to ${path} failed (${res.status})`);
   }
   return (await res.json()) as T;
+}
+
+// Fetch a file (e.g. a research CSV export) with the same authentication and
+// return it as a Blob the browser can save.
+export async function apiBlob(path: string): Promise<Blob> {
+  if (DEMO) return demoCsv(path); // a clearly-labelled sample file in demo mode
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error(`Request to ${path} failed (${res.status})`);
+  return res.blob();
 }

@@ -1,0 +1,47 @@
+{
+  "id": "loops-03",
+  "skillId": "loops",
+  "title": "Prime Detector",
+  "difficulty": 2,
+  "statementMd": "Decide whether **n** is prime (it has exactly two divisors: 1 and itself). Print `Prime` or `Not prime`.\n\n**Input**\nOne integer `n` (1 ≤ n ≤ 10⁹).\n\n**Output**\n`Prime` or `Not prime`.\n\nn can be large — you only need to test divisors up to √n.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        // TODO: decide whether n is prime\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        boolean prime = n >= 2;\n        for (long d = 2; d * d <= n && prime; d++) {\n            if (n % d == 0) prime = false;\n        }\n        System.out.println(prime ? \"Prime\" : \"Not prime\");\n    }\n}\n",
+  "hints": [
+    "1 is not prime. Every other n is prime unless some d between 2 and n−1 divides it.",
+    "If n has a divisor, it has one ≤ √n — loop while d * d <= n (use long for d * d)."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "7\n",
+      "expectedOutput": "Prime",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "12\n",
+      "expectedOutput": "Not prime",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1\n",
+      "expectedOutput": "Not prime",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "999999937\n",
+      "expectedOutput": "Prime",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

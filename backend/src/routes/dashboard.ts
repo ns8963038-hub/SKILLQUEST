@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../db';
 import { asyncHandler } from '../http';
+import { nextLevelInSkill } from '../progress/levels';
 
 export const dashboardRouter = Router();
 
@@ -64,8 +65,14 @@ dashboardRouter.get(
     const currentItem =
       roadmap?.items.find((i) => i.status === 'current') ??
       roadmap?.items.find((i) => i.status !== 'completed');
+    // Resume at the first unfinished level of the current skill.
+    const questLevelId = currentItem ? await nextLevelInSkill(userId, currentItem.skillId) : null;
     const currentQuest = currentItem
-      ? { skillId: currentItem.skillId, title: currentItem.skill.title, levelId: `${currentItem.skillId}-01` }
+      ? {
+          skillId: currentItem.skillId,
+          title: currentItem.skill.title,
+          levelId: questLevelId ?? `${currentItem.skillId}-01`,
+        }
       : null;
 
     const activeToday = !!profile.lastActiveDate && sameUtcDay(profile.lastActiveDate, new Date());

@@ -23,8 +23,12 @@ the source** — edit here, then re-seed.
 4. Add `testCases`: each has `stdin` fed to the program and `expectedOutput`
    compared against its stdout (trailing whitespace is trimmed). Mark tough or
    edge cases `isHidden: true` — students see only pass/fail for those.
-5. **Verify every test case against your `referenceSolution`** before committing.
-   A wrong expected-output is the most common (and most demo-breaking) bug.
+5. **Never type expected outputs by hand.** Leave them empty and run
+   `node content/verify-levels.mjs --fill` (needs a local JDK): it runs the
+   `referenceSolution` to fill them in. Then run `node content/verify-levels.mjs`
+   before every commit — it checks every level's shape, compiles for Java 11,
+   confirms each expected output, and confirms the untouched starter code does
+   NOT pass. A wrong expected output is the most demo-breaking bug there is.
 
 ## Rules
 

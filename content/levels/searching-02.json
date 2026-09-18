@@ -1,0 +1,47 @@
+{
+  "id": "searching-02",
+  "skillId": "searching",
+  "title": "First Occurrence",
+  "difficulty": 2,
+  "statementMd": "The array is sorted but may contain **duplicates**. Print the index of the **first** occurrence of x (0-based), or `-1`. Adapt binary search: when you find x, keep searching to the left.\n\n**Input**\nLine 1: `n`. Line 2: n integers in non-decreasing order. Line 3: `x`.\n\n**Output**\nThe first index of x, or `-1`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int x = sc.nextInt();\n        // TODO: find the FIRST index of x with binary search\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        int x = sc.nextInt();\n        int lo = 0, hi = n - 1, ans = -1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (a[mid] >= x) {\n                if (a[mid] == x) ans = mid;\n                hi = mid - 1;\n            } else {\n                lo = mid + 1;\n            }\n        }\n        System.out.println(ans);\n    }\n}\n",
+  "hints": [
+    "When a[mid] == x, record mid as a candidate — then set hi = mid - 1 to look for an earlier one.",
+    "Everything else is ordinary binary search."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "7\n1 2 2 2 3 5 5\n2\n",
+      "expectedOutput": "1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "5\n1 1 1 1 1\n1\n",
+      "expectedOutput": "0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "6\n1 3 5 7 9 11\n4\n",
+      "expectedOutput": "-1",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "6\n2 4 4 4 4 8\n8\n",
+      "expectedOutput": "5",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

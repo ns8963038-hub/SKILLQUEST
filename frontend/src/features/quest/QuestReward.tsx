@@ -24,12 +24,14 @@ export function QuestReward({
   mastery,
   onContinue,
   onBackToMap,
+  onNextLevel,
 }: {
   xp: number;
   badges?: RewardBadge[];
   mastery?: MasteryUpdate;
   onContinue: () => void;
   onBackToMap?: () => void;
+  onNextLevel?: () => void; // present when there is a next level to play
 }) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -171,7 +173,7 @@ export function QuestReward({
             </div>
             <p className="mt-2 text-xs text-content-muted">
               {mastery.mastered
-                ? `${mastery.title} mastered — the next skill on your map is unlocked.`
+                ? `${mastery.title} mastered — the tutor is now confident you know this skill.`
                 : 'Bayesian Knowledge Tracing raised its estimate after this solve. The line marks mastery.'}
             </p>
           </motion.div>
@@ -197,16 +199,36 @@ export function QuestReward({
           </div>
         )}
 
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button ref={continueRef} variant="gold" size="lg" onClick={onContinue}>
-            Continue <ArrowRight size={17} aria-hidden />
-          </Button>
-          {onBackToMap && (
-            <Button variant="ghost" size="lg" onClick={onBackToMap}>
-              Back to map
+        {onNextLevel ? (
+          // Three choices: the natural next step is full width, with the focus
+          // and the gold; the two quieter options share a row beneath it.
+          <div className="mt-7 flex flex-col gap-3">
+            <Button ref={continueRef} variant="gold" size="lg" className="w-full whitespace-nowrap" onClick={onNextLevel}>
+              Next level <ArrowRight size={17} aria-hidden />
             </Button>
-          )}
-        </div>
+            <div className="flex gap-3">
+              <Button variant="ghost" className="flex-1 whitespace-nowrap" onClick={onContinue}>
+                Review my code
+              </Button>
+              {onBackToMap && (
+                <Button variant="ghost" className="flex-1 whitespace-nowrap" onClick={onBackToMap}>
+                  Back to map
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button ref={continueRef} variant="gold" size="lg" onClick={onContinue}>
+              Continue <ArrowRight size={17} aria-hidden />
+            </Button>
+            {onBackToMap && (
+              <Button variant="ghost" size="lg" onClick={onBackToMap}>
+                Back to map
+              </Button>
+            )}
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

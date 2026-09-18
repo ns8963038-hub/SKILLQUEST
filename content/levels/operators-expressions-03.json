@@ -1,0 +1,48 @@
+{
+  "id": "operators-expressions-03",
+  "skillId": "operators-expressions",
+  "title": "Stopwatch Display",
+  "difficulty": 2,
+  "statementMd": "Convert a number of seconds into a stopwatch display `H:MM:SS` — hours without padding, minutes and seconds always two digits.\n\n**Input**\nOne integer `s` (0 ≤ s < 360000).\n\n**Output**\nThe time as `H:MM:SS`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int s = sc.nextInt();\n        // TODO: work out hours, minutes and seconds, then print H:MM:SS\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int s = sc.nextInt();\n        int h = s / 3600;\n        int m = (s % 3600) / 60;\n        int sec = s % 60;\n        System.out.println(String.format(\"%d:%02d:%02d\", h, m, sec));\n    }\n}\n",
+  "hints": [
+    "hours = s / 3600; what is left over is s % 3600.",
+    "minutes = (s % 3600) / 60 and seconds = s % 60.",
+    "String.format(\"%02d\", x) pads x to two digits with a leading zero."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "3661\n",
+      "expectedOutput": "1:01:01",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "59\n",
+      "expectedOutput": "0:00:59",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "86399\n",
+      "expectedOutput": "23:59:59",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "0\n",
+      "expectedOutput": "0:00:00",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

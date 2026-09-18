@@ -1,0 +1,86 @@
+{
+  "type": "logistic_regression",
+  "features": [
+    "active_days_in_window",
+    "mean_session_gap_days",
+    "days_since_last_activity",
+    "completion_ratio",
+    "avg_score",
+    "activity_trend",
+    "current_streak"
+  ],
+  "mean": [
+    6.971970370370371,
+    9.278735630088772,
+    13.423288888888889,
+    0.8820838095238095,
+    0.691776403292181,
+    3.1521777777777777,
+    0.8764444444444445
+  ],
+  "scale": [
+    6.432195602264342,
+    10.586245315967453,
+    21.474264283475307,
+    0.30430816331240707,
+    0.25234013543450595,
+    22.328806449953973,
+    2.9878706567936293
+  ],
+  "coef": [
+    -0.40935546232320014,
+    0.12481499737419315,
+    -0.07309099263632862,
+    0.19871280152287238,
+    -0.4838078089332107,
+    -0.29929600915560595,
+    -0.1812353505031064
+  ],
+  "intercept": -0.26704160686336353,
+  "thresholds": {
+    "watch": 0.44854060476996804,
+    "atrisk": 0.5952495440838023,
+    "decileRates": [
+      0.0059,
+      0.0036,
+      0.0071,
+      0.0107,
+      0.0148,
+      0.0231,
+      0.0243,
+      0.0361,
+      0.0439,
+      0.0444
+    ],
+    "baseRate": 0.0214,
+    "rule": "deciles of temporal-train scores: atrisk from decile 8 (all higher deciles >= 2x base rate), watch from decile 5 (>= 1x)"
+  },
+  "modelVersion": "lr-v2",
+  "featureSetVersion": "fs-v2",
+  "thresholdVersion": "thr-v2",
+  "trainedOn": "OULAD 2013B+2013J+2014B (temporal train), tested on 2014J",
+  "task": {
+    "cutoffDay": 100,
+    "windowDays": 28,
+    "horizonDays": 21
+  },
+  "testMetrics": {
+    "pr_auc": 0.04239186356503609,
+    "roc_auc": 0.7078171576173755,
+    "precision": 0.04484047139982754,
+    "recall": 0.7428571428571429,
+    "f1": 0.08457576579018704,
+    "confusion": [
+      [
+        4936,
+        3323
+      ],
+      [
+        54,
+        156
+      ]
+    ]
+  },
+  "trainedAt": "2026-09-18",
+  "seed": 42
+}

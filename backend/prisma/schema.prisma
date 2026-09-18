@@ -87,6 +87,7 @@ model Profile {
   consentVersion String?    @map("consent_version")
   consentGivenAt DateTime?  @map("consent_given_at")
   withdrawnAt    DateTime?  @map("withdrawn_at")
+  leaderboardOptOut Boolean @default(false) @map("leaderboard_opt_out") // hidden from others' leaderboard
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
@@ -101,6 +102,7 @@ model Profile {
   quizAttempts    QuizAttempt[]
   nudges          Nudge[]
   skillMastery    SkillMastery[]
+  surveyResponses SurveyResponse[]
 
   @@map("profiles")
 }
@@ -423,6 +425,24 @@ model QuizAttempt {
   topicSkill      Skill    @relation(fields: [topicSkillId], references: [id])
 
   @@map("quiz_attempts")
+}
+
+// A usability-survey response from UAT (PRD §6): the 10 SUS answers, the computed
+// SUS score (0–100), an engagement rating (1–5) and would-recommend.
+model SurveyResponse {
+  id             Int      @id @default(autoincrement())
+  userId         String   @map("user_id") @db.Uuid
+  instrument     String   @default("sus-v1")
+  answers        Json // the 10 raw SUS answers, 1..5
+  susScore       Float    @map("sus_score")
+  engagement     Int // 1..5
+  wouldRecommend Boolean  @map("would_recommend")
+  comments       String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  user           Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("survey_responses")
 }
 
 model Nudge {

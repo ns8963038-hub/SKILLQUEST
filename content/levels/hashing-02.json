@@ -1,0 +1,47 @@
+{
+  "id": "hashing-02",
+  "skillId": "hashing",
+  "title": "First Unique Character",
+  "difficulty": 2,
+  "statementMd": "Print the **first character that appears exactly once** in the string, or `None` if every character repeats. Count first (a map or an int[26]), then scan again in order.\n\n**Input**\nOne word of lowercase letters (1–10⁵ characters).\n\n**Output**\nThe character, or `None`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.next();\n        // TODO: count each letter, then find the first with count 1\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.next();\n        int[] count = new int[26];\n        for (char c : s.toCharArray()) count[c - 'a']++;\n        for (char c : s.toCharArray()) {\n            if (count[c - 'a'] == 1) {\n                System.out.println(c);\n                return;\n            }\n        }\n        System.out.println(\"None\");\n    }\n}\n",
+  "hints": [
+    "Pass 1: count[c - 'a']++ for every character.",
+    "Pass 2: walk the string in order and print the first c whose count is 1."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "swiss\n",
+      "expectedOutput": "w",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "aabb\n",
+      "expectedOutput": "None",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "programming\n",
+      "expectedOutput": "p",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "z\n",
+      "expectedOutput": "z",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

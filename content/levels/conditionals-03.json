@@ -1,0 +1,47 @@
+{
+  "id": "conditionals-03",
+  "skillId": "conditionals",
+  "title": "Leap Year",
+  "difficulty": 2,
+  "statementMd": "A year is a **leap year** if it is divisible by 4 — except century years (divisible by 100), which are leap years only if they are also divisible by 400. Print `Leap` or `Not leap`.\n\n**Input**\nOne integer `year` (1 ≤ year ≤ 9999).\n\n**Output**\n`Leap` or `Not leap`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int year = sc.nextInt();\n        // TODO: print Leap or Not leap\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int year = sc.nextInt();\n        boolean leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;\n        System.out.println(leap ? \"Leap\" : \"Not leap\");\n    }\n}\n",
+  "hints": [
+    "Divisible by 4 means year % 4 == 0.",
+    "1900 is NOT a leap year but 2000 is — combine the rules with && and ||."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "2024\n",
+      "expectedOutput": "Leap",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "2023\n",
+      "expectedOutput": "Not leap",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1900\n",
+      "expectedOutput": "Not leap",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "2000\n",
+      "expectedOutput": "Leap",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

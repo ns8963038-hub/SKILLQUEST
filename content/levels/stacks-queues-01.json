@@ -1,0 +1,54 @@
+{
+  "id": "stacks-queues-01",
+  "skillId": "stacks-queues",
+  "title": "Balanced Brackets",
+  "difficulty": 2,
+  "statementMd": "A string of brackets `()[]{}` is **balanced** if every opening bracket is closed by the same type, in the right order. Print `Balanced` or `Not balanced`. A stack is the natural tool: push openers, and pop to match each closer.\n\n**Input**\nOne line of brackets (1–10⁴ characters).\n\n**Output**\n`Balanced` or `Not balanced`.",
+  "starterCode": "import java.util.ArrayDeque;\nimport java.util.Deque;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.next();\n        Deque<Character> stack = new ArrayDeque<>();\n        // TODO: push openers; on a closer, pop and check it matches\n    }\n}\n",
+  "referenceSolution": "import java.util.ArrayDeque;\nimport java.util.Deque;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String s = sc.next();\n        Deque<Character> stack = new ArrayDeque<>();\n        boolean ok = true;\n        for (char c : s.toCharArray()) {\n            if (c == '(' || c == '[' || c == '{') {\n                stack.push(c);\n            } else {\n                char want = c == ')' ? '(' : c == ']' ? '[' : '{';\n                if (stack.isEmpty() || stack.pop() != want) { ok = false; break; }\n            }\n        }\n        System.out.println(ok && stack.isEmpty() ? \"Balanced\" : \"Not balanced\");\n    }\n}\n",
+  "hints": [
+    "Push every opening bracket. For a closing one, the stack top must be its matching opener.",
+    "Two ways to fail: a closer with an empty stack, or openers left over at the end."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "{[()]}\n",
+      "expectedOutput": "Balanced",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "([)]\n",
+      "expectedOutput": "Not balanced",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "((\n",
+      "expectedOutput": "Not balanced",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "()[]{}\n",
+      "expectedOutput": "Balanced",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    },
+    {
+      "stdin": "}\n",
+      "expectedOutput": "Not balanced",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 5
+    }
+  ]
+}

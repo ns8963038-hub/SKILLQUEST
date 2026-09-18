@@ -1,0 +1,47 @@
+{
+  "id": "stacks-queues-02",
+  "skillId": "stacks-queues",
+  "title": "Postfix Calculator",
+  "difficulty": 3,
+  "statementMd": "Evaluate an expression in **postfix** (Reverse Polish) notation, where the operator comes after its operands: `3 4 +` means 3 + 4. Push numbers on a stack; for an operator, pop two numbers, apply it, and push the result.\n\n**Input**\nOne line of space-separated tokens: non-negative integers and `+ - * /`. Always valid; `/` is integer division.\n\n**Output**\nThe value.",
+  "starterCode": "import java.util.ArrayDeque;\nimport java.util.Deque;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String[] tokens = sc.nextLine().trim().split(\"\\\\s+\");\n        Deque<Long> stack = new ArrayDeque<>();\n        // TODO: evaluate the tokens, then print the single value left on the stack\n    }\n}\n",
+  "referenceSolution": "import java.util.ArrayDeque;\nimport java.util.Deque;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String[] tokens = sc.nextLine().trim().split(\"\\\\s+\");\n        Deque<Long> stack = new ArrayDeque<>();\n        for (String t : tokens) {\n            if (t.equals(\"+\") || t.equals(\"-\") || t.equals(\"*\") || t.equals(\"/\")) {\n                long b = stack.pop(), a = stack.pop();\n                switch (t) {\n                    case \"+\": stack.push(a + b); break;\n                    case \"-\": stack.push(a - b); break;\n                    case \"*\": stack.push(a * b); break;\n                    default: stack.push(a / b);\n                }\n            } else {\n                stack.push(Long.parseLong(t));\n            }\n        }\n        System.out.println(stack.pop());\n    }\n}\n",
+  "hints": [
+    "Numbers: stack.push(Long.parseLong(t)).",
+    "Order matters for - and /: pop b FIRST, then a, and compute a - b (or a / b)."
+  ],
+  "xpReward": 100,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "2 3 1 * + 9 -\n",
+      "expectedOutput": "-4",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "5 1 2 + 4 * + 3 -\n",
+      "expectedOutput": "14",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "100 7 /\n",
+      "expectedOutput": "14",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "4 13 5 / +\n",
+      "expectedOutput": "6",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

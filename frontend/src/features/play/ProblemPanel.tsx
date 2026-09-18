@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { AnimatePresence, motion } from 'motion/react';
 import { Lightbulb, Terminal } from 'lucide-react';
@@ -7,9 +6,22 @@ import { QuestChest } from '../quest/QuestChest';
 import { MasteryRing } from '../../ui/MasteryRing';
 
 // The Problem side of the play screen: the sealed vault you're coding toward, the
-// statement, worked examples, and hints revealed one at a time.
-export function ProblemPanel({ level }: { level: LevelView }) {
-  const [hintsShown, setHintsShown] = useState(0);
+// statement, worked examples, and hints. Hints are unlocked ON THE SERVER one at a
+// time and each costs XP, so `level.hints` holds only the ones already paid for.
+export function ProblemPanel({
+  level,
+  onRevealHint,
+  revealing = false,
+  hintError = null,
+}: {
+  level: LevelView;
+  onRevealHint?: () => void;
+  revealing?: boolean;
+  hintError?: string | null;
+}) {
+  const hintCount = level.hintCount ?? level.hints.length; // total hints for the level
+  const hintsShown = level.hints.length; // how many this student has unlocked
+  const hintCost = level.hintCost ?? 0;
 
   return (
     <div className="mx-auto max-w-2xl space-y-7">
@@ -70,19 +82,19 @@ export function ProblemPanel({ level }: { level: LevelView }) {
         </section>
       )}
 
-      {level.hints.length > 0 && (
+      {hintCount > 0 && (
         <section aria-labelledby="hints-heading">
           <div className="mb-3 flex items-center justify-between">
             <h2 id="hints-heading" className="eyebrow flex items-center gap-2">
               <Lightbulb size={13} aria-hidden /> Hints
             </h2>
             <span className="font-mono text-[11px] text-content-muted">
-              {hintsShown}/{level.hints.length}
+              {hintsShown}/{hintCount}
             </span>
           </div>
           <ol className="space-y-2" aria-live="polite">
             <AnimatePresence initial={false}>
-              {level.hints.slice(0, hintsShown).map((hint, i) => (
+              {level.hints.map((hint, i) => (
                 <motion.li
                   key={i}
                   initial={{ opacity: 0, height: 0 }}
@@ -97,15 +109,29 @@ export function ProblemPanel({ level }: { level: LevelView }) {
               ))}
             </AnimatePresence>
           </ol>
-          {hintsShown < level.hints.length && (
-            <button
-              type="button"
-              onClick={() => setHintsShown((n) => n + 1)}
-              className="mt-3 inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-dashed border-line-strong px-3.5 text-sm text-content-muted transition-colors hover:border-accent/40 hover:text-accent"
-            >
-              <Lightbulb size={14} aria-hidden />
-              {hintsShown === 0 ? 'Stuck? Reveal a hint' : 'Reveal the next hint'}
-            </button>
+          {hintsShown < hintCount && onRevealHint && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <button
+                type="button"
+                onClick={onRevealHint}
+                disabled={revealing}
+                className="inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-dashed border-line-strong px-3.5 text-sm text-content-muted transition-colors hover:border-accent/40 hover:text-accent disabled:opacity-60"
+              >
+                <Lightbulb size={14} aria-hidden />
+                {revealing ? 'Unlocking…' : hintsShown === 0 ? 'Stuck? Reveal a hint' : 'Reveal the next hint'}
+                {hintCost > 0 && !revealing && (
+                  <span className="rounded-md bg-surface-3 px-1.5 py-0.5 font-mono text-[11px] text-ember">−{hintCost} XP</span>
+                )}
+              </button>
+              {hintsShown === 0 && !level.completed && (
+                <span className="text-xs text-content-muted">Solve with no hints to earn Code Master.</span>
+              )}
+            </div>
+          )}
+          {hintError && (
+            <p role="alert" className="mt-2 text-xs text-danger">
+              {hintError}
+            </p>
           )}
         </section>
       )}
