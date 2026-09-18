@@ -1,15 +1,44 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Brain, Cpu, Eye, EyeOff, Lock, Mail, Sparkles, Target, type LucideIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Constellation } from '../features/constellation/Constellation';
+import { SKILL_GRAPH } from '../features/constellation/skillGraph';
+import type { RoadmapNode } from '../features/roadmap/types';
+import { AmbientBackground } from '../ui/AmbientBackground';
+import { BrandMark } from '../ui/BrandMark';
+import { Nova, type NovaMood } from '../ui/Nova';
+import { Button, EASE_OUT, GlassCard, rise, stagger } from '../ui/primitives';
 
-// Sign-in / sign-up screen (email + password). On a successful sign-in the
-// AuthProvider's onAuthStateChange fires and the app advances automatically, so
-// this component only has to talk to Supabase and show any error message.
+// A sample mid-journey student, used only for the decorative preview on this page.
+const PREVIEW_NODES: RoadmapNode[] = SKILL_GRAPH.map((s, i) => ({
+  skillId: s.id,
+  title: s.title,
+  weekNumber: Math.floor(i / 3) + 1,
+  position: i % 3,
+  status: i < 4 ? 'completed' : i === 4 ? 'current' : i === 5 ? 'available' : 'locked',
+  mastery: i < 4 ? 0.96 : i === 4 ? 0.58 : i === 5 ? 0.24 : 0,
+}));
+
+const PROOF: { icon: LucideIcon; title: string; body: string }[] = [
+  { icon: Brain, title: 'Models your mastery', body: 'Bayesian Knowledge Tracing after every attempt' },
+  { icon: Cpu, title: 'Runs real Java', body: 'Your code compiles and faces hidden tests' },
+  { icon: Target, title: 'Placement-aware', body: 'Mapped to Infosys, TCS, Wipro & more' },
+];
+
+// Sign in / sign up (email + password). On success the AuthProvider's
+// onAuthStateChange fires and the app moves on automatically, so this screen only
+// talks to Supabase and shows any message.
 export function AuthScreen() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // What Nova reacts to: which field has focus, and whether the message is an error.
+  const [focus, setFocus] = useState<'email' | 'password' | null>(null);
+  const [messageKind, setMessageKind] = useState<'info' | 'error'>('info');
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -19,7 +48,8 @@ export function AuthScreen() {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // If email confirmation is on, there's no session yet — tell the user.
+        // If email confirmation is on there's no session yet — tell the user.
+        setMessageKind('info');
         setMessage('Account created. If confirmation is required, check your email, then sign in.');
         setMode('signin');
       } else {
@@ -28,86 +58,238 @@ export function AuthScreen() {
         // Success: the session updates and the app moves on.
       }
     } catch (err) {
+      setMessageKind('error');
       setMessage(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setBusy(false);
     }
   }
 
-  // Shared classes for the two text inputs (44px target + visible focus ring).
+  // 48px targets, a visible label on every field, and a soft ion focus glow that
+  // replaces (never just removes) the outline.
   const inputClass =
-    'w-full min-h-[44px] rounded-lg border border-line bg-surface-2 px-3 py-2 ' +
-    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-fg';
+    'w-full min-h-[48px] rounded-xl border border-line-strong bg-base/60 pl-11 pr-3.5 text-[15px] text-content ' +
+    'placeholder:text-content-muted transition-[border-color,box-shadow] duration-200 ' +
+    'focus:border-ion/60 focus:shadow-[0_0_0_4px_rgba(127,168,255,0.14)] focus:outline-none focus-visible:outline-none';
+
+  // Nova reacts to the form: thinks while signing in, worries at an error, covers
+  // its eyes while you type a password — and peeks if you reveal it.
+  const novaMood: NovaMood = busy
+    ? 'thinking'
+    : message && messageKind === 'error'
+      ? 'concerned'
+      : focus === 'password'
+        ? showPassword
+          ? 'peek'
+          : 'shy'
+        : message
+          ? 'happy'
+          : 'idle';
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-6">
-        <h1 className="mb-1 text-2xl font-bold">
-          <span className="text-primary-fg">Skill</span>Quest
-        </h1>
-        <p className="mb-6 text-sm text-content-muted">
-          {mode === 'signin' ? 'Sign in to continue' : 'Create your account'}
-        </p>
+    <div className="relative min-h-screen overflow-hidden">
+      <AmbientBackground />
 
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            {/* Visible label, associated to the input via htmlFor/id. */}
-            <label htmlFor="email" className="mb-1 block text-sm">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="mb-1 block text-sm">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              minLength={6}
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
-            />
-          </div>
+      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-10 sm:px-8 lg:grid-cols-[1.15fr_1fr]">
+        {/* ---- The pitch (desktop) ---- */}
+        <motion.section initial="hidden" animate="show" variants={stagger} className="hidden lg:block">
+          <motion.div variants={rise} className="flex items-center gap-3">
+            <BrandMark size={36} />
+            <span className="font-display text-xl font-semibold tracking-tight">SkillQuest</span>
+            <span className="rounded-md border border-ion/25 bg-ion-tint px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-ion">
+              AI Tutor
+            </span>
+          </motion.div>
+          <motion.h1 variants={rise} className="mt-10 font-display text-6xl font-semibold leading-[0.98] tracking-tight">
+            An AI tutor that knows <span className="text-gradient-ion">what you know.</span>
+          </motion.h1>
+          <motion.p variants={rise} className="mt-5 max-w-lg text-lg leading-relaxed text-content-muted">
+            SkillQuest re-estimates your mastery of every Java &amp; DSA skill after each attempt, then plans the
+            shortest path to placement-ready.
+          </motion.p>
+          <motion.div variants={rise} className="glass mt-9 overflow-hidden rounded-3xl p-3" aria-hidden>
+            <div className="dot-grid pointer-events-none rounded-2xl">
+              <Constellation nodes={PREVIEW_NODES} compact />
+            </div>
+          </motion.div>
+          <motion.ul variants={rise} className="mt-7 grid grid-cols-3 gap-5">
+            {PROOF.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="text-sm">
+                <Icon size={18} className="text-ion" aria-hidden />
+                <p className="mt-2 font-medium text-content">{title}</p>
+                <p className="mt-0.5 text-content-muted">{body}</p>
+              </li>
+            ))}
+          </motion.ul>
+        </motion.section>
 
-          {/* role=alert so screen readers announce errors immediately. */}
-          {message && (
-            <p role="alert" className="text-sm text-info">
-              {message}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="min-h-[44px] w-full rounded-lg bg-primary-bg px-4 py-2 font-medium text-content hover:bg-primary-bg-hover disabled:opacity-60"
-          >
-            {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
-          </button>
-        </form>
-
-        <button
-          type="button"
-          onClick={() => {
-            setMode(mode === 'signin' ? 'signup' : 'signin');
-            setMessage(null);
-          }}
-          className="mt-4 text-sm text-primary-fg hover:underline"
+        {/* ---- The form ---- */}
+        <motion.section
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.15 }}
+          className="mx-auto w-full max-w-md"
         >
-          {mode === 'signin' ? 'New here? Create an account' : 'Have an account? Sign in'}
-        </button>
+          <div className="mb-14 flex flex-col items-center gap-3 text-center lg:hidden">
+            <div className="flex items-center gap-3">
+              <BrandMark size={34} />
+              <span className="font-display text-xl font-semibold tracking-tight">SkillQuest</span>
+            </div>
+            <p className="text-sm text-content-muted">An AI tutor that knows what you know.</p>
+          </div>
+
+          <GlassCard edge className="relative p-7 sm:p-9">
+            {/* Nova perches on the card's top edge, watching you sign in. */}
+            <div className="pointer-events-none absolute -top-10 right-7">
+              <Nova mood={novaMood} size={72} />
+            </div>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={mode}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+              >
+                <p className="eyebrow">{mode === 'signin' ? 'Welcome back' : 'Start your quest'}</p>
+                <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight">
+                  {mode === 'signin' ? 'Sign in to continue' : 'Create your account'}
+                </h2>
+              </motion.div>
+            </AnimatePresence>
+
+            <form onSubmit={onSubmit} className="mt-7 space-y-5">
+              <Field id="email" label="Email" icon={Mail}>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder="you@college.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setFocus('email')}
+                  onBlur={() => setFocus(null)}
+                  className={inputClass}
+                />
+              </Field>
+
+              <Field
+                id="password"
+                label="Password"
+                icon={Lock}
+                trailing={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    onFocus={() => setFocus('password')}
+                    onBlur={() => setFocus(null)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="grid h-9 w-9 place-items-center rounded-lg text-content-muted transition-colors hover:bg-surface-3 hover:text-content"
+                  >
+                    {showPassword ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}
+                  </button>
+                }
+              >
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                  placeholder="At least 6 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setFocus('password')}
+                  onBlur={() => setFocus(null)}
+                  className={`${inputClass} pr-12`}
+                />
+              </Field>
+
+              {/* role=alert so screen readers announce messages immediately. */}
+              {message && (
+                <p role="alert" className="rounded-xl border border-ion/20 bg-ion-tint px-3.5 py-2.5 text-sm text-ion">
+                  {message}
+                </p>
+              )}
+
+              <Button type="submit" size="lg" disabled={busy} className="w-full">
+                {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+              </Button>
+            </form>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'signin' ? 'signup' : 'signin');
+                setMessage(null);
+              }}
+              className="mt-5 w-full text-center text-sm text-content-muted transition-colors hover:text-content"
+            >
+              {mode === 'signin' ? (
+                <>
+                  New here? <span className="font-medium text-ion">Create an account</span>
+                </>
+              ) : (
+                <>
+                  Have an account? <span className="font-medium text-ion">Sign in</span>
+                </>
+              )}
+            </button>
+
+            <div className="my-6 flex items-center gap-3" aria-hidden>
+              <span className="h-px flex-1 bg-line" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-content-muted">or</span>
+              <span className="h-px flex-1 bg-line" />
+            </div>
+
+            <Button
+              variant="ghost"
+              size="lg"
+              className="w-full"
+              onClick={() => {
+                window.location.search = '?demo';
+              }}
+            >
+              <Sparkles size={17} aria-hidden className="text-ion" /> Explore the live demo
+            </Button>
+            <p className="mt-3 text-center text-xs text-content-muted">No account needed · sample student data</p>
+          </GlassCard>
+        </motion.section>
       </div>
-    </main>
+    </div>
+  );
+}
+
+// A labelled input with a leading icon and an optional trailing control.
+function Field({
+  id,
+  label,
+  icon: Icon,
+  trailing,
+  children,
+}: {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  trailing?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 block text-sm font-medium text-content">
+        {label}
+      </label>
+      <div className="relative">
+        <Icon
+          size={17}
+          aria-hidden
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-content-muted"
+        />
+        {children}
+        {trailing && <div className="absolute right-1.5 top-1/2 -translate-y-1/2">{trailing}</div>}
+      </div>
+    </div>
   );
 }

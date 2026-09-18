@@ -16,4 +16,8 @@ export interface RoadmapNode {
   weekNumber: number;
   position: number; // order within the week
   status: SkillStatus;
+  // The adaptive tutor's Bayesian Knowledge Tracing estimate, 0..1 (M4). Optional:
+  // when the API doesn't send it yet, the UI shows status only — it never
+  // invents a percentage.
+  mastery?: number;
 }

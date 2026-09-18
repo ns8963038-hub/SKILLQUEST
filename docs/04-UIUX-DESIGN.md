@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 1.1 — review corrections: two-token violet palette (measured), target sizes, form errors, focus management, live regions |
+| **Version** | 2.0 — "Neural Night" redesign: new measured palette, self-hosted display/body/mono fonts, glass + motion system, Knowledge Constellation, demo mode. (1.1: two-token violet palette, target sizes, form errors, focus management, live regions) |
 | **Depends on** | [03-APP-FLOW.md](03-APP-FLOW.md) (screens & journeys) |
 | **Purpose** | The design system + screen layouts the frontend is built from. Tailwind-first, so every token here maps to a class. |
 
@@ -14,54 +14,63 @@
 2. **The next action is always obvious.** Every screen has exactly one primary CTA. A stressed student should never wonder "what do I do now?"
 3. **Progress is always visible.** XP, streak, and placement score are persistent — the student should feel momentum on every screen.
 4. **Reward effort, soften failure.** Passing tests = celebration. Failing tests = helpful, never punishing (see App Flow §5, §6). Colors and copy follow this.
-5. **Fast and light.** Free-tier hosting + Indian mobile networks. No heavy animation libraries, no multi-MB hero videos. Perceived speed > visual richness.
+5. **Fast, then rich.** Free-tier hosting + Indian mobile networks: no hero videos, a capped canvas background, reduced motion respected everywhere. Motion is used deliberately to make the AI legible (see §4) — never at the cost of perceived speed.
+6. **Make the AI visible.** The tutor’s model of the student (mastery estimates, the briefing, the constellation) is shown, not hidden — that is what separates SkillQuest from a problem bank or a streak app.
 
-## 2. Color System
+## 2. Color System — "Neural Night" (v2)
 
-Dark-first (coding audience expects it; Monaco is dark). Light theme is a P1 stretch. All colors are Tailwind-compatible; custom values go in `tailwind.config.js` under `theme.extend.colors`.
+Dark-first and deliberately single-theme: a deep-space ground, glass panels lit from the top edge, **one** signature accent (ion blue = "the AI is doing something here"), and solar gold reserved for rewards. Tokens live in `frontend/tailwind.config.js`; the v1 token names are kept and re-pointed, so every screen inherits the palette.
 
 | Token | Hex | Use |
 |---|---|---|
-| `bg-base` | `#0F1117` | App background |
-| `bg-surface` | `#1A1D27` | Cards, panels |
-| `bg-surface-2` | `#242836` | Raised elements, editor chrome, hover |
-| `border-subtle` | `#2E3342` | Dividers, card borders |
-| `text-primary` | `#F2F4F8` | Headings, body |
-| `text-muted` | `#9AA3B2` | Secondary text, labels |
-| **`primary-fg`** | `#9B85FF` | Violet **text/icons/links/focus rings** on dark surfaces |
-| **`primary-bg`** | `#6A4AF0` | Violet **filled button background** (always with `#F2F4F8` text) |
-| `primary-bg-hover` | `#5A3AE0` | Filled button hover |
-| `accent` (XP Gold) | `#FFC53D` | XP, coins, badges, streak flame |
-| `success` | `#3DD68C` | Passed tests, completed nodes |
-| `danger` | `#F2555A` | Failed tests, errors (used sparingly) |
-| `info` | `#4CA5FF` | Hints, informational callouts |
-| `risk-atrisk` | `#F2555A` | Admin risk tier (At Risk) |
-| `risk-watch` | `#FFC53D` | Admin risk tier (Watch) |
-| `risk-healthy` | `#3DD68C` | Admin risk tier (Healthy) |
+| `base` | `#05070D` | App ground (deep space) |
+| `surface` / `surface-2` / `surface-3` | `#0B1020` / `#121829` / `#182038` | Panels, raised elements, hover |
+| `line` / `line-strong` | `#1E2742` / `#2A3350` | Hairlines, input borders |
+| `content` | `#EEF2FF` | Headings, body ("starlight") |
+| `content-muted` | `#93A0BF` | Secondary text |
+| `content-faint` | `#66728F` | Large text / decoration only |
+| `ion` (= `primary-fg`) | `#7FA8FF` | The accent: links, icons, focus ring, AI signals |
+| `ink` | `#060A14` | Text on light fills (the primary button) |
+| `accent` (solar gold) | `#FFC53D` | XP, badges, streak — "you earned this" |
+| `ember` | `#FF9F4A` | Difficulty, learning in progress |
+| `success` (mint) | `#45E0A0` | Passed tests, mastered skills |
+| `danger` (rose) | `#FF7A93` | Failed tests (softened, never harsh) |
 
-**Why two violets.** A single violet cannot serve both jobs. The original `#7C5CFC` measures **4.31:1** on `bg-base` — below the 4.5:1 AA threshold for normal text. Simply lightening it to `#9B85FF` fixes text-on-dark (**6.47:1** ✓) but then light text *on* that violet is **2.65:1**, which fails badly. So:
+**Measured contrast (WCAG AA).** Worst case is the lightest surface, `#121829`:
 
 | Pairing | Ratio | Verdict |
 |---|---|---|
-| `primary-fg` `#9B85FF` on `bg-base` `#0F1117` | **6.47:1** | ✅ AA normal text |
-| `text-primary` `#F2F4F8` on `primary-bg` `#6A4AF0` | **4.95:1** | ✅ AA normal text |
-| ~~`#7C5CFC` on `#0F1117`~~ | 4.31:1 | ❌ do not use for text |
-| ~~`#F2F4F8` on `#9B85FF`~~ | 2.65:1 | ❌ never put light text on the light violet |
+| `content` on surface | 15.80:1 | ✅ |
+| `content-muted` on surface | 6.75:1 | ✅ |
+| `ion` on surface | 7.53:1 | ✅ |
+| `success` / `danger` / `accent` on surface | 10.45 / 7.12 / 11.20:1 | ✅ |
+| `ink` on the ion button | 8.43:1 | ✅ |
+| `content` on legacy `primary-bg` `#3457D5` | 5.41:1 | ✅ |
+| `content-faint` on surface | 3.68:1 | large text / decoration only |
+| ~~white on `#4D7CFF`~~ | 3.72:1 | ❌ rejected — why the primary button is ink-on-ion |
 
-**Usage discipline:** violet = "you can act on this", gold = "you earned this", green = "you succeeded", red = "something failed" (and only that — never decoration). Every new color pairing must be measured before it ships; do not assume a hue works in both directions.
+**Naming gotcha.** Because a colour is named `base`, Tailwind's `text-base` sets *both* the font size and a near-black colour. Never use `text-base`; write `text-[16px]`.
+
+**Usage discipline:** ion = "you can act / the AI is working", gold = "you earned this", mint = "you succeeded", rose = "something failed" — and only that. Measure every new pairing before it ships.
 
 ## 3. Typography
 
-- **UI font:** Inter (self-hosted `.woff2`, not a CDN — CSP + offline resilience). Weights 400/500/600/700.
-- **Code font:** JetBrains Mono for Monaco, problem code snippets, terminal output.
-- **Scale (Tailwind):** `text-xs` 12 (labels) · `text-sm` 14 (secondary) · `text-base` 16 (body) · `text-lg` 18 · `text-xl` 20 (card titles) · `text-2xl` 24 (section) · `text-4xl` 36 (page hero, XP counters). Line-height `leading-relaxed` for problem statements (dense reading).
+Self-hosted variable fonts via `@fontsource-variable/*` — bundled with the app, so CSP-safe and offline-resilient:
 
-## 4. Spacing, Radius, Elevation
+- **Display:** Bricolage Grotesque — headlines only, used with restraint.
+- **Body / UI:** Geist.
+- **Code, data, labels:** JetBrains Mono (also Monaco's editor font). Small uppercase mono "eyebrow" labels introduce each section.
+- Headings use `text-wrap: balance`; numbers that line up use tabular figures.
 
-- **Spacing:** 4px base grid — use Tailwind scale (`p-2`=8, `p-4`=16, `p-6`=24). Card padding `p-6`; page gutters `px-4` mobile / `px-8` desktop.
-- **Radius:** `rounded-lg` (8px) default, `rounded-xl` (12px) cards, `rounded-full` avatars/pills/badges.
-- **Elevation:** shadows are subtle on dark — prefer a lighter surface (`bg-surface-2`) + `border-subtle` over heavy shadows. One soft shadow token for modals/popovers only.
-- **Motion:** 150–200ms ease-out for hovers/transitions; XP/badge celebrations up to ~600ms. Respect `prefers-reduced-motion` — celebrations degrade to a simple fade.
+## 4. Spacing, Radius, Elevation, Motion
+
+- **Spacing:** 4px grid via the Tailwind scale; page gutters `px-4` / `sm:px-8`; sibling groups use `gap`, not margins.
+- **Radius:** `rounded-xl` controls, `rounded-2xl` inner panels, `rounded-3xl` glass cards.
+- **Elevation:** `.glass` panels (translucent gradient, 1px ion-tinted border, top-edge highlight, deep soft shadow); `.edge` adds a light-catching gradient border to hero panels. Glows (`shadow-glow-*`) only on interactive or reward elements.
+- **Texture:** a 4% film-grain overlay, plus a canvas "neural field" background (aurora light and drifting linked points) rendered at 60% resolution, ~30fps, paused when the tab is hidden, and drawn as one still frame under reduced motion.
+- **Motion** (`motion/react`): entrances rise and un-blur in a staggered cascade; buttons spring on press and sweep light on hover; nav pills glide between items; rings sweep and numbers count up; the reward is choreographed (seal breaks → confetti → XP → tutor update → badges). `MotionConfig reducedMotion="user"` plus a global CSS rule honour `prefers-reduced-motion` everywhere.
+
+*Revision note:* v1 said "no heavy animation libraries". v2 adds Motion (tree-shaken) because orchestrated motion is now part of how the product makes its AI legible; the budget is protected by capping the canvas and keeping Monaco on its CDN loader.
 
 ## 5. Core Components (build these once, reuse everywhere)
 

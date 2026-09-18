@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { DEMO } from '../lib/demo';
 
 // Holds the current auth session and exposes it to the whole app.
 interface AuthState {
@@ -15,6 +16,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Demo mode: a stand-in signed-in session, so the app opens straight onto the
+    // dashboard. No Supabase call is made and no real account is involved.
+    if (DEMO) {
+      setSession({
+        access_token: 'demo',
+        user: { id: 'demo-student', email: 'demo@skillquest.app' },
+      } as unknown as Session);
+      setLoading(false);
+      return;
+    }
+
     // 1) Load any session already stored in the browser (a returning user).
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);

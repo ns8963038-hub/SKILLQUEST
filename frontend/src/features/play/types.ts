@@ -10,6 +10,8 @@ export interface LevelView {
   hints: string[];
   xpReward: number;
   sampleTests: { stdin: string; expectedOutput: string }[];
+  skillTitle?: string; // display name of the skill, when the API provides it
+  mastery?: number; // the tutor's current BKT estimate for this skill (0..1), when provided
 }
 
 // One test-case result in a submission response. For hidden cases only `hidden`
@@ -29,6 +31,15 @@ export interface EarnedBadge {
   icon: string | null;
 }
 
+// How this attempt moved the tutor's mastery estimate for the skill (M4).
+export interface MasteryUpdate {
+  skillId: string;
+  title: string;
+  before: number; // 0..1
+  after: number; // 0..1
+  mastered: boolean; // crossed the mastery threshold
+}
+
 // The response from POST /api/levels/:id/submit.
 export interface SubmitResult {
   verdict: string;
@@ -39,4 +50,5 @@ export interface SubmitResult {
   currentStreak: number;
   newBadges: EarnedBadge[];
   cases: SubmitCase[];
+  mastery?: MasteryUpdate; // present once the backend returns the BKT update
 }

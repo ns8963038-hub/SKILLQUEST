@@ -1,67 +1,180 @@
-// A treasure chest drawn in inline SVG (no external art, so it's self-contained
-// and theme-safe). The lid rotates open when `open` is true; when open, a golden
-// glow and coins appear inside. This is the visual payoff of a quest: solve the
-// coding problem, the chest opens.
+import { useId } from 'react';
+
+// Where the sparks appear when the vault opens (x, y in the 200x200 viewBox).
+const SPARKS: [number, number][] = [
+  [36, 56],
+  [162, 46],
+  [28, 142],
+  [170, 148],
+  [100, 12],
+];
+
+// THE VAULT — the reward you're coding toward. A faceted crystal sealed inside a
+// turning orbit ring. When `open` becomes true the crystal splits along its seam,
+// a golden core blazes out with light rays, and sparks pop around it.
+//
+// Pure inline SVG: self-contained, crisp at any size, no image assets. (The
+// component keeps its original QuestChest name so existing screens need no changes.)
 export function QuestChest({ open, size = 200 }: { open: boolean; size?: number }) {
+  const id = useId().replace(/:/g, ''); // useId contains ':' which breaks url(#id)
+  const spring = 'transform 0.85s cubic-bezier(0.34, 1.56, 0.64, 1)';
+
   return (
     <svg
       width={size}
-      height={size * 0.9}
-      viewBox="0 0 200 180"
+      height={size}
+      viewBox="0 0 200 200"
       role="img"
-      aria-label={open ? 'Treasure chest, open' : 'Treasure chest, locked'}
+      aria-label={open ? 'Vault, unlocked' : 'Vault, sealed'}
+      className="shrink-0 overflow-visible"
     >
-      {/* Soft glow behind the chest once it's open. */}
-      {open && (
-        <ellipse cx="100" cy="120" rx="80" ry="30" fill="#FFC53D" opacity="0.35">
-          <animate attributeName="opacity" values="0;0.35;0.2" dur="0.9s" fill="freeze" />
-        </ellipse>
-      )}
+      <defs>
+        <radialGradient id={`${id}-core`}>
+          <stop offset="0%" stopColor="#FFF8E1" />
+          <stop offset="35%" stopColor="#FFC53D" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#FF9F4A" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`${id}-aura`}>
+          <stop offset="0%" stopColor="#7FA8FF" stopOpacity="0.32" />
+          <stop offset="100%" stopColor="#7FA8FF" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`${id}-tl`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#DCE8FF" />
+          <stop offset="100%" stopColor="#5E86F0" />
+        </linearGradient>
+        <linearGradient id={`${id}-tr`} x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#9DBBFF" />
+          <stop offset="100%" stopColor="#3457D5" />
+        </linearGradient>
+        <linearGradient id={`${id}-bl`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#4D7CFF" />
+          <stop offset="100%" stopColor="#15204A" />
+        </linearGradient>
+        <linearGradient id={`${id}-br`} x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2C4BC2" />
+          <stop offset="100%" stopColor="#0B1020" />
+        </linearGradient>
+        <linearGradient id={`${id}-ray`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FFE08A" stopOpacity="0" />
+          <stop offset="100%" stopColor="#FFE08A" stopOpacity="0.9" />
+        </linearGradient>
+      </defs>
 
-      {/* Coins/treasure inside — revealed as the lid lifts. */}
-      {open && (
-        <g>
-          <circle cx="80" cy="108" r="10" fill="#FFC53D" stroke="#C9962A" strokeWidth="2" />
-          <circle cx="100" cy="102" r="11" fill="#FFD65C" stroke="#C9962A" strokeWidth="2" />
-          <circle cx="120" cy="108" r="10" fill="#FFC53D" stroke="#C9962A" strokeWidth="2" />
-          <circle cx="92" cy="116" r="8" fill="#FFD65C" stroke="#C9962A" strokeWidth="2" />
-          <circle cx="112" cy="116" r="8" fill="#FFC53D" stroke="#C9962A" strokeWidth="2" />
-        </g>
-      )}
+      {/* Soft blue aura while sealed; fades as the gold takes over. */}
+      <circle cx="100" cy="100" r="96" fill={`url(#${id}-aura)`} style={{ opacity: open ? 0.35 : 1, transition: 'opacity .6s ease' }} />
 
-      {/* Chest base (the box that holds the treasure). */}
-      <g>
-        <rect x="40" y="95" width="120" height="60" rx="8" fill="#6B4A2B" stroke="#4A3218" strokeWidth="3" />
-        {/* Metal bands */}
-        <rect x="55" y="95" width="10" height="60" fill="#8A6a3f" />
-        <rect x="135" y="95" width="10" height="60" fill="#8A6a3f" />
-        {/* Gold trim along the top edge of the base */}
-        <rect x="40" y="118" width="120" height="6" fill="#FFC53D" opacity="0.9" />
+      {/* Orbit ring with a travelling satellite. */}
+      <g className="origin-center animate-spin-slow">
+        <circle
+          cx="100"
+          cy="100"
+          r="84"
+          fill="none"
+          stroke={open ? '#FFC53D' : '#7FA8FF'}
+          strokeOpacity={open ? 0.55 : 0.3}
+          strokeWidth="1.2"
+          strokeDasharray="2 7"
+        />
+        <circle cx="184" cy="100" r="3" fill={open ? '#FFC53D' : '#7FA8FF'} />
       </g>
 
-      {/* Lid — a rounded top that rotates open around its bottom-back edge.
-          transformBox and transformOrigin make the pivot the lid's lower edge. */}
-      <g
+      {/* Light rays, revealed on open. */}
+      <g style={{ opacity: open ? 1 : 0, transition: 'opacity .5s ease .25s' }}>
+        <g className="origin-center animate-spin-slow">
+          {Array.from({ length: 12 }, (_, i) => (
+            <rect
+              key={i}
+              x="98.5"
+              y="6"
+              width="3"
+              height="64"
+              rx="1.5"
+              fill={`url(#${id}-ray)`}
+              transform={`rotate(${i * 30} 100 100)`}
+              opacity={i % 2 ? 0.45 : 0.9}
+            />
+          ))}
+        </g>
+      </g>
+
+      {/* The golden core that blazes out between the halves. */}
+      <circle
+        cx="100"
+        cy="97"
+        r="46"
+        fill={`url(#${id}-core)`}
         style={{
           transformBox: 'fill-box',
-          transformOrigin: '50% 100%',
-          transform: open ? 'rotate(-135deg)' : 'rotate(0deg)',
-          transition: 'transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transformOrigin: 'center',
+          transform: open ? 'scale(1)' : 'scale(0.28)',
+          opacity: open ? 1 : 0.4,
+          transition: `${spring}, opacity .5s ease`,
         }}
-      >
-        {/* Lid body: a rounded-top arch sitting on the base. */}
-        <path
-          d="M40 100 L40 78 Q40 55 100 55 Q160 55 160 78 L160 100 Z"
-          fill="#7A5430"
-          stroke="#4A3218"
-          strokeWidth="3"
+      />
+
+      {/* Idle float while sealed. */}
+      <g className={open ? undefined : 'animate-float'}>
+        {/* Top half of the crystal — lifts and tilts away. */}
+        <g
+          style={{
+            transformBox: 'fill-box',
+            transformOrigin: '50% 100%',
+            transform: open ? 'translateY(-30px) rotate(-10deg)' : 'none',
+            transition: spring,
+          }}
+        >
+          <polygon points="100,30 52,84 100,98" fill={`url(#${id}-tl)`} />
+          <polygon points="100,30 148,84 100,98" fill={`url(#${id}-tr)`} />
+          <polyline points="52,84 100,30 148,84" fill="none" stroke="#EEF2FF" strokeOpacity=".7" strokeWidth="1.2" strokeLinejoin="round" />
+          <line x1="100" y1="30" x2="100" y2="98" stroke="#EEF2FF" strokeOpacity=".35" strokeWidth="1" />
+          <polygon points="100,30 76,57 100,64" fill="#FFFFFF" opacity=".2" />
+        </g>
+
+        {/* Bottom half — drops and tilts the other way. */}
+        <g
+          style={{
+            transformBox: 'fill-box',
+            transformOrigin: '50% 0%',
+            transform: open ? 'translateY(22px) rotate(6deg)' : 'none',
+            transition: spring,
+          }}
+        >
+          <polygon points="52,84 100,98 100,170" fill={`url(#${id}-bl)`} />
+          <polygon points="148,84 100,98 100,170" fill={`url(#${id}-br)`} />
+          <polyline points="52,84 100,170 148,84" fill="none" stroke="#A9C4FF" strokeOpacity=".5" strokeWidth="1.2" strokeLinejoin="round" />
+          <line x1="100" y1="98" x2="100" y2="170" stroke="#A9C4FF" strokeOpacity=".25" strokeWidth="1" />
+          {/* The seal: a gold keyhole that disappears when opened. */}
+          <g style={{ opacity: open ? 0 : 1, transition: 'opacity .3s ease' }}>
+            <circle cx="100" cy="119" r="7" fill="#05070D" stroke="#FFC53D" strokeWidth="1.5" />
+            <rect x="98.2" y="119" width="3.6" height="11" rx="1.2" fill="#FFC53D" />
+          </g>
+        </g>
+
+        {/* Gold seam where the halves meet. */}
+        <polyline
+          points="52,84 100,98 148,84"
+          fill="none"
+          stroke="#FFC53D"
+          strokeWidth="1.5"
+          style={{ opacity: open ? 0 : 0.9, transition: 'opacity .2s ease' }}
         />
-        {/* Gold band across the lid */}
-        <path d="M40 92 L160 92" stroke="#FFC53D" strokeWidth="5" opacity="0.9" />
-        {/* Lock plate on the front of the lid */}
-        <rect x="90" y="86" width="20" height="22" rx="3" fill="#FFC53D" stroke="#C9962A" strokeWidth="2" />
-        <circle cx="100" cy="95" r="3.5" fill="#4A3218" />
       </g>
+
+      {/* Sparks pop in, one after another. */}
+      {SPARKS.map(([x, y], i) => (
+        <path
+          key={i}
+          d={`M ${x} ${y - 7} Q ${x} ${y} ${x + 7} ${y} Q ${x} ${y} ${x} ${y + 7} Q ${x} ${y} ${x - 7} ${y} Q ${x} ${y} ${x} ${y - 7} Z`}
+          fill="#FFE08A"
+          style={{
+            transformBox: 'fill-box',
+            transformOrigin: 'center',
+            transform: open ? 'scale(1)' : 'scale(0)',
+            opacity: open ? 1 : 0,
+            transition: `transform .6s cubic-bezier(.34,1.56,.64,1) ${0.35 + i * 0.07}s, opacity .4s ease ${0.35 + i * 0.07}s`,
+          }}
+        />
+      ))}
     </svg>
   );
 }

@@ -1,41 +1,113 @@
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { AnimatePresence, motion } from 'motion/react';
+import { Lightbulb, Terminal } from 'lucide-react';
 import type { LevelView } from './types';
+import { QuestChest } from '../quest/QuestChest';
+import { MasteryRing } from '../../ui/MasteryRing';
 
-// The left/Problem panel: the problem statement (markdown) plus the visible
-// example test cases. Read-only — it's what the student is solving.
+// The Problem side of the play screen: the sealed vault you're coding toward, the
+// statement, worked examples, and hints revealed one at a time.
 export function ProblemPanel({ level }: { level: LevelView }) {
+  const [hintsShown, setHintsShown] = useState(0);
+
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-2xl space-y-7">
+      {/* The goal: break the vault's seal. */}
+      <div className="glass edge relative flex items-center gap-4 overflow-hidden rounded-2xl p-4">
+        <div aria-hidden className="pointer-events-none absolute -left-10 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-ion-glow/20 blur-2xl" />
+        <QuestChest open={false} size={76} />
+        <div className="relative min-w-0 flex-1">
+          <p className="eyebrow text-ion">Sealed vault</p>
+          <p className="mt-1 text-sm text-content">
+            Pass every test to break the seal and claim{' '}
+            <span className="font-semibold text-accent">+{level.xpReward} XP</span>.
+          </p>
+        </div>
+        {typeof level.mastery === 'number' && (
+          <div className="relative flex flex-col items-center gap-1">
+            <MasteryRing value={level.mastery} size={56} stroke={4} tone="ion">
+              <span className="font-mono text-[11px] text-content">{Math.round(level.mastery * 100)}%</span>
+            </MasteryRing>
+            <span className="text-[10px] text-content-muted">mastery</span>
+          </div>
+        )}
+      </div>
+
       <div>
-        <h1 className="text-xl font-bold">{level.title}</h1>
-        <p className="text-xs text-content-muted">
-          Difficulty {level.difficulty} · {level.xpReward} XP
+        <h1 className="font-display text-3xl font-semibold tracking-tight">{level.title}</h1>
+        <p className="mt-1.5 text-sm text-content-muted">
+          {level.skillTitle ? `${level.skillTitle} · ` : ''}Difficulty {level.difficulty} · {level.xpReward} XP
         </p>
       </div>
 
-      {/* Markdown statement. leading-relaxed keeps dense problem text readable. */}
-      <div className="space-y-2 text-sm leading-relaxed [&_code]:font-mono [&_code]:text-primary-fg [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-surface-2 [&_pre]:p-3">
+      <div className="md-prose">
         <ReactMarkdown>{level.statementMd}</ReactMarkdown>
       </div>
 
       {level.sampleTests.length > 0 && (
-        <div>
-          <h2 className="mb-2 text-sm font-semibold text-content-muted">Examples</h2>
-          <div className="space-y-2">
+        <section aria-labelledby="examples-heading">
+          <h2 id="examples-heading" className="eyebrow mb-3 flex items-center gap-2">
+            <Terminal size={13} aria-hidden /> Examples
+          </h2>
+          <div className="space-y-3">
             {level.sampleTests.map((t, i) => (
-              <div key={i} className="rounded-lg border border-line bg-surface-2 p-3 font-mono text-xs">
-                <div>
-                  <span className="text-content-muted">Input: </span>
-                  {t.stdin.trim() || '(none)'}
+              <div
+                key={i}
+                className="grid overflow-hidden rounded-xl border border-line bg-base/60 font-mono text-[13px] sm:grid-cols-2"
+              >
+                <div className="border-b border-line p-3 sm:border-b-0 sm:border-r">
+                  <p className="mb-1.5 text-[10px] uppercase tracking-[0.16em] text-content-muted">Input</p>
+                  <pre className="whitespace-pre-wrap text-content">{t.stdin.trim() || '(none)'}</pre>
                 </div>
-                <div>
-                  <span className="text-content-muted">Output: </span>
-                  {t.expectedOutput}
+                <div className="p-3">
+                  <p className="mb-1.5 text-[10px] uppercase tracking-[0.16em] text-content-muted">Output</p>
+                  <pre className="whitespace-pre-wrap text-success">{t.expectedOutput}</pre>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
+      )}
+
+      {level.hints.length > 0 && (
+        <section aria-labelledby="hints-heading">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 id="hints-heading" className="eyebrow flex items-center gap-2">
+              <Lightbulb size={13} aria-hidden /> Hints
+            </h2>
+            <span className="font-mono text-[11px] text-content-muted">
+              {hintsShown}/{level.hints.length}
+            </span>
+          </div>
+          <ol className="space-y-2" aria-live="polite">
+            <AnimatePresence initial={false}>
+              {level.hints.slice(0, hintsShown).map((hint, i) => (
+                <motion.li
+                  key={i}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="overflow-hidden"
+                >
+                  <div className="rounded-xl border border-accent/20 bg-accent-tint/60 px-3.5 py-2.5 text-sm text-content">
+                    <span className="mr-2 font-mono text-xs text-accent">{i + 1}</span>
+                    {hint}
+                  </div>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </ol>
+          {hintsShown < level.hints.length && (
+            <button
+              type="button"
+              onClick={() => setHintsShown((n) => n + 1)}
+              className="mt-3 inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-dashed border-line-strong px-3.5 text-sm text-content-muted transition-colors hover:border-accent/40 hover:text-accent"
+            >
+              <Lightbulb size={14} aria-hidden />
+              {hintsShown === 0 ? 'Stuck? Reveal a hint' : 'Reveal the next hint'}
+            </button>
+          )}
+        </section>
       )}
     </div>
   );
