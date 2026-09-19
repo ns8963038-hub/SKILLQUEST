@@ -1,28 +1,63 @@
-name: Keep the API awake (optional)
+name: Keep awake (on demand)
 
-# On Render's free plan the API sleeps after ~15 minutes idle, and the next
-# student waits about a minute for it to wake. During a pilot or the UAT weeks,
-# switch this ON: uncomment the two `schedule` lines below and push. It then
-# pings the API every 10 minutes from 07:30 to 23:30 IST. Comment them out again
-# when the testing weeks end.
+# On Render's free plan each service sleeps after 15 minutes without traffic,
+# and the next visitor waits about a minute while it wakes. Before a pilot
+# session, a class demo or the viva, start this and SkillQuest stays awake for
+# as long as you choose, then it stops by itself.
 #
-# Why not 24/7: Render gives 750 free instance-hours a month SHARED by all your
-# free services, and when they run out every free service is suspended until the
-# next month. Awake 16 h/day the API uses ~480 h, leaving ~270 h for the AI
-# service (which the API wakes whenever a student signs in).
-# Pinging /health also runs a tiny database query, which stops the free Supabase
-# project from pausing. GitHub may run scheduled jobs a few minutes late.
+#   Start:  GitHub → Actions → "Keep awake (on demand)" → Run workflow
+#           (or from a terminal:  gh workflow run keep-warm.yml -f hours=3)
+#   Stop early: open the running job and press "Cancel workflow".
+#
+# Start it ~2 minutes before people arrive: the first ping wakes the services.
+# Only the hours it actually runs count against Render's 750 free hours a month
+# (shared by both services), e.g. 3 hours with the AI service ≈ 6 hours.
+# Needs the SKILLQUEST_API_URL (and SKILLQUEST_AI_URL) secrets — docs/DEPLOY.md §5.
 
 on:
-  # schedule:
-  #   - cron: '*/10 2-17 * * *' # every 10 min, 02:00–17:59 UTC = 07:30–23:30 IST
-  workflow_dispatch: # or ping once by hand from the Actions tab
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: 'Keep SkillQuest awake for how many hours? (run it again for longer)'
+        type: choice
+        options: ['1', '2', '3', '4', '5']
+        default: '2'
+      include_ai:
+        description: 'Also keep the AI service awake (onboarding and re-planning)'
+        type: boolean
+        default: true
+
+# Starting a new run replaces one that is already running.
+concurrency:
+  group: keep-awake
+  cancel-in-progress: true
 
 jobs:
-  ping:
+  awake:
     runs-on: ubuntu-latest
+    timeout-minutes: 320 # 5 hours of pings plus a little margin
+    env:
+      API_URL: ${{ secrets.SKILLQUEST_API_URL }}
+      AI_URL: ${{ secrets.SKILLQUEST_AI_URL }}
+      HOURS: ${{ inputs.hours }}
+      INCLUDE_AI: ${{ inputs.include_ai }}
     steps:
-      - name: Ping the API
-        env:
-          API_URL: ${{ secrets.SKILLQUEST_API_URL }}
-        run: curl -fsS --retry 3 --retry-delay 20 --retry-all-errors --max-time 90 "$API_URL/health"
+      - name: Ping every 10 minutes until the time is up
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "Set the SKILLQUEST_API_URL secret first (docs/DEPLOY.md §5)."
+            exit 1
+          fi
+          end=$(( $(date +%s) + HOURS * 3600 ))
+          echo "Keeping SkillQuest awake for $HOURS hour(s)…"
+          while [ "$(date +%s)" -lt "$end" ]; do
+            # A failed ping is logged but doesn't stop the job; the next one retries.
+            curl -fsS --retry 3 --retry-delay 20 --retry-all-errors --max-time 90 "$API_URL/health" || echo "API ping failed"
+            echo
+            if [ "$INCLUDE_AI" = "true" ] && [ -n "$AI_URL" ]; then
+              curl -fsS --retry 3 --retry-delay 20 --retry-all-errors --max-time 90 "$AI_URL/health" || echo "AI ping failed"
+              echo
+            fi
+            sleep 600
+          done
+          echo "Done — SkillQuest will go back to sleep after 15 quiet minutes."

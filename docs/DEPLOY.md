@@ -21,8 +21,8 @@ latency was ~1.5 s. With the API *next to* the database they take a few ms.
   request waits **about a minute** while they wake. The app shows "Waking your
   tutor… can take up to a minute" meanwhile.
 - Render gives **750 free hours a month, shared by both services**. If they run
-  out, **both are suspended until the next month**. Don't keep anything awake
-  24/7 (see §7).
+  out, **both are suspended until the next month**. So never keep them awake
+  24/7 — use the on-demand "Keep awake" button only for sessions (§7).
 - Supabase free projects **pause after 7 days** with no activity.
 - Paiza (the Java runner) is a shared public service with unpublished rate
   limits: fine for a 5–10 student pilot working at their own pace. Load-test it
@@ -199,12 +199,14 @@ If all seven pass, you're live.
 
 ## 7. During pilot and UAT weeks
 
-- **Keep the API awake by day:** in `.github/workflows/keep-warm.yml` uncomment
-  the two `schedule` lines and push. It pings the API every 10 minutes from 07:30
-  to 23:30 IST, about 480 of the 750 free hours, leaving room for the AI service.
-  Re-comment them after the testing weeks. **Never make it 24/7.**
-- **Don't start a class session cold:** open the site yourself 2 minutes before
-  students arrive.
+- **Keep it awake only when you need it.** Before a pilot session, a class demo
+  or the viva: GitHub → **Actions → Keep awake (on demand) → Run workflow**, pick
+  the hours (1–5) and whether to include the AI service. Start it ~2 minutes
+  early (the first ping wakes everything); it stops by itself when the time is
+  up, or press **Cancel workflow** to stop early. From a terminal:
+  `gh workflow run keep-warm.yml -f hours=3`. Only the hours it runs count
+  (3 hours with the AI service ≈ 6 of the 750 free hours). Without it, the app
+  still works — the first visitor after 15 quiet minutes just waits about a minute.
 - **Before a big session** (20–30 students submitting together), load-test Paiza.
 - **The database won't pause** while students use the app or keep-warm is on.
   Outside test weeks, the weekly scoring job keeps it alive.
@@ -233,5 +235,5 @@ If all seven pass, you're live.
 | `/health` shows `"db":"down"` | Wrong `DATABASE_URL`, or the Supabase project is paused | Check the URL and password; restore the project in Supabase |
 | Onboarding fails at "building your roadmap" | AI service still waking, or a wrong `AI_SERVICE_URL` / key | Open `<ai>/health`, wait until it answers, retry; check `AI_SERVICE_URL` on the API |
 | Students never receive the confirmation email | Default Supabase sender (team-only) | §4.2: turn confirmation off, or set up Gmail SMTP |
-| Everything suddenly down near month end | 750 free Render hours used up | Turn keep-warm off; services return on the 1st of the month |
+| Everything suddenly down near month end | 750 free Render hours used up | Cancel any running "Keep awake" job; services return on the 1st of the month |
 | Code runs time out for everyone | Paiza busy or rate-limiting | Wait and retry; for large sessions plan a self-hosted runner |
