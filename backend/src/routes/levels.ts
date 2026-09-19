@@ -7,6 +7,7 @@ import { getExecutor } from '../execution';
 import { computeStreak } from '../gamification/streak';
 import { badgesToAward, earnsPlacementReady } from '../gamification/badges';
 import { HINT_COST, applyHintCost } from '../gamification/hints';
+import { lessonComesFirst, lessonStateBySkill } from '../lessons/progress';
 import { advanceRoadmap } from '../roadmap/advance';
 import { computePlacementForUser } from '../placement/compute';
 import { nextLevelAfter, nextLevelInSkill } from '../progress/levels';
@@ -43,7 +44,7 @@ levelsRouter.get(
     }
     // The adaptive tutor's current mastery estimate for this skill — only present
     // once the student has attempted it (no evidence yet = no number shown).
-    const [mastery, progress] = await Promise.all([
+    const [mastery, progress, lesson] = await Promise.all([
       prisma.skillMastery.findUnique({
         where: { userId_skillId: { userId: req.userId!, skillId: level.skillId } },
         select: { pMastery: true },
@@ -52,6 +53,8 @@ levelsRouter.get(
         where: { userId_levelId: { userId: req.userId!, levelId: level.id } },
         select: { hintsUsed: true, status: true },
       }),
+      // Is there a lesson for this topic (so the play screen can offer a replay)?
+      prisma.lesson.findFirst({ where: { skillId: level.skillId, published: true }, select: { skillId: true } }),
     ]);
     await logEvent(req.userId!, 'level_start', { levelId: level.id });
     res.json({
@@ -71,6 +74,7 @@ levelsRouter.get(
       sampleTests: level.testCases, // visible examples only
       skillTitle: level.skill.title,
       mastery: mastery?.pMastery, // omitted from the JSON until there is evidence
+      lessonAvailable: Boolean(lesson),
     });
   }),
 );
@@ -136,18 +140,25 @@ levelsRouter.post(
   }),
 );
 
-// GET /api/skills/:skillId/next-level — the level to open for a skill: the first
-// one this student hasn't completed, else the first (re-practice). Skills now have
-// several levels, so the frontend asks here instead of assuming `<skill>-01`.
+// GET /api/skills/:skillId/next-level — what to open for a skill: its lesson if
+// the student hasn't done (or skipped) it yet, and otherwise the first level they
+// haven't completed, else the first (re-practice). Skills have several levels,
+// so the frontend asks here instead of assuming `<skill>-01`.
 levelsRouter.get(
   '/skills/:skillId/next-level',
   asyncHandler(async (req, res) => {
-    const levelId = await nextLevelInSkill(req.userId!, req.params.skillId ?? '');
-    if (!levelId) {
+    const userId = req.userId!;
+    const skillId = req.params.skillId ?? '';
+    const [levelId, lessons] = await Promise.all([
+      nextLevelInSkill(userId, skillId),
+      lessonStateBySkill(userId, [skillId]),
+    ]);
+    const lesson = lessons.get(skillId) ?? 'none';
+    if (!levelId && lesson === 'none') {
       res.status(404).json({ error: 'this skill has no levels yet' });
       return;
     }
-    res.json({ levelId });
+    res.json({ levelId, lesson, lessonFirst: lessonComesFirst(lesson) });
   }),
 );
 

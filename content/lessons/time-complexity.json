@@ -1,0 +1,1333 @@
+{
+  "skillId": "time-complexity",
+  "title": "Big-O: how code scales",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Fast for 10, frozen for 10 lakh",
+      "body": "Your code passes the sample tests, then **times out** on the hidden ones. That is what interviewers test with *\"what is the complexity?\"*: not how fast code is today, but how the work **grows** as the input grows.\n\nIn five minutes you’ll count steps as they happen and see why a nested loop explodes."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int n = 4;\n        int steps = 0;\n        for (int i = 0; i < n; i++) { //~ The outer loop runs n times.\n            for (int j = 0; j < n; j++) { //~ For EACH outer round, the inner loop runs n times too.\n                steps++; //~ Count one unit of work.\n            }\n        }\n        System.out.println(steps); //~ n × n = 16. Double n and the steps quadruple. That is O(n²).\n    }\n}",
+      "options": [
+        {
+          "text": "8",
+          "why": "The loops multiply, they don’t add: the whole inner loop runs again every outer round."
+        },
+        {
+          "text": "20",
+          "why": "Count the steps++ lines that run: 4 rounds × 4 = 16."
+        },
+        {
+          "text": "16",
+          "why": "Right: the inner loop runs 4 times for each of the 4 outer rounds, so 4 × 4."
+        },
+        {
+          "text": "4",
+          "why": "steps++ is inside BOTH loops."
+        }
+      ],
+      "answer": 2
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 7
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 7
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 10
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 10
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 11
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 11
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 12
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 12
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 12
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 12
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 13
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 13
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 14
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 14
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 15
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 15
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 16
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "j": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 16
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 16
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 11,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "steps": {
+                    "t": "int",
+                    "v": 16
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "16\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "16\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Reading Big-O",
+      "points": [
+        "Big-O describes how the number of steps **grows** with the input size n. Constants are dropped: 3n is still O(n).",
+        "One loop over n: **O(n)**. A loop inside a loop: **O(n²)**. A formula with no loop: **O(1)**.",
+        "Halving the problem each step: **O(log n)**. One million items need only about 20 halvings.",
+        "Rough guide: about 10⁸ simple steps take a second. If n is 10⁵, an O(n²) solution is too slow."
+      ],
+      "pattern": "for (i ...)            // O(n)\n  for (j ...)          // O(n²)\nwhile (n > 1) n /= 2; // O(log n)"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int n = 64;\n        int steps = 0;\n        while (n > 1) {\n            n = n / 2;\n            steps++;\n        }\n        System.out.println(steps);\n    }\n}",
+      "options": [
+        {
+          "text": "64",
+          "why": "The loop doesn’t count down by one; it halves."
+        },
+        {
+          "text": "32",
+          "why": "n HALVES every step: 64 → 32 → 16 → 8 → 4 → 2 → 1. That is 6 steps."
+        },
+        {
+          "text": "6",
+          "why": "Yes: log₂ 64 = 6. Halving loops are O(log n), which is why binary search is so fast."
+        },
+        {
+          "text": "7",
+          "why": "Count the halvings: the loop stops as soon as n reaches 1."
+        }
+      ],
+      "answer": 2
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Replace the slow loop with the O(1) formula for 1 + 2 + … + n.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        long[] tests = {10, 1, 1000000000L};\n        for (long n : tests) { // tries three values of n\n            long sum = ____;\n            System.out.println(sum);\n        }\n    }\n}",
+      "accepted": [
+        "n * (n + 1) / 2",
+        "(n * (n + 1)) / 2",
+        "(n * n + n) / 2",
+        "n * (n + 1) / 2L"
+      ],
+      "wrong": [
+        "n * n / 2",
+        "n * (n - 1) / 2",
+        "n"
+      ],
+      "hint": "Pair the first and last numbers: there are n/2 pairs, each adding to n + 1.",
+      "explain": "`n * (n + 1) / 2` gives the answer in one step, even for n = 10⁹, where a loop would take seconds.",
+      "expectedOutput": "55\n1\n500000000500000000"
+    }
+  ]
+}

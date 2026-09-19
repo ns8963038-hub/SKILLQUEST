@@ -1,0 +1,1016 @@
+{
+  "skillId": "oop-basics",
+  "title": "Objects: your own types",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Every app is full of objects",
+      "body": "A banking app has accounts, a college portal has students, and a game has players. Each is an **object** with its own data, built from a **class** (the blueprint). This is the O in OOP, and a guaranteed interview topic.\n\nIn five minutes you’ll watch two objects live side by side in memory, and write a constructor yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "class Counter {\n    private int count; //~ A field: EACH Counter object gets its own count.\n\n    void tick() {\n        count++; //~ Add 1 to THIS object's count.\n    }\n\n    int get() {\n        return count;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Counter a = new Counter(); //~ new builds an object from the Counter blueprint. Its count starts at 0.\n        Counter b = new Counter(); //~ A second, separate Counter object with its own count.\n        a.tick(); //~ Only a's count goes up.\n        a.tick();\n        b.tick();\n        System.out.println(a.get() + \" \" + b.get()); //~ a ticked twice and b once.\n    }\n}",
+      "options": [
+        {
+          "text": "2 1",
+          "why": "Right. Each object has its own count field. a ticked twice, b once."
+        },
+        {
+          "text": "0 0",
+          "why": "Fields start at 0, but tick() adds 1 each time it is called."
+        },
+        {
+          "text": "3 3",
+          "why": "Fields belong to each object, so the two counters don’t share a count."
+        },
+        {
+          "text": "3 1",
+          "why": "b.tick() changes only b. a’s count is 2."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 15,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 1,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 15,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 15,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 1,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 17,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "tick",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 17,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "tick",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 17,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 18,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "tick",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "tick",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 18,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "tick",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 18,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 19,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "tick",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "tick",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 19,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "tick",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 19,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 20,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "tick",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "get",
+                "line": 9,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 20,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 20,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "get",
+              "v": {
+                "t": "int",
+                "v": 2
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "get",
+                "line": 9,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 20,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 20,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "get",
+              "v": {
+                "t": "int",
+                "v": 1
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 21,
+                "vars": {
+                  "a": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Counter"
+                  },
+                  "b": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Counter"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              "2": {
+                "cls": "Counter",
+                "fields": {
+                  "count": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            },
+            "out": "2 1\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "2 1\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Classes and objects",
+      "points": [
+        "A **class** is a blueprint; `new ClassName()` builds an **object** from it.",
+        "**Fields** hold each object’s own data. **Methods** act on that object’s data (`this`).",
+        "A **constructor** runs when the object is created. Use it to set the starting values of the fields.",
+        "Keep fields `private` and change them only through methods. That is **encapsulation**."
+      ],
+      "pattern": "class Student {\n    private String name;\n    Student(String name) { this.name = name; }\n    String getName() { return name; }\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "class Counter {\n    private int count;\n    void tick() { count++; }\n    int get() { return count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Counter a = new Counter();\n        Counter b = a;\n        b.tick();\n        System.out.println(a.get());\n    }\n}",
+      "options": [
+        {
+          "text": "It doesn't compile",
+          "why": "Assigning one object variable to another is allowed; it copies the reference."
+        },
+        {
+          "text": "2",
+          "why": "tick() ran once, on the one shared object."
+        },
+        {
+          "text": "1",
+          "why": "Yes. a and b refer to one and the same object."
+        },
+        {
+          "text": "0",
+          "why": "b = a doesn’t copy the object. Both names now point at the SAME counter, so ticking b ticks a."
+        }
+      ],
+      "answer": 2
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Complete the constructor so a new account starts with the opening balance.",
+      "code": "class Account {\n    private int balance;\n\n    Account(int opening) {\n        ____;\n    }\n\n    int getBalance() {\n        return balance;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println(new Account(500).getBalance());\n        System.out.println(new Account(20).getBalance());\n    }\n}",
+      "accepted": [
+        "balance = opening",
+        "this.balance = opening"
+      ],
+      "wrong": [
+        "opening = balance",
+        "int balance = opening",
+        "balance = 500"
+      ],
+      "hint": "Store the parameter (opening) into the field (balance).",
+      "explain": "`this.balance = opening` copies the value passed to `new` into the object’s field. Writing `int balance = opening` would create a separate local variable and leave the field at 0.",
+      "expectedOutput": "500\n20"
+    }
+  ]
+}

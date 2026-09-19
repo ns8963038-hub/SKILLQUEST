@@ -1,0 +1,301 @@
+{
+  "skillId": "loops",
+  "title": "Loops: make Java repeat itself",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Stop copy-pasting println",
+      "body": "Your Infosys test asks you to *print the 7 times table*. You could write `System.out.println` ten times… or write it **once** and let a loop repeat it.\n\nIn five minutes you'll read a loop, predict what it does, watch it run, and write one yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int total = 0; //~ total starts at 0. The running sum will live here.\n        for (int i = 1; i <= 3; i++) { //~ The loop checks: is i <= 3? If yes, run the body. After each round, i++ adds 1.\n            total = total + i; //~ Add this round's i to the running total.\n        } //~ End of the body. Back to the header for the next round.\n        System.out.println(total); //~ i is now 4, so i <= 3 is false and the loop is over. Print the total.\n    } //~ Done!\n}",
+      "options": [
+        {
+          "text": "6",
+          "why": "Right: 1 + 2 + 3 = 6. The body ran three times, for i = 1, 2 and 3."
+        },
+        {
+          "text": "10",
+          "why": "That's 1 + 2 + 3 + 4. But the condition is i <= 3, so the loop stops before i = 4 is added."
+        },
+        {
+          "text": "1\n3\n6",
+          "why": "The println is after the loop's closing brace, so it runs once, when the loop has finished."
+        },
+        {
+          "text": "3",
+          "why": "That's the last value of i that ran, not the total. Each round adds i into total."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "6\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "6\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "How a for loop works",
+      "points": [
+        "**The header has three parts.** `int i = 1` runs once at the start. `i <= 3` is checked *before every round*. `i++` runs *after every round*.",
+        "**The body** (inside `{ }`) is what repeats. Code after the closing brace runs once, when the loop is done.",
+        "**The accumulator pattern:** a variable declared *before* the loop (like `total`) collects a result across the rounds.",
+        "**Counting rounds:** `i = 1; i <= n` runs n times, and so does `i = 0; i < n`."
+      ],
+      "pattern": "for (int i = start; i <= end; i++) {\n    // the work to repeat, using i\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int count = 0;\n        for (int i = 0; i < 5; i += 2) {\n            count++;\n        }\n        System.out.println(count);\n    }\n}",
+      "options": [
+        {
+          "text": "2",
+          "why": "Don't forget i = 0: the first round runs before any jump. Rounds happen at i = 0, 2 and 4."
+        },
+        {
+          "text": "5",
+          "why": "That's true for i++, but here i jumps by 2 each round (i += 2)."
+        },
+        {
+          "text": "6",
+          "why": "6 is the value of i when the loop stops, not the number of rounds."
+        },
+        {
+          "text": "3",
+          "why": "Yes: i takes the values 0, 2 and 4. At i = 6 the check i < 5 fails, so the body ran 3 times."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Complete the loop's condition so the program prints the 7 times table, from 7 × 1 up to 7 × 10.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        for (int i = 1; ____; i++) {\n            System.out.println(7 * i);\n        }\n    }\n}",
+      "accepted": [
+        "i <= 10",
+        "i < 11",
+        "10 >= i",
+        "11 > i"
+      ],
+      "wrong": [
+        "i < 10",
+        "i <= 11"
+      ],
+      "hint": "Keep going while i is 10 or less.",
+      "explain": "The condition is checked before every round, so `i <= 10` lets the i = 10 round run and stops at 11.",
+      "expectedOutput": "7\n14\n21\n28\n35\n42\n49\n56\n63\n70"
+    }
+  ]
+}

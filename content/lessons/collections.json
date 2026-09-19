@@ -1,0 +1,232 @@
+{
+  "skillId": "collections",
+  "title": "Collections: lists, sets and maps",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "When an array isn’t enough",
+      "body": "Arrays have a fixed size and no built-in tricks. Java’s **collections** grow as you add, remove duplicates, and look things up by key. Nearly every real Java program uses `ArrayList`, `HashSet` and `HashMap`.\n\nIn five minutes you’ll watch a list change shape, then use a map to count words."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "import java.util.ArrayList;\n\npublic class Main {\n    public static void main(String[] args) {\n        ArrayList<String> names = new ArrayList<>(); //~ An ArrayList grows as you add, unlike an array.\n        names.add(\"Asha\");\n        names.add(\"Ravi\");\n        names.add(0, \"Zoya\"); //~ add(0, x) inserts at the front and shifts the rest right.\n        names.remove(\"Ravi\"); //~ remove by value.\n        System.out.println(names + \" \" + names.size()); //~ Lists print nicely: [Zoya, Asha].\n    }\n}",
+      "options": [
+        {
+          "text": "[Asha, Zoya] 2",
+          "why": "add(0, \"Zoya\") inserts at index 0, the front."
+        },
+        {
+          "text": "[Asha, Ravi, Zoya] 3",
+          "why": "add(0, …) puts the item at the front, and Ravi was removed afterwards."
+        },
+        {
+          "text": "[Zoya, Asha, Ravi] 3",
+          "why": "remove(\"Ravi\") took Ravi out."
+        },
+        {
+          "text": "[Zoya, Asha] 2",
+          "why": "Right: Zoya went in at the front, and Ravi was removed."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "names": {
+                    "t": "coll",
+                    "cls": "ArrayList",
+                    "v": "[]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "names": {
+                    "t": "coll",
+                    "cls": "ArrayList",
+                    "v": "[Asha]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "names": {
+                    "t": "coll",
+                    "cls": "ArrayList",
+                    "v": "[Asha, Ravi]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "names": {
+                    "t": "coll",
+                    "cls": "ArrayList",
+                    "v": "[Zoya, Asha, Ravi]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "names": {
+                    "t": "coll",
+                    "cls": "ArrayList",
+                    "v": "[Zoya, Asha]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 11,
+                "vars": {
+                  "names": {
+                    "t": "coll",
+                    "cls": "ArrayList",
+                    "v": "[Zoya, Asha]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "[Zoya, Asha] 2\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "[Zoya, Asha] 2\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Pick the right collection",
+      "points": [
+        "**List** (`ArrayList`): ordered, allows duplicates, `get(i)` by position.",
+        "**Set** (`HashSet`, `TreeSet` sorted, `LinkedHashSet` insertion order): **no duplicates**, fast `contains`.",
+        "**Map** (`HashMap`, `TreeMap` sorted): **key → value**, with `put`, `get`, `getOrDefault`, `containsKey`.",
+        "Collections hold objects, so use `Integer`, not `int`: `ArrayList<Integer>`. Java converts for you."
+      ],
+      "pattern": "Map<String, Integer> count = new HashMap<>();\ncount.put(w, count.getOrDefault(w, 0) + 1);"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "import java.util.HashSet;\n\npublic class Main {\n    public static void main(String[] args) {\n        HashSet<Integer> seen = new HashSet<>();\n        int[] nums = {3, 1, 3, 2, 1};\n        for (int x : nums) seen.add(x);\n        System.out.println(seen.size());\n    }\n}",
+      "options": [
+        {
+          "text": "5",
+          "why": "A Set keeps each value only once. Adding 3 or 1 again changes nothing."
+        },
+        {
+          "text": "It doesn't compile",
+          "why": "An int is converted to an Integer automatically (autoboxing)."
+        },
+        {
+          "text": "2",
+          "why": "There are three different numbers: 1, 2 and 3."
+        },
+        {
+          "text": "3",
+          "why": "Yes: the distinct values are 1, 2 and 3."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Count how many times each word appears.",
+      "code": "import java.util.TreeMap;\n\npublic class Main {\n    public static void main(String[] args) {\n        String[] words = {\"to\", \"be\", \"or\", \"not\", \"to\", \"be\"};\n        TreeMap<String, Integer> counts = new TreeMap<>();\n        for (String w : words) {\n            counts.put(w, ____);\n        }\n        System.out.println(counts);\n    }\n}",
+      "accepted": [
+        "counts.getOrDefault(w, 0) + 1",
+        "1 + counts.getOrDefault(w, 0)",
+        "counts.containsKey(w) ? counts.get(w) + 1 : 1"
+      ],
+      "wrong": [
+        "1",
+        "counts.get(w) + 1",
+        "counts.size()"
+      ],
+      "hint": "Take the count so far (0 if the word is new) and add 1.",
+      "explain": "`counts.getOrDefault(w, 0) + 1` handles new words (0 + 1) and repeats alike, with no null crash.",
+      "expectedOutput": "{be=2, not=1, or=1, to=2}"
+    }
+  ]
+}

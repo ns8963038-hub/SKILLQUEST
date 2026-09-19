@@ -1,5 +1,5 @@
 import { SKILL_GRAPH } from '../features/constellation/skillGraph';
-import { bktUpdate, MASTERY_THRESHOLD } from '../features/tutor/bkt';
+import { bktUpdate, LESSON_BKT, MASTERY_THRESHOLD } from '../features/tutor/bkt';
 import type { RoadmapNode, SkillStatus } from '../features/roadmap/types';
 
 // =============================================================================
@@ -73,6 +73,7 @@ const state = {
   hintsUsed: {} as Record<string, number>,
   surveyDone: false,
   nudgeClosed: false,
+  lessons: {} as Record<string, { status: 'started' | 'completed' | 'skipped'; answered: Record<string, boolean> }>,
   // ?demo&consent shows the consent screen first (for demonstrating F1).
   consentPending: typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('consent'),
   settings: {
@@ -136,6 +137,7 @@ function roadmapNodes(): RoadmapNode[] {
       mastery: sk.status === 'locked' ? undefined : sk.mastery,
       levelsTotal: 1,
       levelsCompleted: sk.status === 'completed' ? 1 : 0,
+      lesson: lessonState(s.id),
     };
   });
 }
@@ -303,6 +305,7 @@ function levelView(levelId: string) {
     hintCount: lvl.hints.length,
     hintCost: HINT_COST,
     completed: state.solved.has(levelId),
+    lessonAvailable: hasLesson(skillId),
     xpReward: lvl.xpReward,
     sampleTests: lvl.samples,
     skillTitle: SKILL_GRAPH.find((s) => s.id === skillId)?.title,
@@ -620,6 +623,151 @@ export function demoCsv(path: string): Blob {
   return new Blob([csv], { type: 'text/csv' });
 }
 
+// ---- Lessons (Learn mode) ---------------------------------------------------
+// The real lesson files from /content/lessons, loaded on demand (one chunk each).
+// The demo checks answers in the browser; the real app checks them on the server.
+const LESSON_FILES = import.meta.glob('../../../content/lessons/*.json', { import: 'default' });
+const lessonPath = (skillId: string) => `../../../content/lessons/${skillId}.json`;
+const hasLesson = (skillId: string) => lessonPath(skillId) in LESSON_FILES;
+
+interface DemoLessonStep {
+  id: string;
+  type: string;
+  code?: string;
+  from?: string;
+  options?: { text: string; why: string }[];
+  answer?: number;
+  accepted?: string[];
+  explain?: string;
+  [key: string]: unknown;
+}
+interface DemoLesson {
+  skillId: string;
+  title: string;
+  minutes: number;
+  version: number;
+  steps: DemoLessonStep[];
+}
+
+async function loadLesson(skillId: string): Promise<DemoLesson | null> {
+  const load = LESSON_FILES[lessonPath(skillId)];
+  return load ? ((await load()) as DemoLesson) : null;
+}
+
+// Mirrors splitNarration() in backend/src/lessons/content.ts.
+function splitNarration(code: string) {
+  const notes: Record<number, string> = {};
+  const clean = code
+    .split('\n')
+    .map((line, i) => {
+      const at = line.indexOf('//~');
+      if (at < 0) return line;
+      notes[i + 1] = line.slice(at + 3).trim();
+      return line.slice(0, at).trimEnd();
+    })
+    .join('\n');
+  return { code: clean, notes };
+}
+
+// Mirrors sanitizeLesson(): the same shape the real API sends.
+function lessonSteps(lesson: DemoLesson) {
+  return lesson.steps.map((s) => {
+    if (s.type === 'predict') {
+      const { code, notes } = splitNarration(s.code ?? '');
+      return { id: s.id, type: s.type, prompt: s.prompt, code, notes, options: (s.options ?? []).map((o) => ({ text: o.text })) };
+    }
+    if (s.type === 'trace') {
+      const src = s.from ? lesson.steps.find((x) => x.id === s.from) : s;
+      const { code, notes } = splitNarration(src?.code ?? '');
+      return { id: s.id, type: s.type, title: s.title, code, notes, trace: s.trace };
+    }
+    if (s.type === 'fill') {
+      return { id: s.id, type: s.type, prompt: s.prompt, code: splitNarration(s.code ?? '').code, expectedOutput: s.expectedOutput, hint: s.hint, blank: '____' };
+    }
+    return s;
+  });
+}
+
+type LessonStateName = 'none' | 'new' | 'started' | 'completed' | 'skipped';
+function lessonState(skillId: string): LessonStateName {
+  if (!hasLesson(skillId)) return 'none';
+  return state.lessons[skillId]?.status ?? 'new';
+}
+
+async function lessonApi(skillId: string, action: string, body: Record<string, unknown>) {
+  const lesson = await loadLesson(skillId);
+  if (!lesson) throw new Error('Request failed (404)');
+  const mine = (state.lessons[skillId] ??= { status: 'started', answered: {} });
+  const skill = state.skills[skillId];
+  const firstLevel = `${skillId}-01`;
+
+  if (action === '') {
+    const lv = levelData(firstLevel);
+    return {
+      skillId,
+      skillTitle: SKILL_GRAPH.find((s) => s.id === skillId)?.title ?? skillId,
+      title: lesson.title,
+      minutes: lesson.minutes,
+      version: lesson.version,
+      steps: lessonSteps(lesson),
+      status: state.lessons[skillId]?.status ?? null,
+      answered: mine.answered,
+      mastery: skill && skill.status !== 'locked' ? skill.mastery : null,
+      nextLevel: { id: firstLevel, title: lv.title, xpReward: lv.xpReward },
+    };
+  }
+  if (action === 'start') return { status: mine.status };
+  if (action === 'answer') {
+    const step = lesson.steps.find((s) => s.id === body.stepId && s.type === 'predict');
+    if (!step) throw new Error('Request failed (404)');
+    const answer = step.answer ?? 0;
+    const choice = body.choice as number | undefined;
+    const correct = choice === answer;
+    const firstTry = choice !== undefined && !(step.id in mine.answered);
+    let mastery;
+    // Only questions after the teaching count as evidence (mirrors the backend).
+    const taught = lesson.steps.findIndex((s) => s.type === 'explain');
+    const counts = taught >= 0 && taught < lesson.steps.findIndex((s) => s.id === step.id);
+    if (firstTry) {
+      mine.answered[step.id] = correct;
+      if (skill && counts) {
+        const before = skill.mastery;
+        skill.mastery = bktUpdate(before, correct, LESSON_BKT);
+        mastery = { before, after: skill.mastery };
+      }
+    }
+    const opts = step.options ?? [];
+    return {
+      correct,
+      why: choice !== undefined ? opts[choice]?.why : undefined,
+      answer: correct || body.reveal ? answer : undefined,
+      answerWhy: correct || body.reveal ? opts[answer]?.why : undefined,
+      firstTry,
+      mastery,
+    };
+  }
+  if (action === 'fill') {
+    const step = lesson.steps.find((s) => s.id === body.stepId && s.type === 'fill');
+    const norm = (x: string) => x.replace(/\s+/g, '').replace(/;+$/, '');
+    const correct = (step?.accepted ?? []).some((a) => norm(a) === norm(String(body.answer ?? '')));
+    return { correct, via: 'match', explain: correct ? step?.explain : undefined, expectedOutput: step?.expectedOutput };
+  }
+  if (action === 'reveal') {
+    const step = lesson.steps.find((s) => s.id === body.stepId && s.type === 'fill');
+    return { answer: step?.accepted?.[0] ?? '', explain: step?.explain };
+  }
+  if (action === 'complete') {
+    mine.status = 'completed';
+    const answers = Object.values(mine.answered);
+    return { status: 'completed', correct: answers.filter(Boolean).length, total: answers.length, levelId: firstLevel };
+  }
+  if (action === 'skip') {
+    if (mine.status !== 'completed') mine.status = 'skipped';
+    return { levelId: firstLevel };
+  }
+  throw new Error('Request failed (404)');
+}
+
 // ---- The request router -----------------------------------------------------
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const as = <T>(value: unknown) => value as T;
@@ -667,7 +815,13 @@ export async function demoApi<T>(
   if (path === '/api/admin/run-scoring') return as<T>({ scored: 8, nudged: 0, windowEnd: new Date() });
 
   const nextLevel = path.match(/^\/api\/skills\/([^/]+)\/next-level$/);
-  if (nextLevel?.[1]) return as<T>({ levelId: `${nextLevel[1]}-01` });
+  if (nextLevel?.[1]) {
+    const lesson = lessonState(nextLevel[1]);
+    return as<T>({ levelId: `${nextLevel[1]}-01`, lesson, lessonFirst: lesson === 'new' || lesson === 'started' });
+  }
+
+  const lessonRoute = path.match(/^\/api\/lessons\/([^/]+)(?:\/([a-z]+))?$/);
+  if (lessonRoute?.[1]) return as<T>(await lessonApi(lessonRoute[1], lessonRoute[2] ?? '', body));
 
   const hint = path.match(/^\/api\/levels\/([^/]+)\/hint$/);
   if (hint?.[1] && method === 'POST') return as<T>(revealHint(hint[1]));

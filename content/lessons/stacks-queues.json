@@ -1,0 +1,330 @@
+{
+  "skillId": "stacks-queues",
+  "title": "Stacks and queues",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Undo buttons and ticket lines",
+      "body": "Ctrl+Z undoes your *last* action first: that is a **stack**. A ticket counter serves whoever came *first*: that is a **queue**. These two simple rules power bracket checkers, browsers, schedulers and graph search.\n\nIn five minutes you’ll watch both in action and use a stack to check brackets."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "import java.util.ArrayDeque;\n\npublic class Main {\n    public static void main(String[] args) {\n        ArrayDeque<Integer> stack = new ArrayDeque<>();\n        stack.push(1); //~ push puts a plate on TOP of the stack.\n        stack.push(2);\n        stack.push(3);\n        System.out.println(stack.pop()); //~ pop takes the top plate: the LAST one pushed.\n        ArrayDeque<Integer> queue = new ArrayDeque<>();\n        queue.offer(1); //~ A queue: join at the back…\n        queue.offer(2);\n        queue.offer(3);\n        System.out.println(queue.poll()); //~ …and leave from the front. First in, first out.\n    }\n}",
+      "options": [
+        {
+          "text": "3\n3",
+          "why": "A queue is first-in, first-out, so poll returns 1."
+        },
+        {
+          "text": "3\n1",
+          "why": "Right: the stack gives back the last in (3), the queue the first in (1)."
+        },
+        {
+          "text": "1\n1",
+          "why": "A stack is last-in, first-out, so pop returns 3."
+        },
+        {
+          "text": "1\n3",
+          "why": "It’s the other way round: stacks return the newest, queues the oldest."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[1]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 1]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[3, 2, 1]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 1]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "3\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 11,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 1]"
+                  },
+                  "queue": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "3\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 1]"
+                  },
+                  "queue": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[1]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "3\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 1]"
+                  },
+                  "queue": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[1, 2]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "3\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 14,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 1]"
+                  },
+                  "queue": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[1, 2, 3]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "3\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 15,
+                "vars": {
+                  "stack": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 1]"
+                  },
+                  "queue": {
+                    "t": "coll",
+                    "cls": "ArrayDeque",
+                    "v": "[2, 3]"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "3\n1\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "3\n1\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "LIFO and FIFO",
+      "points": [
+        "**Stack**, last in first out: `push`, `pop`, `peek`. Used for undo, brackets, and the call stack itself.",
+        "**Queue**, first in first out: `offer`, `poll`, `peek`. Used for scheduling and breadth-first search.",
+        "In Java, `ArrayDeque` does both, and every operation is **O(1)**.",
+        "Always check `isEmpty()` before popping."
+      ],
+      "pattern": "ArrayDeque<Character> st = new ArrayDeque<>();\nst.push(c);        // on top\nchar top = st.pop(); // off the top"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "import java.util.ArrayDeque;\n\npublic class Main {\n    public static void main(String[] args) {\n        ArrayDeque<Character> st = new ArrayDeque<>();\n        for (char c : \"abc\".toCharArray()) st.push(c);\n        StringBuilder sb = new StringBuilder();\n        while (!st.isEmpty()) sb.append(st.pop());\n        System.out.println(sb);\n    }\n}",
+      "options": [
+        {
+          "text": "a",
+          "why": "The while loop pops until the stack is empty."
+        },
+        {
+          "text": "abc",
+          "why": "Popping returns the last pushed first, so a stack REVERSES the order."
+        },
+        {
+          "text": "cba",
+          "why": "Yes. c went on last, so it comes off first."
+        },
+        {
+          "text": "c",
+          "why": "The loop keeps popping, so all three letters are appended."
+        }
+      ],
+      "answer": 2
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. When a \")\" arrives and the stack isn’t empty, match it with an \"(\".",
+      "code": "import java.util.ArrayDeque;\n\npublic class Main {\n    public static void main(String[] args) {\n        String[] tests = {\"(())\", \"(()\", \"())(\", \"()()\"};\n        for (String s : tests) { // checks four strings\n            ArrayDeque<Character> st = new ArrayDeque<>();\n            boolean ok = true;\n            for (char c : s.toCharArray()) {\n                if (c == '(') st.push(c);\n                else if (st.isEmpty()) ok = false;\n                else ____;\n            }\n            System.out.println(s + \" \" + (ok && st.isEmpty()));\n        }\n    }\n}",
+      "accepted": [
+        "st.pop()",
+        "st.poll()",
+        "st.removeFirst()",
+        "st.remove()"
+      ],
+      "wrong": [
+        "st.push(c)",
+        "st.peek()",
+        "ok = true"
+      ],
+      "hint": "Remove the \"(\" on top of the stack.",
+      "explain": "`st.pop()` removes the matching \"(\". The string is balanced only if nothing went wrong and the stack ends empty.",
+      "expectedOutput": "(()) true\n(() false\n())( false\n()() true"
+    }
+  ]
+}

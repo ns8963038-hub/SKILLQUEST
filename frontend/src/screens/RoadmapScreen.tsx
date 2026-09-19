@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { CheckCircle2, CircleDot, Lock, Play, Sparkles } from 'lucide-react';
+import { BookOpen, CheckCircle2, CircleDot, Lock, Play, Sparkles } from 'lucide-react';
 import { useApi } from '../lib/useApi';
 import { cn } from '../lib/cn';
 import { Constellation, ConstellationLegend } from '../features/constellation/Constellation';
@@ -140,11 +140,20 @@ function PlanRow({ node, onPlay }: { node: RoadmapNode; onPlay: () => void }) {
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline justify-between gap-2">
             <span className="truncate text-sm font-medium">{node.title}</span>
-            {/* Level progress inside the skill (skills have 2–3 levels). */}
-            {!locked && node.levelsTotal !== undefined && node.levelsTotal > 1 && (
-              <span className="shrink-0 font-mono text-[10px] text-content-muted">
-                {node.levelsCompleted ?? 0}/{node.levelsTotal} levels
+            {/* A lesson waiting to be done comes first (Learn mode); otherwise the
+                level progress inside the skill (skills have 2–3 levels). */}
+            {!locked && (node.lesson === 'new' || node.lesson === 'started') ? (
+              <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] text-ion">
+                <BookOpen size={11} aria-hidden /> lesson first
               </span>
+            ) : (
+              !locked &&
+              node.levelsTotal !== undefined &&
+              node.levelsTotal > 1 && (
+                <span className="shrink-0 font-mono text-[10px] text-content-muted">
+                  {node.levelsCompleted ?? 0}/{node.levelsTotal} levels
+                </span>
+              )
             )}
           </span>
           {pct !== null && !locked && (

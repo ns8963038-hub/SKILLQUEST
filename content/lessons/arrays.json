@@ -1,0 +1,503 @@
+{
+  "skillId": "arrays",
+  "title": "Arrays: many values, one name",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Thirty students, one variable",
+      "body": "Marks for a whole class, prices for a week, scores for every round. You can’t make a variable for each one. An **array** keeps many values of the same type in one row of numbered boxes.\n\nIn five minutes you’ll walk through an array box by box, meet the famous crash every beginner hits, and use one yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] marks = {70, 85, 90}; //~ An array of 3 ints. The positions (indexes) are 0, 1 and 2.\n        int sum = 0;\n        for (int i = 0; i < marks.length; i++) { //~ marks.length is 3, so i goes 0, 1, 2 and stops before 3.\n            sum += marks[i]; //~ marks[i] reads the box at position i and adds it to sum.\n        }\n        System.out.println(sum / marks.length); //~ 245 / 3 with ints is 81. The .67 is dropped.\n    }\n}",
+      "options": [
+        {
+          "text": "245",
+          "why": "That’s the sum. The last line divides it by the length."
+        },
+        {
+          "text": "Crashes: ArrayIndexOutOfBoundsException",
+          "why": "i < marks.length stops at i = 2, the last valid index, so nothing goes out of bounds."
+        },
+        {
+          "text": "81",
+          "why": "Right: 70 + 85 + 90 = 245, and 245 / 3 as ints is 81."
+        },
+        {
+          "text": "81.67",
+          "why": "sum and marks.length are both ints, so the division drops the decimals."
+        }
+      ],
+      "answer": 2
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 70
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 70
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 155
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 155
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 245
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 245
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 70
+                      },
+                      {
+                        "t": "int",
+                        "v": 85
+                      },
+                      {
+                        "t": "int",
+                        "v": 90
+                      }
+                    ]
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 245
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "81\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "81\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "How arrays work",
+      "points": [
+        "Create one with values `int[] a = {4, 8, 15}` or empty with a size: `new int[n]` (filled with 0s).",
+        "Indexes run from **0** to **length − 1**. `a[0]` is the first box and `a[a.length - 1]` is the last.",
+        "The standard walk: `for (int i = 0; i < a.length; i++)`. Note the `<`, not `<=`.",
+        "An array’s size is fixed when you make it. Reading `a[a.length]` crashes the program."
+      ],
+      "pattern": "int[] a = new int[5];\nfor (int i = 0; i < a.length; i++) {\n    a[i] = i * i;\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {4, 8, 15};\n        System.out.println(a[a.length]);\n    }\n}",
+      "options": [
+        {
+          "text": "It doesn't compile",
+          "why": "The compiler can’t know the index is bad; the error happens when it runs."
+        },
+        {
+          "text": "15",
+          "why": "The last index is length - 1 = 2. a[3] doesn’t exist."
+        },
+        {
+          "text": "0",
+          "why": "Java doesn’t invent a value for a missing box; it throws an exception."
+        },
+        {
+          "text": "Crashes: ArrayIndexOutOfBoundsException",
+          "why": "Yes. a.length is 3, but the indexes are only 0 to 2, so Java stops the program."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Keep max as the largest value seen so far. It is printed after every box.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {3, 9, 2, 12, 7};\n        int max = a[0];\n        for (int i = 1; i < a.length; i++) {\n            if (a[i] > max) ____;\n            System.out.println(max);\n        }\n    }\n}",
+      "accepted": [
+        "max = a[i]",
+        "max = Math.max(max, a[i])"
+      ],
+      "wrong": [
+        "max = 9",
+        "max = i",
+        "a[i] = max"
+      ],
+      "hint": "When the current box is bigger, it becomes the new max.",
+      "explain": "`max = a[i]` replaces the champion whenever a bigger value turns up, so max ends as the largest.",
+      "expectedOutput": "9\n9\n12\n12"
+    }
+  ]
+}

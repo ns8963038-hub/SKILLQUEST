@@ -1,0 +1,1147 @@
+{
+  "skillId": "oop-advanced",
+  "title": "Inheritance and polymorphism",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "One call, many behaviours",
+      "body": "A payment app has card, UPI and wallet payments, and they all *pay*, just differently. With **inheritance** they share a parent type, and with **polymorphism** one line of code calls the right version for each. Interviewers ask about this constantly.\n\nIn five minutes you’ll see Java pick the method at run time, and wire up a subclass yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "class Animal {\n    String sound() {\n        return \"...\";\n    }\n}\n\nclass Dog extends Animal {\n    @Override\n    String sound() {\n        return \"Woof\"; //~ Dog replaces (overrides) Animal's sound().\n    }\n}\n\nclass Cat extends Animal {\n    @Override\n    String sound() {\n        return \"Meow\";\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Animal[] pets = { new Dog(), new Cat(), new Animal() }; //~ One array of Animals holding a Dog, a Cat and a plain Animal.\n        for (Animal p : pets) {\n            System.out.println(p.sound()); //~ Java calls the sound() of the ACTUAL object. That is polymorphism.\n        }\n    }\n}",
+      "options": [
+        {
+          "text": "Woof\nMeow\n...",
+          "why": "Right. Each object uses its own class’s sound(), even through an Animal variable."
+        },
+        {
+          "text": "It doesn't compile",
+          "why": "A Dog IS an Animal, so it fits in an Animal array."
+        },
+        {
+          "text": "...\n...\n...",
+          "why": "The variable’s type is Animal, but Java runs the method of the real object inside it."
+        },
+        {
+          "text": "Woof\nMeow",
+          "why": "There are three objects. The plain Animal says \"...\"."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 1,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              },
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 14,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 1,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              },
+              {
+                "m": "<init>",
+                "line": 14,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 14,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 1,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Animal"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 23,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 24,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "sound",
+                "line": 10,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Dog"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "sound",
+              "v": {
+                "t": "str",
+                "v": "Woof"
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 24,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "sound",
+                "line": 17,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Cat"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\n",
+            "ret": {
+              "m": "sound",
+              "v": {
+                "t": "str",
+                "v": "Meow"
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 24,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\nMeow\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Animal"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\nMeow\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "sound",
+                "line": 3,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Animal"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Animal"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\nMeow\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 25,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  },
+                  "p": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Animal"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\nMeow\n",
+            "ret": {
+              "m": "sound",
+              "v": {
+                "t": "str",
+                "v": "..."
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 24,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\nMeow\n...\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 27,
+                "vars": {
+                  "pets": {
+                    "t": "array",
+                    "id": 4,
+                    "cls": "Animal[]",
+                    "items": [
+                      {
+                        "t": "ref",
+                        "id": 1,
+                        "cls": "Dog"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 2,
+                        "cls": "Cat"
+                      },
+                      {
+                        "t": "ref",
+                        "id": 3,
+                        "cls": "Animal"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Dog",
+                "fields": {}
+              },
+              "2": {
+                "cls": "Cat",
+                "fields": {}
+              },
+              "3": {
+                "cls": "Animal",
+                "fields": {}
+              }
+            },
+            "out": "Woof\nMeow\n...\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "Woof\nMeow\n...\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Inheritance in four ideas",
+      "points": [
+        "`class Dog extends Animal`: Dog **inherits** Animal’s fields and methods.",
+        "A subclass can **override** a method (`@Override`) to specialise it.",
+        "A parent-type variable can hold a child object, and **the object decides** which method runs.",
+        "`abstract` classes and `interface`s say *what* must exist and leave *how* to each subclass."
+      ],
+      "pattern": "abstract class Shape {\n    abstract double area();\n}\nclass Circle extends Shape {\n    double r;\n    double area() { return 3.14 * r * r; }\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "class Base {\n    String hello() {\n        return \"Base\";\n    }\n}\n\nclass Child extends Base {\n    @Override\n    String hello() {\n        return \"Child+\" + super.hello();\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Base x = new Child();\n        System.out.println(x.hello());\n    }\n}",
+      "options": [
+        {
+          "text": "Child+Base",
+          "why": "Yes. Child’s version runs, and super.hello() adds the parent’s text."
+        },
+        {
+          "text": "It doesn't compile",
+          "why": "A Base variable may hold a Child; that is exactly how polymorphism works."
+        },
+        {
+          "text": "Child",
+          "why": "super.hello() calls the parent’s version and appends \"Base\"."
+        },
+        {
+          "text": "Base",
+          "why": "x holds a Child object, so Child’s hello() runs."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. A Square is a Rect whose sides are equal. Finish its constructor.",
+      "code": "abstract class Shape {\n    abstract int area();\n}\n\nclass Rect extends Shape {\n    int w, h;\n\n    Rect(int w, int h) {\n        this.w = w;\n        this.h = h;\n    }\n\n    int area() {\n        return w * h;\n    }\n}\n\nclass Square extends Rect {\n    Square(int side) {\n        ____;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Shape[] shapes = { new Rect(2, 3), new Square(4), new Square(1) };\n        for (Shape s : shapes) {\n            System.out.println(s.area());\n        }\n    }\n}",
+      "accepted": [
+        "super(side, side)"
+      ],
+      "wrong": [
+        "super(side)",
+        "this.w = side",
+        "super(side, 1)"
+      ],
+      "hint": "Call the parent’s constructor with super(...), passing the side twice.",
+      "explain": "`super(side, side)` runs Rect’s constructor, so a Square reuses all of Rect’s code, including `area()`.",
+      "expectedOutput": "6\n16\n1"
+    }
+  ]
+}

@@ -1,0 +1,967 @@
+{
+  "skillId": "searching",
+  "title": "Binary search: find it in 20 steps",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Guess the number, like a pro",
+      "body": "I’m thinking of a number from 1 to 1,000,000. Guess, and I’ll say *higher* or *lower*. Always guess the middle and you’ll need about **20** guesses. That idea is **binary search**, and it only works on **sorted** data.\n\nIn five minutes you’ll watch the search window halve, see it fail on unsorted data, and fix the key line yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {2, 5, 8, 12, 16, 23, 38}; //~ Sorted, which binary search needs.\n        int target = 23;\n        int lo = 0, hi = a.length - 1; //~ If 23 is here, it is somewhere between lo and hi.\n        while (lo <= hi) {\n            int mid = (lo + hi) / 2; //~ Look at the middle of what's left.\n            if (a[mid] == target) {\n                System.out.println(\"found at \" + mid); //~ Found it.\n                break;\n            } else if (a[mid] < target) {\n                lo = mid + 1; //~ Too small: the target must be to the right. Throw away the left half.\n            } else {\n                hi = mid - 1; //~ Too big: throw away the right half.\n            }\n        }\n    }\n}",
+      "options": [
+        {
+          "text": "found at 3",
+          "why": "Index 3 was the first middle, but a[3] is 12, too small, so the search moved right."
+        },
+        {
+          "text": "found at 23",
+          "why": "It prints mid, the index, not the value."
+        },
+        {
+          "text": "found at 5",
+          "why": "Right: 23 is at index 5, found after checking indexes 3 and then 5."
+        },
+        {
+          "text": "found at 6",
+          "why": "Indexes start at 0: 2 is at 0, …, 23 is at 5."
+        }
+      ],
+      "answer": 2
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "mid": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 11,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "mid": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "mid": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "mid": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "mid": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "mid": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "found at 5\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 17,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      },
+                      {
+                        "t": "int",
+                        "v": 12
+                      },
+                      {
+                        "t": "int",
+                        "v": 16
+                      },
+                      {
+                        "t": "int",
+                        "v": 23
+                      },
+                      {
+                        "t": "int",
+                        "v": 38
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 23
+                  },
+                  "lo": {
+                    "t": "int",
+                    "v": 4
+                  },
+                  "hi": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "found at 5\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "found at 5\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Why binary search is fast",
+      "points": [
+        "Keep a window `lo..hi`. Check the **middle**; throw away the half that can’t contain the target.",
+        "Each step halves the window: **O(log n)**. A million items take about 20 checks.",
+        "It **requires sorted data**. On unsorted data it can throw away the half that holds the answer.",
+        "Linear search (check every item) is O(n) but works on anything."
+      ],
+      "pattern": "while (lo <= hi) {\n    int mid = lo + (hi - lo) / 2;\n    if (a[mid] == t) return mid;\n    if (a[mid] < t) lo = mid + 1; else hi = mid - 1;\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {9, 2, 7, 4, 1}; // NOT sorted\n        int target = 9;\n        int lo = 0, hi = a.length - 1;\n        String result = \"not found\";\n        while (lo <= hi) {\n            int mid = (lo + hi) / 2;\n            if (a[mid] == target) { result = \"found at \" + mid; break; }\n            if (a[mid] < target) lo = mid + 1;\n            else hi = mid - 1;\n        }\n        System.out.println(result);\n    }\n}",
+      "options": [
+        {
+          "text": "Crashes: ArrayIndexOutOfBoundsException",
+          "why": "lo and hi always stay inside the array; the loop just ends."
+        },
+        {
+          "text": "found at 4",
+          "why": "a[4] is 1, not 9."
+        },
+        {
+          "text": "found at 0",
+          "why": "Binary search assumes sorted data. It saw 7 < 9 and threw away the LEFT half, where 9 actually was."
+        },
+        {
+          "text": "not found",
+          "why": "Yes. On unsorted data binary search can discard the half holding the answer. Sort first, or use linear search."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. When the middle is too small, move lo so the left half is thrown away.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {1, 3, 5, 7, 9, 11};\n        int[] targets = {7, 1, 11, 4};\n        for (int t : targets) { // searches for four values\n            int lo = 0, hi = a.length - 1, found = -1;\n            while (lo <= hi) {\n                int mid = (lo + hi) / 2;\n                if (a[mid] == t) { found = mid; break; }\n                else if (a[mid] < t) lo = ____;\n                else hi = mid - 1;\n            }\n            System.out.println(t + \" -> \" + found);\n        }\n    }\n}",
+      "accepted": [
+        "mid + 1",
+        "1 + mid"
+      ],
+      "wrong": [
+        "mid",
+        "mid - 1",
+        "hi"
+      ],
+      "hint": "Everything up to and including mid is too small.",
+      "explain": "`lo = mid + 1` skips mid itself (already checked). Writing just `mid` can loop forever when lo and hi are neighbours.",
+      "expectedOutput": "7 -> 3\n1 -> 0\n11 -> 5\n4 -> -1"
+    }
+  ]
+}

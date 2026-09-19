@@ -41,6 +41,7 @@ function greeting(now = new Date()): string {
 // Knowledge Constellation, consistency, badges, and the placement tools.
 export function DashboardScreen({
   onContinue,
+  onResume,
   onOpenSkill,
   onViewRoadmap,
   onViewPlacement,
@@ -48,6 +49,7 @@ export function DashboardScreen({
   onGiveFeedback,
 }: {
   onContinue: (levelId: string) => void;
+  onResume?: (skillId: string) => void; // resume the quest's skill (its lesson first, if not done)
   onOpenSkill?: (skillId: string) => void; // opens the skill's next unfinished level
   onViewRoadmap: () => void;
   onViewPlacement: () => void;
@@ -121,7 +123,7 @@ export function DashboardScreen({
 
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 {quest && (
-                  <Button size="lg" onClick={() => onContinue(quest.levelId)}>
+                  <Button size="lg" onClick={() => (onResume ? onResume(quest.skillId) : onContinue(quest.levelId))}>
                     Resume quest
                     <ArrowRight size={18} aria-hidden className="transition-transform group-hover:translate-x-0.5" />
                   </Button>

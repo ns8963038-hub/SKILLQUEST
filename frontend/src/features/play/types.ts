@@ -15,6 +15,7 @@ export interface LevelView {
   hintCount?: number; // how many hints exist (`hints` holds only the ones unlocked)
   hintCost?: number; // XP charged per hint revealed
   completed?: boolean; // has this student already solved the level
+  lessonAvailable?: boolean; // this topic has a lesson to (re)play
 }
 
 // The response from POST /api/levels/:id/hint.

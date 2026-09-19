@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, Play, RotateCcw, Zap } from 'lucide-react';
+import { ArrowLeft, BookOpen, Play, RotateCcw, Zap } from 'lucide-react';
 import { api } from '../lib/api';
 import { invalidate } from '../lib/useApi';
 import { cn } from '../lib/cn';
@@ -64,10 +64,12 @@ export function PlayScreen({
   levelId,
   onBack,
   onOpenLevel,
+  onOpenLesson,
 }: {
   levelId: string;
   onBack: () => void;
   onOpenLevel?: (levelId: string) => void;
+  onOpenLesson?: (skillId: string) => void; // replay this topic's lesson
 }) {
   const [level, setLevel] = useState<LevelView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -223,6 +225,13 @@ export function PlayScreen({
           </div>
           <p className="truncate font-display text-[15px] font-semibold tracking-tight sm:text-[16px]">{level.title}</p>
         </div>
+
+        {level.lessonAvailable && onOpenLesson && (
+          <Button variant="subtle" size="sm" onClick={() => onOpenLesson(level.skillId)} title="Replay this topic’s lesson">
+            <BookOpen size={15} aria-hidden />
+            <span className="hidden md:inline">Lesson</span>
+          </Button>
+        )}
 
         <Chip tone="gold" className="hidden sm:inline-flex">
           <Zap size={12} aria-hidden />

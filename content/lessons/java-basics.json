@@ -1,0 +1,200 @@
+{
+  "skillId": "java-basics",
+  "title": "Java basics: variables and output",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Your first program is a scoreboard",
+      "body": "Every placement test starts the same way: read some numbers, work something out, **print** the answer. To do that, a program needs somewhere to keep values while it works. Those places are **variables**.\n\nIn five minutes you’ll read a tiny program, predict what it prints, watch its variables change, and fix one yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int score = 10; //~ Make a box called score, of type int (whole numbers), and put 10 in it.\n        score = score + 5; //~ Read score (10), add 5, and store the 15 back in the same box.\n        String name = \"Asha\"; //~ A String holds text. Text always goes inside double quotes.\n        System.out.println(name + \" scored \" + score); //~ + joins text: \"Asha\" + \" scored \" + 15.\n    }\n}",
+      "options": [
+        {
+          "text": "Asha scored 15",
+          "why": "Right. score was 10, then became 15, and + stitched the text together."
+        },
+        {
+          "text": "Asha scored 105",
+          "why": "Here + adds 10 and 5 as numbers first (line 4 has no text in it), giving 15."
+        },
+        {
+          "text": "name scored score",
+          "why": "Without quotes, name and score mean the variables, so their VALUES are printed."
+        },
+        {
+          "text": "Asha scored 10",
+          "why": "score = score + 5 changed the box to 15 before the println ran."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "score": {
+                    "t": "int",
+                    "v": 10
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "score": {
+                    "t": "int",
+                    "v": 15
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "score": {
+                    "t": "int",
+                    "v": 15
+                  },
+                  "name": {
+                    "t": "str",
+                    "v": "Asha"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "score": {
+                    "t": "int",
+                    "v": 15
+                  },
+                  "name": {
+                    "t": "str",
+                    "v": "Asha"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "Asha scored 15\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "Asha scored 15\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Variables, types and println",
+      "points": [
+        "A **variable** is a named box with a **type**: `int` whole numbers, `double` decimals, `boolean` true/false, `char` one character, `String` text.",
+        "`=` means **store**, not \"equals\". `score = score + 5` reads the old value, adds 5, and saves the result.",
+        "`System.out.println(x)` prints x and moves to a new line. `print` stays on the same line.",
+        "With text involved, `+` **joins**: `\"Age: \" + 20` becomes `\"Age: 20\"`."
+      ],
+      "pattern": "int count = 0;\ncount = count + 1;\nString msg = \"Count: \" + count;\nSystem.out.println(msg);"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int a = 5;\n        int b = 3;\n        System.out.println(\"Sum: \" + a + b);\n    }\n}",
+      "options": [
+        {
+          "text": "It doesn't compile",
+          "why": "Mixing text and numbers with + is allowed; Java turns the numbers into text."
+        },
+        {
+          "text": "Sum: 8",
+          "why": "Java works left to right: \"Sum: \" + 5 is the text \"Sum: 5\", and then + 3 joins another 3. Brackets fix it: \"Sum: \" + (a + b)."
+        },
+        {
+          "text": "Sum: a + b",
+          "why": "a and b are outside the quotes, so their values (5 and 3) are used."
+        },
+        {
+          "text": "Sum: 53",
+          "why": "Yes! Once text is on the left, every + joins text. Write \"Sum: \" + (a + b) to add first."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Make each line print the real total, like \"Sum: 8\".",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] as = {5, 10, 7};\n        int[] bs = {3, 20, 0};\n        for (int i = 0; i < 3; i++) { // tries three pairs of numbers\n            int a = as[i];\n            int b = bs[i];\n            System.out.println(\"Sum: \" + ____);\n        }\n    }\n}",
+      "accepted": [
+        "(a + b)",
+        "(b + a)",
+        "(a+b)"
+      ],
+      "wrong": [
+        "a + b",
+        "a",
+        "8"
+      ],
+      "hint": "Brackets are worked out first, so put the addition in brackets.",
+      "explain": "`(a + b)` is added as numbers **before** it meets the text, so you get `Sum: 8` instead of `Sum: 53`.",
+      "expectedOutput": "Sum: 8\nSum: 30\nSum: 7"
+    }
+  ]
+}

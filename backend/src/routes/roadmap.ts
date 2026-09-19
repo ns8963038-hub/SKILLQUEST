@@ -3,6 +3,7 @@ import { prisma } from '../db';
 import { asyncHandler } from '../http';
 import { logEvent } from '../events';
 import { levelProgressBySkill } from '../progress/levels';
+import { lessonStateBySkill } from '../lessons/progress';
 
 export const roadmapRouter = Router();
 
@@ -41,10 +42,12 @@ roadmapRouter.get(
     const mastery = new Map(masteryRows.map((m) => [m.skillId, m.pMastery]));
 
     // How many levels each skill has, and how many this student has finished.
-    const progress = await levelProgressBySkill(
-      userId,
-      roadmap.items.map((i) => i.skillId),
-    );
+    // …and where they are with each skill's lesson (Learn mode).
+    const skillIds = roadmap.items.map((i) => i.skillId);
+    const [progress, lessons] = await Promise.all([
+      levelProgressBySkill(userId, skillIds),
+      lessonStateBySkill(userId, skillIds),
+    ]);
 
     // Flatten to the RoadmapNode shape the frontend renders.
     const nodes = roadmap.items.map((item) => ({
@@ -56,6 +59,7 @@ roadmapRouter.get(
       mastery: mastery.get(item.skillId), // BKT P(known), omitted when no evidence
       levelsTotal: progress.get(item.skillId)?.total ?? 0,
       levelsCompleted: progress.get(item.skillId)?.completed ?? 0,
+      lesson: lessons.get(item.skillId) ?? 'none',
     }));
 
     await logEvent(userId, 'roadmap_view');

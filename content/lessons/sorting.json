@@ -1,0 +1,854 @@
+{
+  "skillId": "sorting",
+  "title": "Sorting: putting things in order",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "The most-asked algorithm family",
+      "body": "Leaderboards, price filters, and \"top 10 scores\": sorting is everywhere, and interviewers love asking you to sort by hand. The simplest idea is **bubble sort**: keep swapping neighbours that are in the wrong order.\n\nIn five minutes you’ll watch values bubble through an array, then write the key line of a swap."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] a = {5, 1, 4, 2};\n        for (int i = 0; i < a.length - 1; i++) { //~ One pass: compare each neighbouring pair.\n            if (a[i] > a[i + 1]) { //~ Out of order? Swap the pair.\n                int t = a[i]; //~ Save a[i] first, or it would be overwritten.\n                a[i] = a[i + 1];\n                a[i + 1] = t;\n            }\n        }\n        System.out.println(Arrays.toString(a)); //~ After ONE pass the biggest value has bubbled to the end.\n    }\n}",
+      "options": [
+        {
+          "text": "[5, 4, 2, 1]",
+          "why": "Swaps happen when the LEFT value is bigger, which moves big values rightward."
+        },
+        {
+          "text": "[1, 4, 2, 5]",
+          "why": "Right. One pass only guarantees the largest value reaches the end."
+        },
+        {
+          "text": "[1, 2, 4, 5]",
+          "why": "That needs more passes. One pass moves the maximum to the end; 4 and 2 are still out of order."
+        },
+        {
+          "text": "[1, 5, 4, 2]",
+          "why": "5 keeps being swapped rightward until it reaches the end."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "t": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "t": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "t": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "t": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "t": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "t": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      }
+                    ]
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 14,
+                "vars": {
+                  "a": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 1
+                      },
+                      {
+                        "t": "int",
+                        "v": 4
+                      },
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 5
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "[1, 4, 2, 5]\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "[1, 4, 2, 5]\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Sorting ideas",
+      "points": [
+        "**Bubble sort**: repeated passes, swapping neighbours. Up to n − 1 passes, so **O(n²)**.",
+        "**Selection sort** picks the minimum each pass; **insertion sort** slides each item into place. Both are O(n²).",
+        "**Merge sort** splits the array in half, sorts each half and merges them: **O(n log n)**.",
+        "In real code, `Arrays.sort(a)` or `Collections.sort(list)` do the job, but interviews ask you to know how."
+      ],
+      "pattern": "int t = a[i];\na[i] = a[j];\na[j] = t; // swap needs a temporary"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int x = 3, y = 8;\n        x = y;\n        y = x;\n        System.out.println(x + \" \" + y);\n    }\n}",
+      "options": [
+        {
+          "text": "8 8",
+          "why": "Yes. The 3 was overwritten on the first line. Use int t = x; x = y; y = t;"
+        },
+        {
+          "text": "3 8",
+          "why": "The two assignments do change the values."
+        },
+        {
+          "text": "3 3",
+          "why": "x = y copies 8 into x first."
+        },
+        {
+          "text": "8 3",
+          "why": "After x = y, the old 3 is gone for good, so y = x copies 8 back. A swap needs a temporary variable."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Finish the swap inside a full bubble sort.",
+      "code": "import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[][] tests = {{29, 10, 14, 37, 13}, {3, 2, 1}, {5, 5, 1}};\n        for (int[] a : tests) { // sorts three arrays\n            for (int pass = 0; pass < a.length - 1; pass++) {\n                for (int j = 0; j < a.length - 1 - pass; j++) {\n                    if (a[j] > a[j + 1]) {\n                        int t = a[j];\n                        a[j] = a[j + 1];\n                        a[j + 1] = ____;\n                    }\n                }\n            }\n            System.out.println(Arrays.toString(a));\n        }\n    }\n}",
+      "accepted": [
+        "t"
+      ],
+      "wrong": [
+        "a[j]",
+        "a[j + 1]",
+        "0"
+      ],
+      "hint": "The old a[j] was saved before it was overwritten.",
+      "explain": "The temporary `t` still holds the old `a[j]`, so `a[j + 1] = t` completes the swap.",
+      "expectedOutput": "[10, 13, 14, 29, 37]\n[1, 2, 3]\n[1, 5, 5]"
+    }
+  ]
+}

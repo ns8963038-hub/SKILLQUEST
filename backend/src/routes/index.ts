@@ -10,6 +10,7 @@ import { placementRouter } from './placement';
 import { nudgesRouter } from './nudges';
 import { leaderboardRouter } from './leaderboard';
 import { surveyRouter } from './survey';
+import { lessonsRouter } from './lessons';
 import { adminRouter } from './admin';
 
 // All authenticated API routes, combined. Mounted under /api behind requireAuth.
@@ -25,4 +26,5 @@ apiRouter.use(placementRouter);
 apiRouter.use(nudgesRouter);
 apiRouter.use(leaderboardRouter);
 apiRouter.use(surveyRouter);
+apiRouter.use(lessonsRouter);
 apiRouter.use(adminRouter);

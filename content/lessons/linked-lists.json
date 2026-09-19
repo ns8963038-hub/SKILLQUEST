@@ -1,0 +1,1452 @@
+{
+  "skillId": "linked-lists",
+  "title": "Linked lists: a chain of nodes",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "A list with no fixed size",
+      "body": "An array is one solid block. A **linked list** is a chain: each **node** holds a value and a pointer to the next node. Adding at the front is instant, and linked-list questions (reverse it, find the middle) are interview classics.\n\nIn five minutes you’ll build a chain and walk it node by node, watching the pointers in memory."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "class Node {\n    int value;\n    Node next;\n\n    Node(int value) {\n        this.value = value;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Node head = new Node(1); //~ The first node. head remembers where the list starts.\n        head.next = new Node(2); //~ Link a second node after it.\n        head.next.next = new Node(3); //~ And a third.\n        int sum = 0;\n        for (Node cur = head; cur != null; cur = cur.next) { //~ Walk: start at head, follow next until it's null.\n            sum += cur.value; //~ Use the current node's value.\n        }\n        System.out.println(sum);\n    }\n}",
+      "options": [
+        {
+          "text": "6",
+          "why": "Right: the walk visits 1, 2 and 3, following next until it reaches null."
+        },
+        {
+          "text": "3",
+          "why": "The loop visits every node, not just the last."
+        },
+        {
+          "text": "1",
+          "why": "cur = cur.next moves on to the following node each round."
+        },
+        {
+          "text": "Crashes: NullPointerException",
+          "why": "The loop stops as soon as cur is null, before reading its value."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {}
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 14,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 14,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 14,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  },
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 14,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 14,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 15,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 17,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "cur": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "cur": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 17,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "cur": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "cur": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 17,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "cur": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 16,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 6
+                  },
+                  "cur": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 19,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 20,
+                "vars": {
+                  "head": {
+                    "t": "ref",
+                    "id": 1,
+                    "cls": "Node"
+                  },
+                  "sum": {
+                    "t": "int",
+                    "v": 6
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "1": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "2": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "next": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "Node"
+                  }
+                }
+              },
+              "3": {
+                "cls": "Node",
+                "fields": {
+                  "value": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "next": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "6\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "6\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "How linked lists work",
+      "points": [
+        "Each **node** stores a value and a reference, `next`, to the following node. The last node’s `next` is `null`.",
+        "`head` points to the first node. Lose it and you lose the whole list.",
+        "Walking: `for (Node cur = head; cur != null; cur = cur.next)`. Reaching item i takes **O(i)**, with no `a[i]`.",
+        "Inserting at the front is **O(1)**: point the new node at the old head, then move head."
+      ],
+      "pattern": "Node n = new Node(x);\nn.next = head;  // link to the old first node\nhead = n;       // n is the new first node"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "class Node {\n    int value;\n    Node next;\n    Node(int value) { this.value = value; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Node head = new Node(2);\n        Node n = new Node(1);\n        n.next = head;\n        head = n;\n        for (Node cur = head; cur != null; cur = cur.next) {\n            System.out.print(cur.value + \" \");\n        }\n    }\n}",
+      "options": [
+        {
+          "text": "1",
+          "why": "n.next = head keeps the old node in the chain."
+        },
+        {
+          "text": "1 2",
+          "why": "Yes. The new node points to the old head, then becomes the head."
+        },
+        {
+          "text": "2 1",
+          "why": "n was linked in FRONT of the old head, and head moved to n."
+        },
+        {
+          "text": "2",
+          "why": "head was moved to the new node, 1."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Finish the loop so length() counts every node.",
+      "code": "class Node {\n    int value;\n    Node next;\n    Node(int value) { this.value = value; }\n}\n\npublic class Main {\n    static int length(Node head) {\n        int n = 0;\n        for (Node cur = head; cur != null; cur = ____) {\n            n++;\n        }\n        return n;\n    }\n\n    public static void main(String[] args) {\n        Node head = new Node(1);\n        head.next = new Node(2);\n        head.next.next = new Node(3);\n        head.next.next.next = new Node(4);\n        System.out.println(length(head));\n        System.out.println(length(head.next.next));\n        System.out.println(length(null));\n    }\n}",
+      "accepted": [
+        "cur.next"
+      ],
+      "wrong": [
+        "cur",
+        "head.next",
+        "null"
+      ],
+      "hint": "Step from the current node to the one after it.",
+      "explain": "`cur = cur.next` moves one link along the chain until it runs off the end (null).",
+      "expectedOutput": "4\n2\n0"
+    }
+  ]
+}

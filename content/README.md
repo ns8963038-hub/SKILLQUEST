@@ -12,6 +12,9 @@ the source** — edit here, then re-seed.
 | `skills.json` | The Java + DSA skill graph — nodes and their prerequisite edges (a DAG) |
 | `goal_profiles.json` | Per-goal weight vectors over skill tags — makes the roadmap change by goal |
 | `levels/*.json` | One file per playable level: problem, starter code, hidden test cases |
+| `lessons/*.json` | One Learn-mode lesson per skill (PRIMM steps), played before its levels |
+| `verify-levels.mjs` / `build-lessons.mjs` | Checkers — compile and RUN every program; fill in generated fields |
+| `tools/Tracer.java` | Records a program's execution (JDI) for the lessons' "Watch it run" step |
 
 ## Authoring a new level
 
@@ -29,6 +32,22 @@ the source** — edit here, then re-seed.
    before every commit — it checks every level's shape, compiles for Java 11,
    confirms each expected output, and confirms the untouched starter code does
    NOT pass. A wrong expected output is the most demo-breaking bug there is.
+
+## Authoring a lesson
+
+A lesson is a list of steps: `hook` → `predict` → `trace` (`"from": "p1"`) →
+`explain` → `predict` → `fill`. See `lessons/loops.json`.
+
+- Lesson code may end a line with `//~ narration` — Nova says it when that line
+  runs in the trace. It is stripped before the code is shown or compiled.
+- **Never type** `predict.answer`, `trace.trace` or `fill.expectedOutput`. Run
+  `node content/build-lessons.mjs --fill` (needs a JDK): it runs each predict
+  program and marks the one option that matches (exactly one must), records the
+  trace from the real JVM, and runs every accepted fill-in answer (and every
+  listed `wrong` answer, which must fail).
+- Options can be outputs, `It doesn't compile`, or `Crashes: <ExceptionName>`.
+- Make the fill-in program test **several inputs**, so a literal answer can't pass.
+- Then `node content/build-lessons.mjs` (check mode) and `npm run seed`.
 
 ## Rules
 

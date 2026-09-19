@@ -50,6 +50,13 @@ enum RoadmapItemStatus {
   completed
 }
 
+// How far a student got in a skill's lesson (PRD F8).
+enum LessonStatus {
+  started
+  completed
+  skipped
+}
+
 enum UserLevelStatus {
   locked
   unlocked
@@ -103,6 +110,7 @@ model Profile {
   nudges          Nudge[]
   skillMastery    SkillMastery[]
   surveyResponses SurveyResponse[]
+  userLessons     UserLesson[]
 
   @@map("profiles")
 }
@@ -136,6 +144,8 @@ model Skill {
   companySkills CompanySkill[]
   quizAttempts  QuizAttempt[]
   skillMastery  SkillMastery[]
+  lesson        Lesson?
+  userLessons   UserLesson[]
 
   @@map("skills")
 }
@@ -253,6 +263,42 @@ model UserLevel {
 // (M4 adaptive tutor). pMastery is the BKT P(known); it starts at the prior pL0
 // and is updated on every submission from whether all tests passed. See
 // src/tutor/bkt.ts and docs/notes/M4-adaptive-tutor.md.
+// The interactive lesson for one skill (Learn mode, PRD F8). Seeded from
+// content/lessons/<skill>.json; the step list lives in `content` as jsonb
+// because it is authored content, validated by zod in the seed script.
+model Lesson {
+  skillId   String   @id @map("skill_id")
+  title     String
+  minutes   Int      @default(5)
+  version   Int      @default(1)
+  content   Json // { steps: [...] } — see content/build-lessons.mjs
+  published Boolean  @default(true)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@map("lessons")
+}
+
+// One student's progress through one lesson. `answered` maps step id -> was the
+// FIRST answer right (only first answers count as evidence).
+model UserLesson {
+  userId       String       @map("user_id") @db.Uuid
+  skillId      String       @map("skill_id")
+  status       LessonStatus @default(started)
+  answered     Json         @default("{}")
+  fillAttempts Int          @default(0) @map("fill_attempts")
+  startedAt    DateTime     @default(now()) @map("started_at")
+  completedAt  DateTime?    @map("completed_at")
+
+  user  Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+  @@index([userId])
+  @@map("user_lessons")
+}
+
 model SkillMastery {
   userId     String   @map("user_id") @db.Uuid
   skillId    String   @map("skill_id")

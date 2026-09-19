@@ -1,0 +1,210 @@
+{
+  "skillId": "conditionals",
+  "title": "Conditionals: teaching Java to decide",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Pass, distinction, or try again?",
+      "body": "Every results portal makes decisions: *if* marks are 90 or more, show a distinction; *otherwise if* 60 or more, a pass. Java decides with `if` / `else if` / `else`, and one rule about the order catches out a lot of students.\n\nIn five minutes you’ll trace a decision, spot that trap, and write a condition yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int marks = 72; //~ The value being tested.\n        if (marks >= 90) { //~ Is 72 >= 90? No, so this block is skipped.\n            System.out.println(\"A\");\n        } else if (marks >= 60) { //~ Is 72 >= 60? Yes, so this block runs and every later branch is skipped.\n            System.out.println(\"B\"); //~ Prints B.\n        } else {\n            System.out.println(\"C\");\n        }\n        System.out.println(\"done\"); //~ After the whole if-chain, the program carries on as normal.\n    }\n}",
+      "options": [
+        {
+          "text": "A\nB\nC\ndone",
+          "why": "An if / else-if / else chain runs exactly ONE branch, never all of them."
+        },
+        {
+          "text": "C\ndone",
+          "why": "72 >= 60 is true, so the B branch runs."
+        },
+        {
+          "text": "B\nC\ndone",
+          "why": "else only runs when nothing above it was true, and marks >= 60 was true."
+        },
+        {
+          "text": "B\ndone",
+          "why": "Right. The first true condition wins, only its block runs, then the program continues."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "marks": {
+                    "t": "int",
+                    "v": 72
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "marks": {
+                    "t": "int",
+                    "v": 72
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "marks": {
+                    "t": "int",
+                    "v": 72
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 11,
+                "vars": {
+                  "marks": {
+                    "t": "int",
+                    "v": 72
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "B\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {
+                  "marks": {
+                    "t": "int",
+                    "v": 72
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "B\ndone\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "B\ndone\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "How if / else works",
+      "points": [
+        "A condition is a **boolean**: true or false. Compare with `==  !=  <  <=  >  >=`.",
+        "In an `if / else if / else` chain the **first true branch wins** and the rest are skipped.",
+        "Combine conditions with `&&` (and), `||` (or) and `!` (not): `age >= 18 && hasId`.",
+        "`=` stores a value and `==` compares. Mixing them up is the most common beginner bug."
+      ],
+      "pattern": "if (condition) {\n    // runs when true\n} else if (other) {\n    // runs when this one is true\n} else {\n    // runs when none were\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int marks = 95;\n        if (marks >= 60) {\n            System.out.println(\"Pass\");\n        } else if (marks >= 90) {\n            System.out.println(\"Distinction\");\n        }\n    }\n}",
+      "options": [
+        {
+          "text": "It doesn't compile",
+          "why": "It compiles fine; the order of the conditions is the bug, and the compiler cannot spot it."
+        },
+        {
+          "text": "Pass",
+          "why": "Yes. The first true branch wins. Because the >= 60 test comes first, a 95 never gets to the distinction check."
+        },
+        {
+          "text": "Pass\nDistinction",
+          "why": "Only one branch of the chain runs."
+        },
+        {
+          "text": "Distinction",
+          "why": "95 >= 60 is checked FIRST, and it is true, so Distinction can never be reached. Put the strictest test first."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Write the condition that is true exactly when n is even.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        for (int n = 1; n <= 6; n++) { // tries n = 1, 2, 3, 4, 5, 6\n            if (____) {\n                System.out.println(n + \" even\");\n            } else {\n                System.out.println(n + \" odd\");\n            }\n        }\n    }\n}",
+      "accepted": [
+        "n % 2 == 0",
+        "0 == n % 2",
+        "n % 2 != 1",
+        "(n & 1) == 0"
+      ],
+      "wrong": [
+        "n % 2 == 1",
+        "n / 2 == 0",
+        "true"
+      ],
+      "hint": "An even number leaves no remainder when divided by 2.",
+      "explain": "`n % 2 == 0` is true exactly when dividing by 2 leaves nothing over, which is what \"even\" means.",
+      "expectedOutput": "1 odd\n2 even\n3 odd\n4 even\n5 odd\n6 even"
+    }
+  ]
+}

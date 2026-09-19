@@ -12,7 +12,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -70,6 +70,30 @@ const LevelSchema = z.object({
   testCases: z.array(TestCaseSchema),
 });
 type Level = z.infer<typeof LevelSchema>;
+
+// One lesson file (Learn mode, PRD F8). The step details are checked in depth by
+// content/build-lessons.mjs (which also generates the answers and traces); here
+// we make sure the generated fields are present, so an unbuilt lesson can never
+// reach the database.
+const LessonStepSchema = z
+  .object({ id: z.string(), type: z.enum(['hook', 'predict', 'trace', 'explain', 'fill']) })
+  .passthrough()
+  .superRefine((step, ctx) => {
+    const s = step as Record<string, unknown>;
+    const missing =
+      (step.type === 'predict' && typeof s.answer !== 'number' && 'answer') ||
+      (step.type === 'trace' && !s.trace && 'trace') ||
+      (step.type === 'fill' && typeof s.expectedOutput !== 'string' && 'expectedOutput');
+    if (missing) ctx.addIssue({ code: 'custom', message: `step "${step.id}" has no ${missing} — run: node content/build-lessons.mjs --fill` });
+  });
+const LessonSchema = z.object({
+  skillId: z.string(),
+  title: z.string(),
+  minutes: z.number().int().positive().default(5),
+  version: z.number().int().positive().default(1),
+  steps: z.array(LessonStepSchema).min(1),
+});
+type Lesson = z.infer<typeof LessonSchema>;
 
 // One badge in the catalog (display data; award rules live in the app).
 const BadgeSchema = z.object({
@@ -141,6 +165,22 @@ function loadLevels(): Level[] {
     .map((f) => LevelSchema.parse(readJson(join(dir, f))));
 }
 
+// Load + validate every lessons/*.json file (the folder may not exist yet).
+function loadLessons(): Lesson[] {
+  const dir = join(CONTENT_DIR, 'lessons');
+  let files: string[] = [];
+  try {
+    files = readdirSync(dir).filter((f) => f.endsWith('.json'));
+  } catch {
+    return [];
+  }
+  return files.map((f) => {
+    const parsed = LessonSchema.safeParse(readJson(join(dir, f)));
+    if (!parsed.success) throw new Error(`lessons/${f}: ${parsed.error.issues.map((i) => i.message).join('; ')}`);
+    return parsed.data;
+  });
+}
+
 // ---------------------------------------------------------------------------
 // 2) Graph validation. The prerequisites must form a DAG (no cycles) and only
 //    reference skills that exist. This is Kahn's algorithm — the very same
@@ -194,6 +234,7 @@ async function seed(): Promise<void> {
   const skills = loadSkills();
   const goalProfiles = loadGoalProfiles();
   const levels = loadLevels();
+  const lessons = loadLessons();
   const badges = loadBadges();
   const companies = loadCompanies();
 
@@ -262,6 +303,20 @@ async function seed(): Promise<void> {
     });
   }
 
+  // Lessons (Learn mode): one per skill, the steps stored as jsonb.
+  const knownSkills = new Set(skills.map((sk) => sk.id));
+  for (const ls of lessons) {
+    if (!knownSkills.has(ls.skillId)) throw new Error(`Lesson "${ls.skillId}" references an unknown skill`);
+    const data = {
+      title: ls.title,
+      minutes: ls.minutes,
+      version: ls.version,
+      content: { steps: ls.steps } as Prisma.InputJsonObject,
+      published: true,
+    };
+    await prisma.lesson.upsert({ where: { skillId: ls.skillId }, create: { skillId: ls.skillId, ...data }, update: data });
+  }
+
   // Badge catalog (display data). Upsert by id.
   for (const b of badges) {
     const data = { title: b.title, description: b.description, icon: b.icon ?? null, criteria: b.criteria ?? null };
@@ -312,7 +367,7 @@ async function seed(): Promise<void> {
 
   // A short summary so a successful run is obvious.
   console.log(
-    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${badges.length} badges, ${companies.length} companies (${roleCount} roles).`,
+    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${lessons.length} lessons, ${badges.length} badges, ${companies.length} companies (${roleCount} roles).`,
   );
 }
 

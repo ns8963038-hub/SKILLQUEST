@@ -1,0 +1,4806 @@
+{
+  "skillId": "trees-basics",
+  "title": "Binary trees: data that branches",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Folders, family trees, and fast search",
+      "body": "Your file explorer, a company org chart, a tournament bracket: they are all **trees**. A **binary search tree** keeps smaller values to the left and bigger to the right, so an in-order walk comes out **sorted**.\n\nIn five minutes you’ll watch a tree being built and walked recursively, then write the recursive line yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "class TreeNode {\n    int val;\n    TreeNode left, right;\n\n    TreeNode(int val) {\n        this.val = val;\n    }\n}\n\npublic class Main {\n    static TreeNode insert(TreeNode root, int v) {\n        if (root == null) return new TreeNode(v); //~ An empty spot: the new value lives here.\n        if (v < root.val) root.left = insert(root.left, v); //~ Smaller values go left…\n        else root.right = insert(root.right, v); //~ …bigger ones go right.\n        return root; //~ Hand the (possibly new) subtree back to the caller.\n    }\n\n    static void inorder(TreeNode n) {\n        if (n == null) return; //~ No node here (null), so there's nothing to visit. Go back up.\n        inorder(n.left); //~ The left subtree first,\n        System.out.print(n.val + \" \"); //~ then this node,\n        inorder(n.right); //~ then the right subtree.\n    }\n\n    public static void main(String[] args) {\n        TreeNode root = null;\n        int[] values = {5, 3, 8};\n        for (int v : values) root = insert(root, v); //~ Insert each value into the tree.\n        inorder(root); //~ Now walk it: left, node, right.\n    }\n}",
+      "options": [
+        {
+          "text": "3 8 5",
+          "why": "The root 5 is printed between its left (3) and right (8) subtrees."
+        },
+        {
+          "text": "3 5 8",
+          "why": "Right. In-order visits left, node, right, so a BST comes out sorted."
+        },
+        {
+          "text": "8 5 3",
+          "why": "Left (smaller) comes before right (bigger)."
+        },
+        {
+          "text": "5 3 8",
+          "why": "That’s the insertion order. In-order walks left subtree, node, then right subtree."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 26,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 27,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 5
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "",
+            "ret": {
+              "m": "insert",
+              "v": {
+                "t": "ref",
+                "id": 2,
+                "cls": "TreeNode"
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "insert",
+              "v": {
+                "t": "ref",
+                "id": 3,
+                "cls": "TreeNode"
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 15,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "insert",
+              "v": {
+                "t": "ref",
+                "id": 2,
+                "cls": "TreeNode"
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 13,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 14,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 14,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 5,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 14,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 6,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 14,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "<init>",
+                "line": 7,
+                "vars": {
+                  "this": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  },
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 14,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 12,
+                "vars": {
+                  "root": {
+                    "t": "null"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "insert",
+                "line": 14,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 14,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "insert",
+              "v": {
+                "t": "ref",
+                "id": 4,
+                "cls": "TreeNode"
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "insert",
+                "line": 15,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 28,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  },
+                  "v": {
+                    "t": "int",
+                    "v": 8
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "insert",
+              "v": {
+                "t": "ref",
+                "id": 2,
+                "cls": "TreeNode"
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 19,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 19,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 19,
+                "vars": {
+                  "n": {
+                    "t": "null"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 21,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "",
+            "ret": {
+              "m": "inorder",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 19,
+                "vars": {
+                  "n": {
+                    "t": "null"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 23,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 ",
+            "ret": {
+              "m": "inorder",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 21,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 ",
+            "ret": {
+              "m": "inorder",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 19,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 19,
+                "vars": {
+                  "n": {
+                    "t": "null"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 20,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 21,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 ",
+            "ret": {
+              "m": "inorder",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 8 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 19,
+                "vars": {
+                  "n": {
+                    "t": "null"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 8 "
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "inorder",
+                "line": 23,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "inorder",
+                "line": 22,
+                "vars": {
+                  "n": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 29,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 8 ",
+            "ret": {
+              "m": "inorder",
+              "v": null
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 30,
+                "vars": {
+                  "root": {
+                    "t": "ref",
+                    "id": 2,
+                    "cls": "TreeNode"
+                  },
+                  "values": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 5
+                      },
+                      {
+                        "t": "int",
+                        "v": 3
+                      },
+                      {
+                        "t": "int",
+                        "v": 8
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {
+              "2": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 5
+                  },
+                  "left": {
+                    "t": "ref",
+                    "id": 3,
+                    "cls": "TreeNode"
+                  },
+                  "right": {
+                    "t": "ref",
+                    "id": 4,
+                    "cls": "TreeNode"
+                  }
+                }
+              },
+              "3": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              },
+              "4": {
+                "cls": "TreeNode",
+                "fields": {
+                  "val": {
+                    "t": "int",
+                    "v": 8
+                  },
+                  "left": {
+                    "t": "null"
+                  },
+                  "right": {
+                    "t": "null"
+                  }
+                }
+              }
+            },
+            "out": "3 5 8 ",
+            "ret": {
+              "m": "inorder",
+              "v": null
+            }
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "3 5 8 "
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Trees in four ideas",
+      "points": [
+        "Each node has a value and up to two children, `left` and `right`. The top node is the **root**.",
+        "**BST rule**: everything in the left subtree is smaller, everything in the right is bigger.",
+        "Trees are naturally **recursive**: a subtree is a tree. Most tree code is \"do it for left, then right\".",
+        "In-order (left, node, right) prints a BST sorted. Search takes **O(height)**."
+      ],
+      "pattern": "static int count(TreeNode n) {\n    if (n == null) return 0;\n    return 1 + count(n.left) + count(n.right);\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "class TreeNode {\n    int val;\n    TreeNode left, right;\n    TreeNode(int val) { this.val = val; }\n}\n\npublic class Main {\n    static TreeNode insert(TreeNode root, int v) {\n        if (root == null) return new TreeNode(v);\n        if (v < root.val) root.left = insert(root.left, v);\n        else root.right = insert(root.right, v);\n        return root;\n    }\n\n    static int height(TreeNode n) {\n        return n == null ? 0 : 1 + Math.max(height(n.left), height(n.right));\n    }\n\n    public static void main(String[] args) {\n        TreeNode root = null;\n        for (int v = 1; v <= 4; v++) root = insert(root, v);\n        System.out.println(height(root));\n    }\n}",
+      "options": [
+        {
+          "text": "3",
+          "why": "Height counts nodes on the longest path: all four are in one line."
+        },
+        {
+          "text": "4",
+          "why": "Yes. 1 → 2 → 3 → 4 all go right: a line, not a bushy tree. Unbalanced trees lose their speed."
+        },
+        {
+          "text": "1",
+          "why": "Each new value hangs below the previous one."
+        },
+        {
+          "text": "2",
+          "why": "Inserting sorted values sends every node to the RIGHT, so the \"tree\" is a straight line of 4."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Make count(n) return how many nodes the tree has.",
+      "code": "class TreeNode {\n    int val;\n    TreeNode left, right;\n    TreeNode(int val) { this.val = val; }\n}\n\npublic class Main {\n    static TreeNode insert(TreeNode root, int v) {\n        if (root == null) return new TreeNode(v);\n        if (v < root.val) root.left = insert(root.left, v);\n        else root.right = insert(root.right, v);\n        return root;\n    }\n\n    static int count(TreeNode n) {\n        if (n == null) return 0;\n        return ____;\n    }\n\n    public static void main(String[] args) {\n        TreeNode root = null;\n        int[] values = {5, 3, 8, 1};\n        for (int v : values) root = insert(root, v);\n        System.out.println(count(root));\n        System.out.println(count(root.left));\n        System.out.println(count(null));\n    }\n}",
+      "accepted": [
+        "1 + count(n.left) + count(n.right)",
+        "count(n.left) + count(n.right) + 1",
+        "count(n.left) + 1 + count(n.right)"
+      ],
+      "wrong": [
+        "count(n.left) + count(n.right)",
+        "1",
+        "2"
+      ],
+      "hint": "This node counts as 1, plus everything in its left and right subtrees.",
+      "explain": "`1 + count(n.left) + count(n.right)` counts this node and then lets recursion count each subtree.",
+      "expectedOutput": "4\n2\n0"
+    }
+  ]
+}

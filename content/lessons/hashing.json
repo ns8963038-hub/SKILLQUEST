@@ -1,0 +1,1158 @@
+{
+  "skillId": "hashing",
+  "title": "Hashing: instant lookups",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Turn O(n²) into O(n)",
+      "body": "*\"Find two numbers that add up to the target.\"* The obvious answer checks every pair, which is O(n²). With a **HashMap** you remember what you’ve seen and look it up **instantly**. That trick solves a huge share of interview questions.\n\nIn five minutes you’ll watch it find a pair in one pass, and use a set to spot a repeat."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "import java.util.HashMap;\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] nums = {2, 7, 11, 15};\n        int target = 9;\n        HashMap<Integer, Integer> seen = new HashMap<>(); //~ value → index, for every number we have already passed.\n        for (int i = 0; i < nums.length; i++) {\n            int need = target - nums[i]; //~ The partner this number needs.\n            if (seen.containsKey(need)) { //~ Seen it already? One O(1) lookup, with no second loop.\n                System.out.println(seen.get(need) + \" \" + i);\n            }\n            seen.put(nums[i], i); //~ Remember this number for the ones after it.\n        }\n    }\n}",
+      "options": [
+        {
+          "text": "1 0",
+          "why": "The partner was seen EARLIER, so its index is printed first."
+        },
+        {
+          "text": "1 2",
+          "why": "7 + 11 is 18, not 9. The pair is 2 and 7."
+        },
+        {
+          "text": "0 1",
+          "why": "Right: at i = 1 (7), it needs 2, which was seen at index 0."
+        },
+        {
+          "text": "2 7",
+          "why": "It prints the two indexes, not the values."
+        }
+      ],
+      "answer": 2
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{}"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": 7
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": 7
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 0
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 11,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": -2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": -2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1, 11=2}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1, 11=2}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1, 11=2}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": -6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1, 11=2}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "need": {
+                    "t": "int",
+                    "v": -6
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1, 11=2, 15=3}"
+                  },
+                  "i": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 15,
+                "vars": {
+                  "nums": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 2
+                      },
+                      {
+                        "t": "int",
+                        "v": 7
+                      },
+                      {
+                        "t": "int",
+                        "v": 11
+                      },
+                      {
+                        "t": "int",
+                        "v": 15
+                      }
+                    ]
+                  },
+                  "target": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "seen": {
+                    "t": "coll",
+                    "cls": "HashMap",
+                    "v": "{2=0, 7=1, 11=2, 15=3}"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "0 1\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "0 1\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "Why hashing is fast",
+      "points": [
+        "A hash function turns a key into a bucket number, so `get`, `put` and `contains` are **O(1)** on average.",
+        "`HashMap` stores key → value, and `HashSet` stores keys only.",
+        "The trade: a bit more **memory** for a lot more **speed**. Pair-finding goes from O(n²) to O(n).",
+        "Putting an existing key again **replaces** its value; keys are unique."
+      ],
+      "pattern": "Set<Integer> seen = new HashSet<>();\nfor (int x : a) {\n    if (seen.contains(k - x)) { /* found a pair */ }\n    seen.add(x);\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "import java.util.HashMap;\n\npublic class Main {\n    public static void main(String[] args) {\n        HashMap<String, Integer> m = new HashMap<>();\n        m.put(\"a\", 1);\n        m.put(\"a\", 2);\n        m.put(\"b\", 3);\n        System.out.println(m.size() + \" \" + m.get(\"a\"));\n    }\n}",
+      "options": [
+        {
+          "text": "3 2",
+          "why": "The second put(\"a\", …) updates the existing key rather than adding a new one."
+        },
+        {
+          "text": "2 1",
+          "why": "The later put overwrote 1 with 2."
+        },
+        {
+          "text": "3 1",
+          "why": "A key appears only once. Putting \"a\" again replaces its value."
+        },
+        {
+          "text": "2 2",
+          "why": "Yes. There are two keys (\"a\" and \"b\"), and \"a\" now maps to 2."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Find the first character that repeats in each word.",
+      "code": "import java.util.HashSet;\n\npublic class Main {\n    public static void main(String[] args) {\n        String[] words = {\"abca\", \"xyz\", \"hello\"};\n        for (String w : words) { // checks three words\n            HashSet<Character> seen = new HashSet<>();\n            char rep = '-';\n            for (char c : w.toCharArray()) {\n                if (____) { rep = c; break; }\n                seen.add(c);\n            }\n            System.out.println(w + \" \" + rep);\n        }\n    }\n}",
+      "accepted": [
+        "seen.contains(c)",
+        "!seen.add(c)"
+      ],
+      "wrong": [
+        "!seen.contains(c)",
+        "seen.isEmpty()",
+        "c == 'a'"
+      ],
+      "hint": "Has this character been seen before?",
+      "explain": "`seen.contains(c)` is an O(1) check, so the whole word is scanned once: O(n).",
+      "expectedOutput": "abca a\nxyz -\nhello l"
+    }
+  ]
+}

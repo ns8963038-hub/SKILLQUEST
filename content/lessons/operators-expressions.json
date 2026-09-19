@@ -1,0 +1,215 @@
+{
+  "skillId": "operators-expressions",
+  "title": "Operators: Java’s calculator rules",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Why 7 / 2 is 3 in Java",
+      "body": "Aptitude rounds love *\"how many full boxes, and how many left over?\"* Java answers that in two symbols: `/` and `%`. But its maths has rules that trip up almost everyone the first time.\n\nIn five minutes you’ll see those rules in action and never lose marks to them again."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int total = 17;\n        int boxes = total / 5; //~ Both sides are ints, so / does whole-number division: 17 / 5 is 3. The .4 is thrown away.\n        int left = total % 5; //~ % gives the remainder: 17 = 5 × 3 + 2, so left is 2.\n        System.out.println(boxes + \" boxes, \" + left + \" left\"); //~ Print both parts.\n    }\n}",
+      "options": [
+        {
+          "text": "2 boxes, 3 left",
+          "why": "That swaps them: / gives the boxes (3) and % gives the leftovers (2)."
+        },
+        {
+          "text": "3 boxes, 2 left",
+          "why": "Right. int / int keeps only the whole part, and % gives what is left over."
+        },
+        {
+          "text": "3.4 boxes, 2 left",
+          "why": "Dividing two ints gives an int. The decimal part is cut off, not rounded."
+        },
+        {
+          "text": "3 boxes, 0.4 left",
+          "why": "% gives the remainder as a count (2 items), not the fraction."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 17
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 17
+                  },
+                  "boxes": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 17
+                  },
+                  "boxes": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "total": {
+                    "t": "int",
+                    "v": 17
+                  },
+                  "boxes": {
+                    "t": "int",
+                    "v": 3
+                  },
+                  "left": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "3 boxes, 2 left\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "3 boxes, 2 left\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "The rules that matter",
+      "points": [
+        "`+ - * / %` work as usual, but **int / int is an int**: `17 / 5` is `3`, and `-17 / 5` is `-3` (it cuts toward zero).",
+        "`%` is the **remainder**. `n % 2 == 0` is the classic \"is n even?\" test.",
+        "`* / %` happen **before** `+ -`. Use brackets when in doubt: `(a + b) / 2`.",
+        "For decimals, make one side a `double`: `17 / 5.0` is `3.4`."
+      ],
+      "pattern": "int q = a / b;      // whole part\nint r = a % b;      // remainder\ndouble d = a / 2.0; // decimal division"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        System.out.println(7 / 2 * 2);\n    }\n}",
+      "options": [
+        {
+          "text": "6",
+          "why": "Yes: 7 / 2 is 3 (whole-number division), then 3 * 2 is 6."
+        },
+        {
+          "text": "7.0",
+          "why": "Only ints are involved, so the answer is an int, with no .0."
+        },
+        {
+          "text": "3",
+          "why": "/ and * have the same priority and run left to right: (7 / 2) * 2."
+        },
+        {
+          "text": "7",
+          "why": "7 / 2 is worked out first, as ints, giving 3. Then 3 * 2 is 6. The half was lost."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Each line should print the exact average of the two numbers, decimals included.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] as = {7, 10, 3};\n        int[] bs = {8, 10, 4};\n        for (int i = 0; i < 3; i++) { // tries three pairs\n            int a = as[i];\n            int b = bs[i];\n            double avg = ____;\n            System.out.println(avg);\n        }\n    }\n}",
+      "accepted": [
+        "(a + b) / 2.0",
+        "(a + b) / 2d",
+        "(double) (a + b) / 2",
+        "(a + b) / (double) 2",
+        "((double) a + b) / 2",
+        "(a + b) * 0.5"
+      ],
+      "wrong": [
+        "(a + b) / 2",
+        "a + b / 2.0",
+        "a + b / 2"
+      ],
+      "hint": "Brackets for the sum, and make the 2 a decimal (2.0) so the division keeps the .5.",
+      "explain": "`(a + b) / 2.0` adds first, then divides by a `double`, so 7 and 8 give `7.5` instead of `7.0`.",
+      "expectedOutput": "7.5\n10.0\n3.5"
+    }
+  ]
+}

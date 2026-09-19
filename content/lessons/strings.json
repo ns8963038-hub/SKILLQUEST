@@ -1,0 +1,212 @@
+{
+  "skillId": "strings",
+  "title": "Strings: working with text",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Names, passwords, sentences",
+      "body": "Half of all placement coding questions involve text: palindromes, vowels, reversing words, checking a password. In Java, text is a `String`, a row of characters with **positions** just like an array.\n\nIn five minutes you’ll pull a string apart, meet the comparison bug that fails real interviews, and reverse a word yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        String word = \"Java\"; //~ Four characters: J at index 0, a at 1, v at 2, a at 3.\n        String upper = word.toUpperCase(); //~ Strings never change. toUpperCase() makes a NEW string, \"JAVA\".\n        char first = word.charAt(0); //~ charAt(0) is the first character: 'J'.\n        System.out.println(first + \" \" + upper + \" \" + word.length()); //~ length() counts the characters: 4.\n    }\n}",
+      "options": [
+        {
+          "text": "J JAVA 3",
+          "why": "length() counts characters (4). It’s the last INDEX that is 3."
+        },
+        {
+          "text": "J JAVA 4",
+          "why": "Right: charAt(0) is J, upper is JAVA, and length() is 4."
+        },
+        {
+          "text": "J Java 4",
+          "why": "upper holds the new uppercase string, and that is what gets printed."
+        },
+        {
+          "text": "a JAVA 4",
+          "why": "Positions start at 0, so charAt(0) is the first character, J."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 3,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {
+                  "word": {
+                    "t": "str",
+                    "v": "Java"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "word": {
+                    "t": "str",
+                    "v": "Java"
+                  },
+                  "upper": {
+                    "t": "str",
+                    "v": "JAVA"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 6,
+                "vars": {
+                  "word": {
+                    "t": "str",
+                    "v": "Java"
+                  },
+                  "upper": {
+                    "t": "str",
+                    "v": "JAVA"
+                  },
+                  "first": {
+                    "t": "char",
+                    "v": "J"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {
+                  "word": {
+                    "t": "str",
+                    "v": "Java"
+                  },
+                  "upper": {
+                    "t": "str",
+                    "v": "JAVA"
+                  },
+                  "first": {
+                    "t": "char",
+                    "v": "J"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "J JAVA 4\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "J JAVA 4\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "The string toolkit",
+      "points": [
+        "`s.length()`, `s.charAt(i)`, `s.substring(a, b)` (from a up to, but **not including**, b), `s.indexOf(\"x\")`.",
+        "Strings are **immutable**: `toUpperCase()`, `replace()` and friends return a *new* string.",
+        "Compare text with `a.equals(b)`, **never** `a == b`. `==` checks whether they are the same object.",
+        "Loop over characters with `for (int i = 0; i < s.length(); i++)` and `s.charAt(i)`."
+      ],
+      "pattern": "for (int i = 0; i < s.length(); i++) {\n    char c = s.charAt(i);\n    // use c\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        String a = \"code\";\n        String b = new String(\"code\");\n        System.out.println(a.equals(b));\n        System.out.println(a == b);\n    }\n}",
+      "options": [
+        {
+          "text": "false\nfalse",
+          "why": "equals compares the characters, and \"code\" equals \"code\"."
+        },
+        {
+          "text": "true\nfalse",
+          "why": "Yes. equals compares the text (same), while == compares the objects (different)."
+        },
+        {
+          "text": "true\ntrue",
+          "why": "== asks \"same object?\", and new String made a different object with the same text. Use equals for text."
+        },
+        {
+          "text": "false\ntrue",
+          "why": "It’s the other way round: equals looks at the text."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Build the word backwards, one character at a time.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        String[] words = {\"stressed\", \"java\", \"a\"};\n        for (String word : words) { // tries three words\n            String rev = \"\";\n            for (int i = word.length() - 1; i >= 0; i--) {\n                rev = rev + ____;\n            }\n            System.out.println(rev);\n        }\n    }\n}",
+      "accepted": [
+        "word.charAt(i)",
+        "word.substring(i, i + 1)",
+        "String.valueOf(word.charAt(i))"
+      ],
+      "wrong": [
+        "word.charAt(0)",
+        "i",
+        "word"
+      ],
+      "hint": "The loop walks i from the last index down to 0. Add the character at position i.",
+      "explain": "`word.charAt(i)` adds each character from the end first, so \"stressed\" becomes \"desserts\".",
+      "expectedOutput": "desserts\navaj\na"
+    }
+  ]
+}

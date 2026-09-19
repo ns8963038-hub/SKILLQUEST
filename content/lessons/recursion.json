@@ -1,0 +1,516 @@
+{
+  "skillId": "recursion",
+  "title": "Recursion: a method that calls itself",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Solve it by solving a smaller one",
+      "body": "Factorials, tree traversals, merge sort: some problems are easiest to describe **in terms of themselves**. A recursive method does exactly that, and Java keeps every pending call on its **call stack**.\n\nIn five minutes you’ll watch the stack grow and shrink, one call at a time, then write a recursive line yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    static int fact(int n) {\n        if (n <= 1) return 1; //~ The base case: stop here. Without it, fact would call itself forever.\n        return n * fact(n - 1); //~ n × the factorial of n − 1. Watch a new call pile onto the stack.\n    }\n\n    public static void main(String[] args) {\n        System.out.println(fact(4)); //~ Start with fact(4). It can't answer until fact(3) does…\n    }\n}",
+      "options": [
+        {
+          "text": "4",
+          "why": "fact(4) waits for fact(3), which waits for fact(2), and so on, and then the results multiply on the way back."
+        },
+        {
+          "text": "24",
+          "why": "Right: 4 × 3 × 2 × 1 = 24, worked out as the calls return."
+        },
+        {
+          "text": "10",
+          "why": "That’s 4 + 3 + 2 + 1. The method multiplies."
+        },
+        {
+          "text": "Crashes: StackOverflowError",
+          "why": "The base case (n <= 1) stops the calls at n = 1, so the stack never overflows."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 3,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 3,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 3,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 3,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 1
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 2
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "",
+            "ret": {
+              "m": "fact",
+              "v": {
+                "t": "int",
+                "v": 1
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "",
+            "ret": {
+              "m": "fact",
+              "v": {
+                "t": "int",
+                "v": 2
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "fact",
+                "line": 4,
+                "vars": {
+                  "n": {
+                    "t": "int",
+                    "v": 4
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "",
+            "ret": {
+              "m": "fact",
+              "v": {
+                "t": "int",
+                "v": 6
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "",
+            "ret": {
+              "m": "fact",
+              "v": {
+                "t": "int",
+                "v": 24
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "24\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "24\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "How recursion works",
+      "points": [
+        "A recursive method **calls itself** on a smaller input.",
+        "It needs a **base case** that answers directly. Without one: `StackOverflowError`.",
+        "Every call gets its **own** copy of its variables (its own stack frame).",
+        "Answers come back **in reverse order**, from the deepest call up to the first."
+      ],
+      "pattern": "static int f(int n) {\n    if (n == 0) return 0;      // base case\n    return n + f(n - 1);       // smaller problem\n}"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    static void countdown(int n) {\n        if (n == 0) return;\n        countdown(n - 1);\n        System.out.print(n + \" \");\n    }\n\n    public static void main(String[] args) {\n        countdown(3);\n    }\n}",
+      "options": [
+        {
+          "text": "3 2 1 0",
+          "why": "n == 0 returns before anything is printed."
+        },
+        {
+          "text": "3 2 1",
+          "why": "The print comes AFTER the recursive call, so it runs as the calls return, deepest (1) first."
+        },
+        {
+          "text": "0 1 2 3",
+          "why": "The n == 0 call returns immediately without printing."
+        },
+        {
+          "text": "1 2 3",
+          "why": "Yes. countdown(3) calls countdown(2) before printing, and so on down to 1, which prints first."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Make sum(n) return 1 + 2 + … + n using recursion.",
+      "code": "public class Main {\n    static int sum(int n) {\n        if (n == 0) return 0;\n        return ____;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(sum(4));\n        System.out.println(sum(1));\n        System.out.println(sum(0));\n    }\n}",
+      "accepted": [
+        "n + sum(n - 1)",
+        "sum(n - 1) + n",
+        "n + sum(n-1)"
+      ],
+      "wrong": [
+        "n + sum(n)",
+        "sum(n - 1)",
+        "n"
+      ],
+      "hint": "The sum up to n is n plus the sum up to n − 1.",
+      "explain": "`n + sum(n - 1)` shrinks the problem by one each call until the base case returns 0.",
+      "expectedOutput": "10\n1\n0"
+    }
+  ]
+}

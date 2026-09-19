@@ -16,6 +16,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { AdminScreen } from './screens/AdminScreen';
 import { FeedbackScreen } from './screens/FeedbackScreen';
+import { LessonScreen } from './screens/LessonScreen';
 import { AppShell, type NavView } from './ui/AppShell';
 import { AmbientBackground } from './ui/AmbientBackground';
 import { Nova } from './ui/Nova';
@@ -99,6 +100,9 @@ function AppInner() {
   // When set, the play screen for this level is shown; playReturn is where Back goes.
   const [playLevelId, setPlayLevelId] = useState<string | null>(null);
   const [playReturn, setPlayReturn] = useState<NavView>('dashboard');
+  // When set, the lesson for this skill is shown (Learn mode, PRD F8).
+  const [lessonSkillId, setLessonSkillId] = useState<string | null>(null);
+  const [lessonReturn, setLessonReturn] = useState<NavView>('dashboard');
 
   // Fetch (creating on first login) the profile whenever we have a session.
   const loadProfile = useCallback(async () => {
@@ -121,6 +125,14 @@ function AppInner() {
     }
   }, [session, loadProfile]);
 
+  // Deep link: ?lesson=<skillId> opens that topic's lesson straight away (handy
+  // for demos and for sharing a lesson). The server still decides what exists.
+  useEffect(() => {
+    if (!profile) return;
+    const wanted = new URLSearchParams(window.location.search).get('lesson');
+    if (wanted && /^[a-z-]{2,40}$/.test(wanted)) setLessonSkillId(wanted);
+  }, [profile]);
+
   // After navigation: start at the top and move focus to the new page's heading, so
   // screen-reader users hear where they are (UI doc §9).
   useEffect(() => {
@@ -129,7 +141,7 @@ function AppInner() {
       document.querySelector<HTMLElement>('main h1')?.focus({ preventScroll: true });
     }, 120);
     return () => window.clearTimeout(t);
-  }, [view, playLevelId]);
+  }, [view, playLevelId, lessonSkillId]);
 
   if (loading) return <Splash />;
   if (!session) return <AuthScreen />;
@@ -148,13 +160,42 @@ function AppInner() {
     setPlayLevelId(levelId);
   };
 
-  // Open a SKILL: ask the server for its next unfinished level (skills have
-  // several levels now), falling back to the first level if that fails.
+  // Open a lesson, remembering which screen to return to.
+  const openLesson = (skillId: string, from: NavView) => {
+    setPlayLevelId(null);
+    setLessonReturn(from);
+    setLessonSkillId(skillId);
+  };
+
+  // Open a SKILL: its lesson first if the student hasn't done (or skipped) it,
+  // otherwise its next unfinished level — the server decides both. Falls back to
+  // the first level if the request fails.
   const openSkill = (skillId: string, from: NavView) => {
-    api<{ levelId: string }>(`/api/skills/${skillId}/next-level`)
-      .then(({ levelId }) => openLevel(levelId, from))
+    api<{ levelId: string | null; lessonFirst?: boolean }>(`/api/skills/${skillId}/next-level`)
+      .then(({ levelId, lessonFirst }) => {
+        if (lessonFirst) openLesson(skillId, from);
+        else if (levelId) openLevel(levelId, from);
+      })
       .catch(() => openLevel(`${skillId}-01`, from));
   };
+
+  // A lesson takes over the whole screen; it hands over to the topic's level.
+  if (lessonSkillId) {
+    return (
+      <LessonScreen
+        key={lessonSkillId}
+        skillId={lessonSkillId}
+        onBack={() => {
+          setLessonSkillId(null);
+          setView(lessonReturn);
+        }}
+        onStartLevel={(levelId) => {
+          setLessonSkillId(null);
+          openLevel(levelId, lessonReturn);
+        }}
+      />
+    );
+  }
 
   // Playing a level takes over the whole screen; Back returns to where it opened
   // from. The key remounts it cleanly when "Next level" swaps the level.
@@ -164,6 +205,7 @@ function AppInner() {
         key={playLevelId}
         levelId={playLevelId}
         onOpenLevel={(id) => setPlayLevelId(id)}
+        onOpenLesson={(skillId) => openLesson(skillId, playReturn)}
         onBack={() => {
           setPlayLevelId(null);
           setView(playReturn);
@@ -204,6 +246,7 @@ function AppInner() {
     screen = (
       <DashboardScreen
         onContinue={(id) => openLevel(id, 'dashboard')}
+        onResume={(skillId) => openSkill(skillId, 'dashboard')}
         onOpenSkill={(id) => openSkill(id, 'dashboard')}
         onViewRoadmap={() => navigate('roadmap')}
         onViewPlacement={() => navigate('placement')}

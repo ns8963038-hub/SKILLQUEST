@@ -6,7 +6,9 @@ import react from '@vitejs/plugin-react';
 // field cleanly.
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173 },
+  // The dev server may also read ../content (the lesson JSON files), which demo
+  // mode loads on demand — everything else stays inside the frontend.
+  server: { port: 5173, fs: { allow: ['..'] } },
   test: {
     environment: 'jsdom',
     globals: true,

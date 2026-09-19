@@ -22,4 +22,5 @@ export interface RoadmapNode {
   mastery?: number;
   levelsTotal?: number; // published levels in this skill
   levelsCompleted?: number; // how many of them this student has finished
+  lesson?: 'none' | 'new' | 'started' | 'completed' | 'skipped'; // Learn mode state
 }

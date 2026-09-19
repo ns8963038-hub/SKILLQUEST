@@ -1,0 +1,276 @@
+{
+  "skillId": "methods",
+  "title": "Methods: write it once, use it everywhere",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Stop repeating yourself",
+      "body": "Real programs reuse logic constantly, like working out a tax, a discount or a grade. Instead of copying the same lines, you give them a name, a **method**, and call it whenever you need it.\n\nIn five minutes you’ll watch a method being called (and see Java’s *call stack* live), then write one yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    static int square(int x) { //~ A method: it takes an int called x and gives back an int.\n        return x * x; //~ return sends the answer back to whoever called square.\n    }\n\n    public static void main(String[] args) {\n        int a = square(3); //~ Call square with x = 3. main pauses here until square hands back an answer.\n        int b = square(a); //~ Call it again, this time with x = 9, the value of a.\n        System.out.println(a + \" \" + b); //~ Print both results.\n    }\n}",
+      "options": [
+        {
+          "text": "9 9",
+          "why": "The second call passes a, which is already 9, so it works out 9 * 9."
+        },
+        {
+          "text": "9 81",
+          "why": "Right: square(3) is 9, and square(9) is 81."
+        },
+        {
+          "text": "3 9",
+          "why": "a holds what square(3) RETURNED (9), not the 3 that was passed in."
+        },
+        {
+          "text": "6 18",
+          "why": "x * x multiplies x by itself; it doesn’t double it."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch it run",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "square",
+                "line": 3,
+                "vars": {
+                  "x": {
+                    "t": "int",
+                    "v": 3
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "",
+            "ret": {
+              "m": "square",
+              "v": {
+                "t": "int",
+                "v": 9
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "int",
+                    "v": 9
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "square",
+                "line": 3,
+                "vars": {
+                  "x": {
+                    "t": "int",
+                    "v": 9
+                  }
+                }
+              },
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "int",
+                    "v": 9
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "a": {
+                    "t": "int",
+                    "v": 9
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "",
+            "ret": {
+              "m": "square",
+              "v": {
+                "t": "int",
+                "v": 81
+              }
+            }
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 9,
+                "vars": {
+                  "a": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "b": {
+                    "t": "int",
+                    "v": 81
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {
+                  "a": {
+                    "t": "int",
+                    "v": 9
+                  },
+                  "b": {
+                    "t": "int",
+                    "v": 81
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": "9 81\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "9 81\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "How methods work",
+      "points": [
+        "A method has a **name**, **parameters** (its inputs) and a **return type** (its output), e.g. `static int square(int x)`.",
+        "Calling it runs its body with the values you pass. The caller **waits**, which is why Java keeps a **call stack**.",
+        "`return` hands a value back and ends the method. A `void` method returns nothing.",
+        "Parameters are **copies** of the values passed in. Changing a parameter doesn’t change the caller’s variable."
+      ],
+      "pattern": "static int add(int a, int b) {\n    return a + b;\n}\n\nint total = add(2, 3); // 5"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    static void addOne(int n) {\n        n = n + 1;\n    }\n\n    public static void main(String[] args) {\n        int count = 5;\n        addOne(count);\n        System.out.println(count);\n    }\n}",
+      "options": [
+        {
+          "text": "It doesn't compile",
+          "why": "It compiles. A void method simply doesn’t return anything."
+        },
+        {
+          "text": "6",
+          "why": "addOne got a COPY of 5 in n. It changed its copy, not count. To change count, return the new value: count = addOne(count)."
+        },
+        {
+          "text": "1",
+          "why": "n starts as a copy of count (5), not 0."
+        },
+        {
+          "text": "5",
+          "why": "Yes. Java passes a copy of the value, so count is untouched."
+        }
+      ],
+      "answer": 3
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. Finish cube so it returns x × x × x.",
+      "code": "public class Main {\n    static int cube(int x) {\n        return ____;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(cube(2));\n        System.out.println(cube(3));\n        System.out.println(cube(-1));\n    }\n}",
+      "accepted": [
+        "x * x * x",
+        "x * (x * x)",
+        "(x * x) * x",
+        "x*x*x"
+      ],
+      "wrong": [
+        "x * 3",
+        "x * x",
+        "x"
+      ],
+      "hint": "Multiply x by itself three times.",
+      "explain": "`x * x * x` works for every input, including negatives: cube(-1) is -1.",
+      "expectedOutput": "8\n27\n-1"
+    }
+  ]
+}

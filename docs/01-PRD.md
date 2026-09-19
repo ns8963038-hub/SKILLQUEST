@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Product** | SkillQuest — AI-Powered Gamified Skill Learning Platform |
-| **Version** | 1.1 — review corrections: risk-model framing, placement coverage wording, real goal personalization, measured timing targets |
+| **Version** | 1.2 — adds F8 Learn mode (a PRIMM lesson before each topic's levels); previous stretch list renumbered F9 |
 | **Team** | Nandan S (1SP23AD016), Anjith K.J (1SP23AD032), Bhanushree C.V (1SP23AD005) |
 | **Institution** | S.E.A College of Engineering & Technology, Bangalore — Dept. of AI & DS, VTU |
 | **Timeline** | Single semester (~14 working weeks) |
@@ -107,7 +107,14 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 ### F7 — Leaderboard (P1)
 - Weekly XP leaderboard among users. Ship only after F1–F6 are stable.
 
-### F8 — Stretch (P2)
+### F8 — Learn mode (P1)
+- Every topic (skill) opens with a ~5-minute interactive lesson before its levels, following PRIMM (Predict → Run → Investigate → Modify → Make): predict a program's output, step through it line by line (traces recorded from the real JVM), key ideas, a second prediction, fill in a missing line, then the topic's first level.
+- **No passive content** — no videos or long notes (see Problem §2); every step asks the student to act.
+- Adaptive: tested-out topics are skipped by the roadmap; high-mastery students are offered a recap or skip; first answers update BKT mastery with multiple-choice parameters.
+- Answers are checked server-side; fill-in answers not in the accepted list are actually executed.
+- **Acceptance:** all 19 topics have a lesson whose every expected output is machine-verified; a new student can go lesson → first level in one flow; lesson start / answer / complete / skip are logged. Design: docs/notes/M7-learn-mode.md.
+
+### F9 — Stretch (P2)
 - LSTM dropout model comparison (report material), resume bullet generator, email nudges, faculty/TPO dashboard.
 
 ## 6. Success Metrics (measured in final testing, weeks 12–14)
