@@ -4,6 +4,7 @@ import { asyncHandler } from '../http';
 import { logEvent } from '../events';
 import { env } from '../env';
 import { CONSENT_VERSION } from '../research/consent';
+import { warmAiService } from '../aiClient';
 
 export const meRouter = Router();
 
@@ -17,6 +18,8 @@ meRouter.get(
   asyncHandler(async (req, res) => {
     const userId = req.userId!; // guaranteed by requireAuth
     const email = req.userEmail ?? '';
+    // Wake the AI service now (free tier) so onboarding / re-planning won't wait.
+    warmAiService();
     const existed = await prisma.profile.findUnique({ where: { id: userId } });
 
     // Team members listed in ADMIN_EMAILS get the internal admin view. Admin is

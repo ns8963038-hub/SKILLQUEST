@@ -14,6 +14,10 @@ import { timingMiddleware } from './metrics/timing';
 export function createApp(): Express {
   const app = express();
 
+  // Hosted behind one proxy (Render / any load balancer): trust it, so req.ip
+  // and req.protocol reflect the real client rather than the proxy.
+  app.set('trust proxy', 1);
+
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGINS }));
   app.use(express.json({ limit: '1mb' }));

@@ -33,11 +33,17 @@ frontend/     React + Vite + Tailwind SPA
 backend/      Node.js + Express Web API
 ai-service/   Python FastAPI (NLP, roadmap, dropout, placement scoring)
 ml/           OULAD notebooks & model training (not deployed)
-content/      Level definitions — problems, starter code, test cases
+content/      Levels, lessons, skills and companies — verified by content/*.mjs
 ```
+
+## 🚀 Deploying
+
+Free tier (Vercel + Render + Supabase + GitHub Actions), step by step:
+**[docs/DEPLOY.md](docs/DEPLOY.md)**. The Render services are defined in
+[`render.yaml`](render.yaml).
 
 ## ⚡ Ground Rules
 
 - Scope is locked in the PRD §3 (Non-Goals). Adding features back requires all 3 members to agree and the PRD to be updated first.
 - `main` is deploy-on-push — work on `feat/<name>` branches and open a PR.
-- Never commit secrets (`.env` is gitignored). Never execute user code outside Judge0.
+- Never commit secrets (`.env` is gitignored). Never execute user code on our own servers — it runs in the external sandbox (Paiza.IO today; Judge0/Piston when self-hosted).

@@ -1,0 +1,46 @@
+name: Weekly risk scoring
+
+# Runs the disengagement-risk scoring once a week (PRD F5): it scores every
+# onboarded student, caches their tier, and creates an in-app nudge for anyone
+# who has just moved into "at risk". Free: GitHub runs it, the API does the work.
+#
+# Needs three repository secrets (Settings → Secrets and variables → Actions):
+#   SKILLQUEST_API_URL       e.g. https://skillquest-api.onrender.com
+#   SKILLQUEST_AI_URL        e.g. https://skillquest-ai.onrender.com
+#   SKILLQUEST_INTERNAL_KEY  the INTERNAL_API_KEY shown on the Render AI service
+# Until they are set (i.e. before deployment) the job does nothing and passes.
+
+on:
+  schedule:
+    - cron: '30 20 * * 0' # every Sunday 20:30 UTC = Monday 02:00 IST
+  workflow_dispatch: # "Run workflow" button, for a manual run
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    env:
+      API_URL: ${{ secrets.SKILLQUEST_API_URL }}
+      AI_URL: ${{ secrets.SKILLQUEST_AI_URL }}
+      KEY: ${{ secrets.SKILLQUEST_INTERNAL_KEY }}
+    steps:
+      - name: Skip if not deployed yet
+        id: check
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$KEY" ]; then
+            echo "SkillQuest isn't deployed / secrets not set — nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Free-tier services sleep when idle: wake both first (up to ~2 minutes).
+      - name: Wake the services
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          curl -fsS --retry 6 --retry-delay 20 --retry-all-errors --max-time 90 "$API_URL/health"
+          if [ -n "$AI_URL" ]; then
+            curl -fsS --retry 6 --retry-delay 20 --retry-all-errors --max-time 90 "$AI_URL/health"
+          fi
+
+      - name: Run weekly scoring
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          curl -fsS -X POST --max-time 600 -H "x-internal-key: $KEY" "$API_URL/internal/jobs/weekly-scoring"

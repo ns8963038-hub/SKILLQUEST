@@ -29,3 +29,6 @@ ml/data/
 # Playwright MCP artifacts + screenshots saved at repo root
 .playwright-mcp/
 /*.png
+
+# Embedding model downloaded at deploy-build time (render.yaml)
+.fastembed_cache/

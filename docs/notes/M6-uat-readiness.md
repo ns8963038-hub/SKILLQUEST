@@ -192,8 +192,11 @@ VM** — a config change, not a code change.
 ## 10. What's left (needs people, not code)
 
 1. **Deploy** the three services (web, API, AI) with the API co-located with the
-   database; set `ADMIN_EMAILS` to the team's emails.
-2. **Turn Supabase email confirmation back on** before real students sign up.
+   database; set `ADMIN_EMAILS` to the team's emails. Step by step: `docs/DEPLOY.md`.
+2. **Email confirmation:** do NOT simply switch it on. Supabase's built-in
+   sender only delivers to the project team (2 emails/hour), so students would be
+   locked out. Keep it off for the pilot, or connect Gmail SMTP first
+   (`docs/DEPLOY.md` §4.2).
 3. **Run the UAT:** 20–30 students, ~2 weeks, at least 3 levels each, then the
    in-app survey. Run weekly scoring each week. Export the CSVs.
 4. **Report** SUS mean ± SD, engagement, would-recommend %, nudge counts,

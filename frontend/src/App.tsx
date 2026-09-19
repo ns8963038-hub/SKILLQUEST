@@ -31,8 +31,15 @@ interface Profile {
   currentConsentVersion?: string;
 }
 
-// Full-screen loading state while we check auth / fetch the profile.
+// Full-screen loading state while we check auth / fetch the profile. On the
+// free hosting tier the server sleeps when idle and takes up to a minute to
+// wake, so after a few seconds we say so instead of leaving the student guessing.
 function Splash() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setSlow(true), 6000);
+    return () => window.clearTimeout(t);
+  }, []);
   return (
     <div className="relative grid min-h-screen place-items-center" role="status">
       <AmbientBackground intensity={0.7} />
@@ -40,6 +47,11 @@ function Splash() {
         {/* Nova dozes while the app checks your session. */}
         <Nova mood="sleepy" size={72} />
         <p className="eyebrow">Waking your tutor…</p>
+        {slow && (
+          <p className="max-w-xs text-center text-sm text-content-muted">
+            The server naps when nobody’s using it. Waking it can take up to a minute. Hang on!
+          </p>
+        )}
       </div>
     </div>
   );

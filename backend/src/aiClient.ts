@@ -20,6 +20,18 @@ async function callAi<T>(path: string, body: unknown): Promise<T> {
   return (await res.json()) as T;
 }
 
+// On the free hosting tier the AI service sleeps when idle and takes 30-60 s to
+// wake. warmAiService() pokes it (fire-and-forget) when a student signs in, so
+// it is awake by the time they finish the onboarding quiz or open Settings.
+// Throttled: at most one poke every 5 minutes. Never throws.
+const WARM_EVERY_MS = 5 * 60_000;
+let lastWarm = 0;
+export function warmAiService(now = Date.now()): void {
+  if (now - lastWarm < WARM_EVERY_MS) return;
+  lastWarm = now;
+  fetch(`${env.AI_SERVICE_URL}/health`).catch(() => undefined);
+}
+
 // One scheduled skill as returned by /ai/roadmap.
 export interface RoadmapItemDto {
   skillId: string;
