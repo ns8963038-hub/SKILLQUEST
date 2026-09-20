@@ -4,20 +4,41 @@ import { env } from './env';
 // in the X-Internal-Key header; the AI service rejects anything without it. The
 // browser never calls the AI service directly — only this server does.
 
+// Statuses that mean "the service isn't ready yet", not "your request is wrong".
+// On free hosting the AI service sleeps after 15 minutes and restarts on every
+// deploy; while it boots, the host answers 502/503/504. Retrying turns what the
+// student would see as a failed onboarding into a slightly slow one.
+const RETRY_STATUS = new Set([502, 503, 504]);
+const RETRY_DELAYS_MS = [3_000, 8_000, 15_000];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // POST a JSON body to an AI-service path and return the parsed JSON response.
+// Retries a waking or restarting service; a real error (400, 401, 500) is
+// returned immediately, because retrying it would only waste the student's time.
 async function callAi<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${env.AI_SERVICE_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-internal-key': env.INTERNAL_API_KEY ?? '',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error(`AI service ${path} failed with ${res.status}`);
+  let lastProblem = '';
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) await sleep(RETRY_DELAYS_MS[attempt - 1]!);
+    try {
+      const res = await fetch(`${env.AI_SERVICE_URL}${path}`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-internal-key': env.INTERNAL_API_KEY ?? '',
+        },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) return (await res.json()) as T;
+      if (!RETRY_STATUS.has(res.status)) throw new Error(`AI service ${path} failed with ${res.status}`);
+      lastProblem = `status ${res.status}`;
+    } catch (err) {
+      // A thrown non-retryable error above must not be retried.
+      if (err instanceof Error && err.message.startsWith('AI service ')) throw err;
+      lastProblem = err instanceof Error ? err.message : String(err); // network error: retry
+    }
   }
-  return (await res.json()) as T;
+  throw new Error(`AI service ${path} is not responding (${lastProblem})`);
 }
 
 // On the free hosting tier the AI service sleeps when idle and takes 30-60 s to
