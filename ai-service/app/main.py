@@ -6,6 +6,10 @@ health check and a demonstration of the internal-key gateway. The real modules
 arrive in later milestones.
 """
 
+import logging
+import threading
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from pydantic import BaseModel, Field
 
@@ -14,7 +18,33 @@ from .goal_map import map_goal
 from .roadmap import generate_roadmap
 from .security import require_internal_key
 
-app = FastAPI(title="SkillQuest AI Service", version="0.1.0")
+log = logging.getLogger("skillquest.ai")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Load the embedding model in the background as the service starts.
+
+    On free hosting the service sleeps when idle; without this the FIRST goal
+    mapping after a wake-up paid for the model load (~60 s). Loading it in a
+    background thread keeps /health answering immediately, so the host marks the
+    service live while the model finishes loading.
+    """
+
+    def warm() -> None:
+        try:
+            from .embeddings import warm as warm_model
+
+            warm_model()
+            log.info("embedding model ready")
+        except Exception as exc:  # never stop the service because of a warm-up
+            log.warning("embedding warm-up failed: %s", exc)
+
+    threading.Thread(target=warm, name="warm-embeddings", daemon=True).start()
+    yield
+
+
+app = FastAPI(title="SkillQuest AI Service", version="0.1.0", lifespan=lifespan)
 
 
 @app.get("/health")

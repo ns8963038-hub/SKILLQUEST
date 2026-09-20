@@ -23,3 +23,14 @@ def test_internal_route_requires_valid_key():
     ok = client.get("/internal/ping", headers={"X-Internal-Key": "secret"})
     assert ok.status_code == 200
     assert ok.json()["pong"] is True
+
+
+def test_dsn_strips_prisma_only_parameters():
+    """The backend and this service share one DATABASE_URL, written for Prisma.
+    psycopg rejects Prisma's own parameters, so they must be stripped."""
+    from app.db import dsn
+
+    base = "postgresql://user:pw@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
+    assert dsn(f"{base}?pgbouncer=true") == base
+    assert dsn(f"{base}?pgbouncer=true&connection_limit=1&sslmode=require") == f"{base}?sslmode=require"
+    assert dsn(base) == base

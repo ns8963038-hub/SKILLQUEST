@@ -7,17 +7,34 @@ database. Only SELECTs happen here — the AI service never writes the graph.
 
 from __future__ import annotations
 
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
 import psycopg
 from psycopg.rows import dict_row
 
 from .config import settings
 from .roadmap import SkillNode
 
+# Query parameters Prisma understands but libpq (psycopg) rejects outright:
+# the backend and this service share one DATABASE_URL, and the Supabase pooled
+# URL is normally written for Prisma. Without stripping these, psycopg raises
+# `invalid URI query parameter: "pgbouncer"` and every roadmap request fails.
+PRISMA_ONLY_PARAMS = {"pgbouncer", "connection_limit", "pool_timeout", "schema", "sslaccept"}
+
+
+def dsn(url: str) -> str:
+    """The connection string with Prisma-only parameters removed."""
+    parts = urlsplit(url)
+    kept = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k not in PRISMA_ONLY_PARAMS]
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(kept), parts.fragment))
+
 
 def _connect() -> psycopg.Connection:
     # autocommit: we run only read-only SELECTs, so no transaction is needed.
     # dict_row lets us read columns by name (r["id"]) instead of by position.
-    return psycopg.connect(settings.database_url, autocommit=True, row_factory=dict_row)
+    # prepare_threshold=None: never use server-side prepared statements, which
+    # a transaction-mode pooler (Supabase's port 6543) cannot keep across queries.
+    return psycopg.connect(dsn(settings.database_url), autocommit=True, row_factory=dict_row, prepare_threshold=None)
 
 
 def load_skill_graph() -> tuple[list[SkillNode], dict[str, list[str]]]:
