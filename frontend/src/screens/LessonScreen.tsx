@@ -27,6 +27,7 @@ function stepLabel(step: LessonStep | undefined, steps: LessonStep[]): string {
   if (step.type === 'trace') return 'Watch it run';
   if (step.type === 'explain') return 'Understand';
   if (step.type === 'fill') return 'Try it';
+  if (step.type === 'concept') return 'Concept';
   // The first prediction is "Predict"; later ones check understanding.
   return steps.filter((s) => s.type === 'predict')[0]?.id === step.id ? 'Predict' : 'Check';
 }
@@ -121,7 +122,7 @@ export function LessonScreen({
   }
 
   // A step blocks "Continue" only while it's a question not yet answered.
-  const needsAnswer = step && (step.type === 'predict' || step.type === 'fill') && !solved[step.id];
+  const needsAnswer = step && (step.type === 'predict' || step.type === 'concept' || step.type === 'fill') && !solved[step.id];
   const alreadyKnows = (lesson.mastery ?? 0) >= 0.6 && lesson.status !== 'completed';
   const total = steps.length + 1;
 
@@ -172,7 +173,7 @@ export function LessonScreen({
             aria-label={stepLabel(step, steps)}
           >
             {step?.type === 'hook' && <Hook step={step} alreadyKnows={alreadyKnows} mastery={lesson.mastery} onSkip={() => void skip()} />}
-            {step?.type === 'predict' && (
+            {(step?.type === 'predict' || step?.type === 'concept') && (
               <PredictStep
                 key={step.id}
                 skillId={skillId}

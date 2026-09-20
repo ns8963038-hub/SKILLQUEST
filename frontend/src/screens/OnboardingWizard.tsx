@@ -33,7 +33,7 @@ const GOAL_IDEAS = [
 // What the backend really does when onboarding completes, shown while it works.
 const BUILD_STAGES = [
   'Understanding your goal',
-  'Ordering 19 skills by prerequisites',
+  'Ordering the skill graph by prerequisites',
   'Skipping what you already know',
   'Calibrating your mastery model',
 ];

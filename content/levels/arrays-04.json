@@ -1,0 +1,47 @@
+{
+  "id": "arrays-04",
+  "skillId": "arrays",
+  "title": "Matrix Row Sums",
+  "difficulty": 2,
+  "statementMd": "A 2-D array is an array of arrays: `grid[r][c]`, with `grid.length` rows and `grid[0].length` columns.\n\nPrint the sum of each row on its own line, then the total of the whole grid.\n\n**Input**\nLine 1: `rows cols`. Then `rows` lines of `cols` integers.\n\n**Output**\nOne line per row with its sum, then `Total: <sum of everything>`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int rows = sc.nextInt();\n        int cols = sc.nextInt();\n        int[][] grid = new int[rows][cols];\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) grid[r][c] = sc.nextInt();\n        }\n        // TODO: print each row's sum, then the grand total\n    }\n}",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int rows = sc.nextInt();\n        int cols = sc.nextInt();\n        int[][] grid = new int[rows][cols];\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) grid[r][c] = sc.nextInt();\n        }\n        int total = 0;\n        for (int r = 0; r < rows; r++) {\n            int rowSum = 0;\n            for (int c = 0; c < cols; c++) rowSum += grid[r][c];\n            System.out.println(rowSum);\n            total += rowSum;\n        }\n        System.out.println(\"Total: \" + total);\n    }\n}",
+  "hints": [
+    "Use one loop over rows; inside it, another loop adds up that row.",
+    "Add each row sum into a running total as you print it."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 4,
+  "testCases": [
+    {
+      "stdin": "2 3\n1 2 3\n4 5 6\n",
+      "expectedOutput": "6\n15\nTotal: 21",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1 1\n7\n",
+      "expectedOutput": "7\nTotal: 7",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "3 2\n-1 1\n0 0\n5 -5\n",
+      "expectedOutput": "0\n0\n0\nTotal: 0",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "2 2\n10 20\n30 40\n",
+      "expectedOutput": "30\n70\nTotal: 100",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

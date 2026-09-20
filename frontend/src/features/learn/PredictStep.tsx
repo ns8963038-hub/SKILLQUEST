@@ -6,14 +6,16 @@ import { cn } from '../../lib/cn';
 import { Nova } from '../../ui/Nova';
 import { CodeView } from './CodeView';
 import { Inline } from './Inline';
-import type { AnswerResult, PredictStep as PredictStepData } from './types';
+import type { AnswerResult, ConceptStep, PredictStep as PredictStepData } from './types';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
-// PREDICT (PRIMM's first P): read the program, commit to what it prints. The
-// browser doesn't know the answer — each choice goes to the server, which says
-// right or wrong and explains THAT option's misconception. Wrong options stay
-// visible (crossed out) so the student can see what they've ruled out.
+// One question, either kind:
+//   PREDICT (PRIMM's first P) — read the program, commit to what it prints.
+//   CONCEPT — a theory question from the question bank, asked after the teaching.
+// The browser doesn't know the answer: each choice goes to the server, which
+// says right or wrong and explains it. Wrong options stay visible (crossed out)
+// so the student can see what they've ruled out.
 export function PredictStep({
   skillId,
   step,
@@ -21,10 +23,15 @@ export function PredictStep({
   onEvidence,
 }: {
   skillId: string;
-  step: PredictStepData;
+  step: PredictStepData | ConceptStep;
   onSolved: () => void; // right answer, or the answer was revealed
   onEvidence: (r: AnswerResult) => void; // lets the lesson track first tries + mastery
 }) {
+  const concept = step.type === 'concept';
+  // Predict shows a program and a short prompt; concept is the question itself.
+  const code = concept ? undefined : step.code;
+  const prompt = concept ? step.question : step.prompt;
+  const options = concept ? step.options.map((text) => ({ text })) : step.options;
   const [wrong, setWrong] = useState<number[]>([]);
   const [right, setRight] = useState<number | null>(null);
   const [pending, setPending] = useState<number | null>(null);
@@ -60,19 +67,26 @@ export function PredictStep({
   const mood = solved ? 'happy' : feedback?.tone === 'bad' ? 'concerned' : pending !== null ? 'thinking' : 'idle';
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
-      <div className="min-w-0">
-        <CodeView code={step.code} />
-      </div>
+    <div className={cn('grid gap-5 lg:items-start', code ? 'lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]' : 'mx-auto max-w-3xl')}>
+      {code && (
+        <div className="min-w-0">
+          <CodeView code={code} />
+        </div>
+      )}
 
       <div className="min-w-0">
-        <div className="mb-4 flex items-center gap-3">
-          <Nova mood={mood} size={40} />
-          <h2 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">{step.prompt}</h2>
+        <div className="mb-4 flex items-start gap-3">
+          <Nova mood={mood} size={40} className="shrink-0" />
+          <div>
+            {concept && step.topic && <p className="eyebrow text-ion">{step.topic}</p>}
+            <h2 className="font-display text-xl font-semibold leading-snug tracking-tight sm:text-2xl">
+              <Inline text={prompt ?? ''} />
+            </h2>
+          </div>
         </div>
 
         <div role="radiogroup" aria-label="Your prediction" className="space-y-2.5">
-          {step.options.map((o, k) => {
+          {options.map((o, k) => {
             const isWrong = wrong.includes(k);
             const isRight = right === k;
             return (
@@ -102,9 +116,16 @@ export function PredictStep({
                 >
                   {isRight ? <Check size={14} /> : isWrong ? <X size={14} /> : pending === k ? '…' : LETTERS[k]}
                 </span>
-                <pre className={cn('whitespace-pre-wrap pt-0.5 font-mono text-[13.5px] leading-relaxed [font-variant-ligatures:none]', isWrong && 'line-through decoration-danger/50')}>
-                  {o.text}
-                </pre>
+                {/* A predicted OUTPUT is code (monospace); a theory answer is prose. */}
+                {concept ? (
+                  <span className={cn('pt-0.5 text-[15px] leading-relaxed', isWrong && 'line-through decoration-danger/50')}>
+                    <Inline text={o.text} />
+                  </span>
+                ) : (
+                  <pre className={cn('whitespace-pre-wrap pt-0.5 font-mono text-[13.5px] leading-relaxed [font-variant-ligatures:none]', isWrong && 'line-through decoration-danger/50')}>
+                    {o.text}
+                  </pre>
+                )}
               </motion.button>
             );
           })}

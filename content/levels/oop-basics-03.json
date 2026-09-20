@@ -1,0 +1,47 @@
+{
+  "id": "oop-basics-03",
+  "skillId": "oop-basics",
+  "title": "Count the Objects (static)",
+  "difficulty": 2,
+  "statementMd": "A `static` field belongs to the **class**, so every object shares one copy — perfect for counting how many objects exist. An instance field belongs to each **object**.\n\nGive each new `Student` the next id number, and keep the shared total up to date. `main` is written.\n\n**Input**\nOne integer `n` — how many students to create.\n\n**Output**\nEach student’s id on its own line, then `Total students: n`.",
+  "starterCode": "import java.util.Scanner;\n\nclass Student {\n    private static int count;   // shared by every Student\n    private final int id;       // this student's own id\n\n    Student() {\n        // TODO: add one to the shared count and use it as this student's id\n        this.id = 0;\n    }\n\n    int getId() {\n        return id;\n    }\n\n    static int getCount() {\n        return count;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        for (int i = 0; i < n; i++) {\n            System.out.println(new Student().getId());\n        }\n        System.out.println(\"Total students: \" + Student.getCount());\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\nclass Student {\n    private static int count;\n    private final int id;\n\n    Student() {\n        count++;\n        this.id = count;\n    }\n\n    int getId() {\n        return id;\n    }\n\n    static int getCount() {\n        return count;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        for (int i = 0; i < n; i++) {\n            System.out.println(new Student().getId());\n        }\n        System.out.println(\"Total students: \" + Student.getCount());\n    }\n}\n",
+  "hints": [
+    "The constructor runs once per object: increase the shared count there.",
+    "count++ then this.id = count; gives the first student id 1. A static field keeps its value between objects."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "3\n",
+      "expectedOutput": "1\n2\n3\nTotal students: 3",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1\n",
+      "expectedOutput": "1\nTotal students: 1",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "5\n",
+      "expectedOutput": "1\n2\n3\n4\n5\nTotal students: 5",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "2\n",
+      "expectedOutput": "1\n2\nTotal students: 2",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "collections-03",
+  "skillId": "collections",
+  "title": "Sort by Two Rules (Comparator)",
+  "difficulty": 2,
+  "statementMd": "`Comparable` gives a class one natural order. A **Comparator** is an order written *outside* the class, so you can sort the same data in different ways.\n\nSort the words by **length (shortest first)**, and words of equal length **alphabetically**.\n\n**Input**\nLine 1: `n`. Line 2: n words.\n\n**Output**\nThe words in order, one per line.\n\nBuild the rule with `Comparator.comparing(...)` and `thenComparing(...)`.",
+  "starterCode": "import java.util.ArrayList;\nimport java.util.Comparator;\nimport java.util.List;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        List<String> words = new ArrayList<>();\n        for (int i = 0; i < n; i++) words.add(sc.next());\n        // TODO: sort by length, then alphabetically for equal lengths\n        for (String w : words) System.out.println(w);\n    }\n}",
+  "referenceSolution": "import java.util.ArrayList;\nimport java.util.Comparator;\nimport java.util.List;\nimport java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        List<String> words = new ArrayList<>();\n        for (int i = 0; i < n; i++) words.add(sc.next());\n        words.sort(Comparator.comparing(String::length).thenComparing(Comparator.naturalOrder()));\n        for (String w : words) System.out.println(w);\n    }\n}",
+  "hints": [
+    "words.sort(comparator) sorts the list in place.",
+    "Comparator.comparing(String::length).thenComparing(Comparator.naturalOrder()) is \"length first, then alphabetical\"."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "5\nbanana fig apple kiwi date\n",
+      "expectedOutput": "fig\ndate\nkiwi\napple\nbanana",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "3\nbb aa cc\n",
+      "expectedOutput": "aa\nbb\ncc",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "4\none two three four\n",
+      "expectedOutput": "one\ntwo\nfour\nthree",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "2\nsame size\n",
+      "expectedOutput": "same\nsize",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

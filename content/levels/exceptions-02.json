@@ -1,0 +1,47 @@
+{
+  "id": "exceptions-02",
+  "skillId": "exceptions",
+  "title": "Skip the Bad Input",
+  "difficulty": 2,
+  "statementMd": "A file of \"numbers\" also contains junk. Add up the real numbers and count the rest.\n\n`Integer.parseInt(\"abc\")` throws a **NumberFormatException** — catch it, count that token as skipped, and carry on with the next one.\n\n**Input**\nLine 1: `n`. Line 2: n whitespace-separated tokens.\n\n**Output**\nLine 1: `Sum: <total of the valid numbers>`. Line 2: `Skipped: <count>`.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int sum = 0;\n        int skipped = 0;\n        for (int i = 0; i < n; i++) {\n            String token = sc.next();\n            // TODO: try to parse the token; count it as skipped if it isn't a number\n        }\n        System.out.println(\"Sum: \" + sum);\n        System.out.println(\"Skipped: \" + skipped);\n    }\n}",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int sum = 0;\n        int skipped = 0;\n        for (int i = 0; i < n; i++) {\n            String token = sc.next();\n            try {\n                sum += Integer.parseInt(token);\n            } catch (NumberFormatException e) {\n                skipped++;\n            }\n        }\n        System.out.println(\"Sum: \" + sum);\n        System.out.println(\"Skipped: \" + skipped);\n    }\n}",
+  "hints": [
+    "Integer.parseInt(token) throws NumberFormatException when the text isn’t a number.",
+    "Put the parse and the addition inside try; put skipped++ inside catch, so the loop simply continues."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 2,
+  "testCases": [
+    {
+      "stdin": "5\n10 abc 20 3x 5\n",
+      "expectedOutput": "Sum: 35\nSkipped: 2",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "3\n1 2 3\n",
+      "expectedOutput": "Sum: 6\nSkipped: 0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "4\nx y z w\n",
+      "expectedOutput": "Sum: 0\nSkipped: 4",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "6\n-4 7 12a 0 ?? 100\n",
+      "expectedOutput": "Sum: 103\nSkipped: 2",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

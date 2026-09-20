@@ -49,6 +49,16 @@ export interface PredictStep {
   options: { text: string }[];
 }
 
+// A theory question (from content/questions/java-oop.json) asked after the
+// teaching — the kind of thing service-company MCQ rounds test.
+export interface ConceptStep {
+  id: string;
+  type: 'concept';
+  question: string;
+  topic?: string;
+  options: string[];
+}
+
 export interface TraceStep {
   id: string;
   type: 'trace';
@@ -76,7 +86,7 @@ export interface FillStep {
   hint?: string;
 }
 
-export type LessonStep = HookStep | PredictStep | TraceStep | ExplainStep | FillStep;
+export type LessonStep = HookStep | PredictStep | ConceptStep | TraceStep | ExplainStep | FillStep;
 
 export interface LessonView {
   skillId: string;

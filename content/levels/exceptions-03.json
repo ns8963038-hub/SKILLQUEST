@@ -1,0 +1,47 @@
+{
+  "id": "exceptions-03",
+  "skillId": "exceptions",
+  "title": "Your Own Exception",
+  "difficulty": 2,
+  "statementMd": "Real systems define their own exceptions so callers know exactly what went wrong. `withdraw` must throw an **InsufficientFundsException** (a checked exception, already declared for you) when the amount is more than the balance, carrying how much is missing.\n\n`main` is written: it catches the exception and prints the shortfall.\n\n**Input**\nLine 1: the opening balance. Line 2: `q`. Then q amounts to withdraw.\n\n**Output**\nOne line per withdrawal: `Paid <amount>` or `Short by <amount>`. Finally `Balance: <balance>`.",
+  "starterCode": "import java.util.Scanner;\n\nclass InsufficientFundsException extends Exception {\n    private final int shortfall;\n\n    InsufficientFundsException(int shortfall) {\n        super(\"Insufficient funds\");\n        this.shortfall = shortfall;\n    }\n\n    int getShortfall() {\n        return shortfall;\n    }\n}\n\nclass Account {\n    private int balance;\n\n    Account(int opening) {\n        this.balance = opening;\n    }\n\n    void withdraw(int amount) throws InsufficientFundsException {\n        // TODO: if amount is more than the balance, throw InsufficientFundsException\n        //       with how much is missing; otherwise take the money out\n    }\n\n    int getBalance() {\n        return balance;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        Account account = new Account(sc.nextInt());\n        int q = sc.nextInt();\n        for (int i = 0; i < q; i++) {\n            int amount = sc.nextInt();\n            try {\n                account.withdraw(amount);\n                System.out.println(\"Paid \" + amount);\n            } catch (InsufficientFundsException e) {\n                System.out.println(\"Short by \" + e.getShortfall());\n            }\n        }\n        System.out.println(\"Balance: \" + account.getBalance());\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\nclass InsufficientFundsException extends Exception {\n    private final int shortfall;\n\n    InsufficientFundsException(int shortfall) {\n        super(\"Insufficient funds\");\n        this.shortfall = shortfall;\n    }\n\n    int getShortfall() {\n        return shortfall;\n    }\n}\n\nclass Account {\n    private int balance;\n\n    Account(int opening) {\n        this.balance = opening;\n    }\n\n    void withdraw(int amount) throws InsufficientFundsException {\n        if (amount > balance) throw new InsufficientFundsException(amount - balance);\n        balance -= amount;\n    }\n\n    int getBalance() {\n        return balance;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        Account account = new Account(sc.nextInt());\n        int q = sc.nextInt();\n        for (int i = 0; i < q; i++) {\n            int amount = sc.nextInt();\n            try {\n                account.withdraw(amount);\n                System.out.println(\"Paid \" + amount);\n            } catch (InsufficientFundsException e) {\n                System.out.println(\"Short by \" + e.getShortfall());\n            }\n        }\n        System.out.println(\"Balance: \" + account.getBalance());\n    }\n}\n",
+  "hints": [
+    "throw new InsufficientFundsException(amount - balance); when the amount is too big.",
+    "Nothing after a throw runs, so subtract from the balance only in the normal case."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 3,
+  "testCases": [
+    {
+      "stdin": "100\n3\n30 200 70\n",
+      "expectedOutput": "Paid 30\nShort by 130\nPaid 70\nBalance: 0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "0\n1\n5\n",
+      "expectedOutput": "Short by 5\nBalance: 0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "500\n2\n500 1\n",
+      "expectedOutput": "Paid 500\nShort by 1\nBalance: 0",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "50\n4\n10 10 10 100\n",
+      "expectedOutput": "Paid 10\nPaid 10\nPaid 10\nShort by 80\nBalance: 20",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

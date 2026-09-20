@@ -76,14 +76,16 @@ type Level = z.infer<typeof LevelSchema>;
 // we make sure the generated fields are present, so an unbuilt lesson can never
 // reach the database.
 const LessonStepSchema = z
-  .object({ id: z.string(), type: z.enum(['hook', 'predict', 'trace', 'explain', 'fill']) })
+  .object({ id: z.string(), type: z.enum(['hook', 'predict', 'trace', 'explain', 'fill', 'concept']) })
   .passthrough()
   .superRefine((step, ctx) => {
     const s = step as Record<string, unknown>;
     const missing =
       (step.type === 'predict' && typeof s.answer !== 'number' && 'answer') ||
       (step.type === 'trace' && !s.trace && 'trace') ||
-      (step.type === 'fill' && typeof s.expectedOutput !== 'string' && 'expectedOutput');
+      (step.type === 'fill' && typeof s.expectedOutput !== 'string' && 'expectedOutput') ||
+      // A concept step is inlined from content/questions/java-oop.json.
+      (step.type === 'concept' && (typeof s.answer !== 'number' || !Array.isArray(s.options) || !s.question) && 'question/options/answer');
     if (missing) ctx.addIssue({ code: 'custom', message: `step "${step.id}" has no ${missing} — run: node content/build-lessons.mjs --fill` });
   });
 const LessonSchema = z.object({

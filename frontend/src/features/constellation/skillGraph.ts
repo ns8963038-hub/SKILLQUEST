@@ -1,4 +1,4 @@
-// The Java + DSA skill graph (mirrors content/skills.json): 19 skills and their
+// The Java + DSA skill graph (mirrors content/skills.json): 20 skills and their
 // prerequisites. The Knowledge Constellation is drawn from this, so every skill
 // appears even when a student's personal plan skips it (tested out in the quiz).
 
@@ -18,6 +18,7 @@ export const SKILL_GRAPH: SkillDef[] = [
   { id: 'strings', title: 'Strings', prereqs: ['arrays'] },
   { id: 'oop-basics', title: 'OOP Basics', prereqs: ['methods'] },
   { id: 'oop-advanced', title: 'OOP Advanced', prereqs: ['oop-basics'] },
+  { id: 'exceptions', title: 'Exceptions', prereqs: ['oop-basics'] },
   { id: 'recursion', title: 'Recursion', prereqs: ['methods', 'arrays'] },
   { id: 'time-complexity', title: 'Time Complexity', prereqs: ['loops', 'arrays'] },
   { id: 'collections', title: 'Collections', prereqs: ['oop-basics', 'arrays'] },

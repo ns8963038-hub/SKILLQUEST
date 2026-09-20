@@ -1,0 +1,243 @@
+{
+  "skillId": "exceptions",
+  "title": "Exceptions: handling what goes wrong",
+  "minutes": 5,
+  "version": 1,
+  "steps": [
+    {
+      "id": "hook",
+      "type": "hook",
+      "title": "Don’t let one bad input kill the program",
+      "body": "A user types \"abc\" where a number was expected, or your code divides by zero, and the whole program stops with a red stack trace.\n\nJava lets you **catch** that moment and decide what happens next. Every placement test asks about it, and every real program needs it.\n\nIn five minutes you’ll watch an exception being caught, learn checked vs unchecked, and write a catch yourself."
+    },
+    {
+      "id": "p1",
+      "type": "predict",
+      "prompt": "What does this program print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        try {\n            int[] marks = {90, 80}; //~ An array with two slots: valid indexes are 0 and 1.\n            System.out.println(marks[5]); //~ Index 5 doesn't exist, so Java THROWS ArrayIndexOutOfBoundsException and jumps straight to catch.\n            System.out.println(\"never runs\"); //~ Skipped: the throw already jumped out of the try block.\n        } catch (ArrayIndexOutOfBoundsException e) { //~ This catch matches the thrown type, so it handles it.\n            System.out.println(\"Caught: bad index\");\n        } finally {\n            System.out.println(\"Finally always runs\"); //~ finally runs whether or not something was thrown.\n        }\n        System.out.println(\"Still alive\"); //~ The exception was handled, so the program carries on normally.\n    }\n}",
+      "options": [
+        {
+          "text": "Caught: bad index\nFinally always runs\nStill alive",
+          "why": "Right: the throw skips the rest of the try, catch handles it, finally always runs, and the program continues."
+        },
+        {
+          "text": "Caught: bad index\nStill alive",
+          "why": "The finally block runs too — that is its whole point."
+        },
+        {
+          "text": "never runs\nCaught: bad index\nFinally always runs\nStill alive",
+          "why": "The line after the failing one never runs: the exception jumps straight to catch."
+        },
+        {
+          "text": "Crashes: ArrayIndexOutOfBoundsException",
+          "why": "It would crash if nothing caught it, but the catch block matches this exact type."
+        }
+      ],
+      "answer": 0
+    },
+    {
+      "id": "run",
+      "type": "trace",
+      "from": "p1",
+      "title": "Watch the jump to catch",
+      "trace": {
+        "frames": [
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 4,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 5,
+                "vars": {
+                  "marks": {
+                    "t": "array",
+                    "id": 1,
+                    "cls": "int[]",
+                    "items": [
+                      {
+                        "t": "int",
+                        "v": 90
+                      },
+                      {
+                        "t": "int",
+                        "v": 80
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 7,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 8,
+                "vars": {
+                  "e": {
+                    "t": "coll",
+                    "cls": "ArrayIndexOutOfBoundsException",
+                    "v": "java.lang.ArrayIndexOutOfBoundsException: Index 5 out of bounds for length 2"
+                  }
+                }
+              }
+            ],
+            "heap": {},
+            "out": ""
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 10,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "Caught: bad index\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 11,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "Caught: bad index\nFinally always runs\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 12,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "Caught: bad index\nFinally always runs\n"
+          },
+          {
+            "done": false,
+            "stack": [
+              {
+                "m": "main",
+                "line": 13,
+                "vars": {}
+              }
+            ],
+            "heap": {},
+            "out": "Caught: bad index\nFinally always runs\nStill alive\n"
+          },
+          {
+            "done": true,
+            "stack": [],
+            "heap": {},
+            "out": "Caught: bad index\nFinally always runs\nStill alive\n"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "ideas",
+      "type": "explain",
+      "title": "How exceptions work",
+      "points": [
+        "**Throwable** splits into **Error** (JVM problems — don’t catch) and **Exception**. Exception splits again into **checked** and **unchecked**.",
+        "**Checked** (`IOException`, your own `extends Exception`) must be caught or declared with `throws` — the compiler insists. **Unchecked** (`RuntimeException` and friends: `NullPointerException`, `ArithmeticException`, `ArrayIndexOutOfBoundsException`, `NumberFormatException`) need no declaration; they usually mean a bug.",
+        "`try` holds the risky code, `catch` handles one type (most specific first), `finally` always runs — use it for cleanup.",
+        "Throw your own with `throw new IllegalArgumentException(\"...\")`. Never write an empty `catch`: a swallowed error is a bug you will hunt for later."
+      ],
+      "pattern": "try {\n    risky();\n} catch (SpecificException e) {\n    // handle or report\n} finally {\n    // always runs: cleanup\n}"
+    },
+    {
+      "id": "c1",
+      "type": "concept",
+      "ref": "OOP066",
+      "question": "When using multiple catch blocks, a subclass exception must be caught before its superclass.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answer": 0,
+      "explanation": "Otherwise the subclass catch is unreachable and the compiler reports an error.",
+      "topic": "Exceptions in OOP"
+    },
+    {
+      "id": "p2",
+      "type": "predict",
+      "prompt": "A classic trap. What does this print?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        String s = null;\n        try {\n            System.out.println(s.length());\n        } catch (ArithmeticException e) {\n            System.out.println(\"caught\");\n        }\n    }\n}",
+      "options": [
+        {
+          "text": "caught",
+          "why": "The catch only handles ArithmeticException. A NullPointerException is a different type, so it passes straight through."
+        },
+        {
+          "text": "Crashes: NullPointerException",
+          "why": "Yes: calling a method on null throws NullPointerException, which this catch does not match, so the program stops."
+        },
+        {
+          "text": "0",
+          "why": "null has no length; Java throws instead of returning anything."
+        },
+        {
+          "text": "It doesn't compile",
+          "why": "It compiles — the compiler doesn’t track which values are null here."
+        }
+      ],
+      "answer": 1
+    },
+    {
+      "id": "fill",
+      "type": "fill",
+      "prompt": "Your turn. One catch must handle BOTH failures: text that isn’t a number, and division by zero.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        String[] inputs = {\"10\", \"abc\", \"0\"};\n        for (String token : inputs) { // tries three inputs\n            try {\n                int n = Integer.parseInt(token);\n                System.out.println(100 / n);\n            } catch (____) {\n                System.out.println(\"bad: \" + token);\n            }\n        }\n    }\n}",
+      "accepted": [
+        "NumberFormatException | ArithmeticException e",
+        "ArithmeticException | NumberFormatException e",
+        "RuntimeException e",
+        "Exception e"
+      ],
+      "wrong": [
+        "NumberFormatException e",
+        "ArithmeticException e"
+      ],
+      "hint": "Multi-catch lists types with a single `|`: `catch (AException | BException e)`.",
+      "explain": "Multi-catch handles unrelated types in one block. Catching `Exception` also works but is too broad: it would hide bugs you did not mean to ignore.",
+      "expectedOutput": "10\nbad: abc\nbad: 0"
+    }
+  ]
+}

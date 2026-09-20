@@ -1102,6 +1102,19 @@
       "pattern": "abstract class Shape {\n    abstract double area();\n}\nclass Circle extends Shape {\n    double r;\n    double area() { return 3.14 * r * r; }\n}"
     },
     {
+      "id": "c1",
+      "type": "concept",
+      "ref": "OOP027",
+      "question": "Methods can be overloaded by changing only the return type.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answer": 1,
+      "explanation": "Overloads must differ in parameter list (number, type, or order). Return type alone is not enough.",
+      "topic": "Polymorphism"
+    },
+    {
       "id": "p2",
       "type": "predict",
       "prompt": "A classic trap. What does this print?",

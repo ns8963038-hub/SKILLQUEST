@@ -1,0 +1,244 @@
+﻿id,topic,difficulty,type,question,option_a,option_b,option_c,option_d,answer,explanation
+OOP001,Classes & Objects,Easy,MCQ,Which keyword is used to create an object in Java?,new,create,alloc,make,A,`new` allocates memory on the heap and invokes the constructor.
+OOP002,Classes & Objects,Easy,MCQ,Which of the following is a blueprint from which objects are created?,Method,Class,Package,Variable,B,A class defines the fields and behavior; objects are its instances.
+OOP003,Classes & Objects,Easy,True/False,An object is created as soon as a class is declared.,,,,,False,Declaring a class only defines a type. An object exists only after `new` (or another creation mechanism) is executed.
+OOP004,Classes & Objects,Medium,MCQ,Where are Java objects stored in memory?,Stack,Heap,Metaspace,CPU registers,B,Objects live on the heap; local reference variables live on the thread's stack.
+OOP005,Classes & Objects,Medium,Output Prediction,"What is the output of this program?
+
+class A {
+    int x = 5;
+}
+
+public class Main {
+    public static void main(String[] args) {
+        A p = new A();
+        A q = p;
+        q.x = 9;
+        System.out.println(p.x);
+    }
+}",,,,,9,"p and q are two references to the same object, so changing x through q is visible through p."
+OOP006,Constructors,Easy,MCQ,Which statement about constructors is TRUE?,They have a return type of void,They have the same name as the class and no return type,They can be declared final,They can be declared static,B,"Constructors share the class name, have no return type, and cannot be final, static, or abstract."
+OOP007,Constructors,Easy,MCQ,"If you write no constructor in a class, the compiler provides:",Nothing; the class cannot be instantiated,A default no-argument constructor,A copy constructor,A private constructor,B,The compiler adds a public no-arg default constructor (same access as the class).
+OOP008,Constructors,Medium,True/False,The compiler still provides a default constructor if you define a parameterized constructor.,,,,,False,"Once any constructor is declared explicitly, the compiler no longer adds the default one."
+OOP009,Constructors,Medium,Output Prediction,"What is the output of this program?
+
+class P {
+    P() { System.out.println(""P""); }
+}
+
+class C extends P {
+    C() { System.out.println(""C""); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new C();
+    }
+}",,,,,"P
+C","The subclass constructor implicitly calls `super()` first, so the parent constructor runs before the child body."
+OOP010,Constructors,Medium,Short Answer,What is constructor chaining?,,,,,Calling one constructor from another: `this(...)` invokes another constructor of the same class and `super(...)` invokes a parent constructor. The call must be the first statement in the constructor.,Chaining avoids duplicated initialization code and guarantees parent initialization happens first.
+OOP011,Constructors,Hard,MCQ,Which design commonly relies on a private constructor?,Singleton pattern,Abstract classes,Interfaces,Method overloading,A,"A private constructor prevents outside instantiation; the class controls creation itself (Singleton, utility classes, factories)."
+OOP012,Encapsulation,Easy,MCQ,Encapsulation is best achieved by:,Making fields public,Making fields private and exposing public getters/setters,Using only static methods,Using inheritance,B,Data is hidden behind a controlled public interface.
+OOP013,Encapsulation,Easy,True/False,Encapsulation and abstraction mean exactly the same thing.,,,,,False,Encapsulation bundles data with methods and restricts direct access. Abstraction hides implementation complexity and exposes only essential behavior.
+OOP014,Encapsulation,Medium,Short Answer,Why use setter methods instead of public fields?,,,,,"Setters allow validation, enforce invariants, permit read-only or computed properties, enable logging/notification, and let you change the internal representation without breaking callers.",
+OOP015,Encapsulation,Medium,MCQ,Which of these classes is immutable?,String,StringBuilder,ArrayList,HashMap,A,String objects cannot be modified after creation; the others are mutable.
+OOP016,Encapsulation,Hard,Short Answer,How do you make a class immutable?,,,,,"Declare the class `final`, make all fields `private final`, provide no setters, initialize everything in the constructor, and return defensive copies of any mutable fields (and copy mutable inputs on the way in).",Immutable objects are inherently thread-safe and safe to use as map keys.
+OOP017,Inheritance,Easy,MCQ,Which keyword is used to inherit a class in Java?,implements,extends,inherits,super,B,A class uses `extends` for a superclass and `implements` for interfaces.
+OOP018,Inheritance,Easy,True/False,Java supports multiple inheritance of classes.,,,,,False,A class can extend only one class. Multiple inheritance of type is achieved through interfaces.
+OOP019,Inheritance,Medium,MCQ,Which of the following is NOT inherited by a subclass?,Protected methods,Public fields,Constructors,Public methods,C,Constructors are not inherited (they can be invoked via `super(...)`).
+OOP020,Inheritance,Medium,Output Prediction,"What is the output of this program?
+
+class A {
+    void show() { System.out.println(""A""); }
+}
+
+class B extends A {
+    @Override
+    void show() { System.out.println(""B""); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        A obj = new B();
+        obj.show();
+    }
+}",,,,,B,Overridden instance methods are dispatched on the actual object type at runtime.
+OOP021,Inheritance,Medium,Short Answer,What is the diamond problem and how does Java handle it?,,,,,"Ambiguity that arises when a class inherits the same member from two parents that share a common ancestor. Java avoids it for classes by allowing only single class inheritance. For interfaces with conflicting default methods, the implementing class must override the method and may pick one with `Interface.super.method()`.",
+OOP022,Inheritance,Hard,MCQ,Which class is the root of the Java class hierarchy?,Class,Object,Root,Main,B,Every class implicitly extends `java.lang.Object`.
+OOP023,Inheritance,Hard,Output Prediction,"What is the output of this program?
+
+class A {
+    static void f() { System.out.println(""A""); }
+}
+
+class B extends A {
+    static void f() { System.out.println(""B""); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        A obj = new B();
+        obj.f();
+    }
+}",,,,,A,"Static methods are hidden, not overridden. They are resolved at compile time using the reference type (A)."
+OOP024,Inheritance,Hard,Output Prediction,"What is the output of this program?
+
+class A {
+    int x = 10;
+}
+
+class B extends A {
+    int x = 20;
+}
+
+public class Main {
+    public static void main(String[] args) {
+        A obj = new B();
+        System.out.println(obj.x);
+    }
+}",,,,,10,"Fields are not polymorphic. Field access is resolved by the reference type (A), not the object type."
+OOP025,Polymorphism,Easy,MCQ,Method overloading is an example of:,Runtime polymorphism,Compile-time polymorphism,Encapsulation,Abstraction,B,The compiler chooses the overload based on argument types at compile time.
+OOP026,Polymorphism,Easy,MCQ,Method overriding is resolved at:,Compile time,Runtime,Link time,Build time,B,The JVM picks the method by the actual object type (dynamic dispatch).
+OOP027,Polymorphism,Medium,True/False,Methods can be overloaded by changing only the return type.,,,,,False,"Overloads must differ in parameter list (number, type, or order). Return type alone is not enough."
+OOP028,Polymorphism,Medium,Output Prediction,"What is the output of this program?
+
+public class Main {
+    static void p(int a)    { System.out.println(""int""); }
+    static void p(double a) { System.out.println(""double""); }
+
+    public static void main(String[] args) {
+        p(5L);
+    }
+}",,,,,double,"A `long` cannot narrow to `int` implicitly, but it can widen to `double`, so `p(double)` is chosen."
+OOP029,Polymorphism,Medium,Short Answer,Differentiate between method overloading and method overriding.,,,,,"Overloading: same name, different parameters, same class (or inherited), resolved at compile time. Overriding: same signature in a subclass that redefines the parent's behavior, resolved at runtime; requires IS-A relationship and cannot reduce access or throw broader checked exceptions.",
+OOP030,Polymorphism,Medium,MCQ,Which annotation asks the compiler to verify that a method really overrides a superclass method?,@Override,@Overload,@Super,@Verify,A,`@Override` causes a compile error if the method does not override anything.
+OOP031,Polymorphism,Hard,MCQ,Which is NOT allowed when overriding a public method?,Changing the method body,Making it protected,Returning a covariant (subtype) return type,Adding @Override,B,An overriding method cannot have weaker (more restrictive) access than the method it overrides.
+OOP032,Polymorphism,Hard,Output Prediction,"What is the output of this program?
+
+public class Main {
+    static void f(Object o) { System.out.println(""Object""); }
+    static void f(String s) { System.out.println(""String""); }
+
+    public static void main(String[] args) {
+        f(null);
+    }
+}",,,,,String,Java picks the most specific applicable overload; String is more specific than Object.
+OOP033,Polymorphism,Hard,Short Answer,Can static or private methods be overridden?,,,,,"No. A static method with the same signature in a subclass hides the parent's method (resolved by reference type). A private method is not visible to the subclass, so a same-named method is simply a new, unrelated method.",
+OOP034,Polymorphism,Medium,True/False,An overriding method may throw a broader checked exception than the method it overrides.,,,,,False,"It may throw the same, a narrower, or no checked exception, but never a broader checked one."
+OOP035,Abstraction,Easy,MCQ,Which keyword declares a class that cannot be instantiated and may contain abstract methods?,final,abstract,static,virtual,B,An abstract class is meant to be extended.
+OOP036,Abstraction,Easy,True/False,An abstract class can have constructors.,,,,,True,They are invoked through `super(...)` when a concrete subclass is created.
+OOP037,Abstraction,Medium,MCQ,A class that contains an abstract method must be:,Declared abstract,Declared final,Declared static,Declared public,A,Otherwise the class would have unimplemented behavior yet be instantiable.
+OOP038,Abstraction,Medium,True/False,An abstract class must contain at least one abstract method.,,,,,False,An abstract class may have zero abstract methods; it is abstract simply to prevent instantiation.
+OOP039,Abstraction,Medium,Short Answer,When would you choose an abstract class over an interface?,,,,,"When related classes share state (fields), constructors, or common concrete implementation, or when you need non-public members. Use an interface to define a capability/contract that unrelated classes can implement, especially when multiple inheritance of type is needed.",
+OOP040,Abstraction,Hard,MCQ,Which modifier combination is INVALID for a method?,public static,abstract final,protected abstract,private static,B,"`abstract` requires overriding, while `final` forbids it, so they contradict each other."
+OOP041,Interfaces,Easy,MCQ,Which keyword does a class use to adopt an interface?,extends,implements,uses,inherits,B,A class `implements` interfaces; an interface `extends` other interfaces.
+OOP042,Interfaces,Medium,MCQ,"Since Java 8, interfaces can additionally contain:",Constructors,Default and static methods,Instance fields,Protected members,B,`default` and `static` methods were added in Java 8 (`private` methods in Java 9).
+OOP043,Interfaces,Medium,True/False,"Fields declared in an interface are implicitly public, static, and final.",,,,,True,Interface fields are constants.
+OOP044,Interfaces,Medium,Output Prediction,"What is the output of this program?
+
+interface X {
+    default void hi() { System.out.println(""X""); }
+}
+
+interface Y {
+    default void hi() { System.out.println(""Y""); }
+}
+
+class Z implements X, Y {
+    public void hi() { X.super.hi(); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Z().hi();
+    }
+}",,,,,X,"When two interfaces provide the same default method, the class must override it and can choose one with `X.super.hi()`."
+OOP045,Interfaces,Hard,Short Answer,What is a functional interface?,,,,,"An interface with exactly one abstract method (it may also have default/static methods). It can be the target of a lambda or method reference. `@FunctionalInterface` makes the compiler enforce this. Examples: `Runnable`, `Comparator`, `Function`.",
+OOP046,Interfaces,Medium,True/False,An interface can extend more than one interface.,,,,,True,"Interfaces support multiple inheritance of type via `extends A, B`."
+OOP047,Static & Final,Easy,MCQ,Static members belong to:,Each object,The class,The JVM only,The method,B,"There is one copy per class, shared by all instances."
+OOP048,Static & Final,Easy,True/False,A final variable can be reassigned after initialization.,,,,,False,A `final` variable can be assigned only once.
+OOP049,Static & Final,Medium,MCQ,A class declared `final` means it:,Cannot be extended,Cannot be instantiated,Has only static members,Cannot have constructors,A,`String` and wrapper classes are final.
+OOP050,Static & Final,Medium,Output Prediction,"What is the output of this program?
+
+class C {
+    static int n = 0;
+    C() { n++; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new C();
+        new C();
+        new C();
+        System.out.println(C.n);
+    }
+}",,,,,3,"`n` is shared across all instances, so each constructor call increments the same variable."
+OOP051,Static & Final,Hard,True/False,A static method can directly access instance variables of its class.,,,,,False,Static methods have no `this`; they need an object reference to access instance members.
+OOP052,Static & Final,Hard,Short Answer,"Differentiate between final, finally, and finalize.",,,,,"`final`: modifier for constants, non-overridable methods, and non-extendable classes. `finally`: block that runs after try/catch for cleanup. `finalize()`: Object method called by GC before reclaiming an object; deprecated and should not be used.",
+OOP053,Static & Final,Hard,Output Prediction,"What is the output of this program?
+
+class T {
+    static { System.out.println(""static""); }
+    { System.out.println(""instance""); }
+    T() { System.out.println(""ctor""); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new T();
+        new T();
+    }
+}",,,,,"static
+instance
+ctor
+instance
+ctor",The static block runs once when the class loads. The instance block runs before the constructor body for every new object.
+OOP054,Access Modifiers,Easy,MCQ,Which access modifier is the most restrictive?,public,protected,default,private,D,`private` limits access to the declaring class only.
+OOP055,Access Modifiers,Medium,MCQ,A member with no access modifier (default) is visible:,Everywhere,Within the same package,Only in subclasses,Only in the same class,B,Default (package-private) access is limited to the same package.
+OOP056,Access Modifiers,Medium,MCQ,Protected members are accessible:,Only in the same class,In the same package and in subclasses (even in other packages),Only in the same package,Everywhere,B,`protected` = package access plus subclass access.
+OOP057,this & super,Easy,MCQ,The keyword `this` refers to:,The parent class,The current object,The current class loader,The main method,B,`this` is a reference to the object on which the method or constructor is executing.
+OOP058,this & super,Medium,True/False,`this()` and `super()` can both be called in the same constructor.,,,,,False,"Each must be the first statement, so only one can appear."
+OOP059,this & super,Medium,Output Prediction,"What is the output of this program?
+
+class A {
+    int x = 1;
+}
+
+class B extends A {
+    int x = 2;
+
+    void show() {
+        int x = 3;
+        System.out.println(x + "" "" + this.x + "" "" + super.x);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new B().show();
+    }
+}",,,,,3 2 1,"Local `x` = 3, `this.x` = field of B (2), `super.x` = field of A (1)."
+OOP060,Inner Classes,Medium,MCQ,A non-static inner class always holds an implicit reference to:,The enclosing class instance,The Object class,A static context,The main thread,A,"That is why it can access the outer instance's members, including private ones."
+OOP061,Inner Classes,Hard,True/False,A static nested class can directly access the non-static members of its outer class.,,,,,False,It has no outer instance; it needs an explicit object reference.
+OOP062,Inner Classes,Hard,Short Answer,What is an anonymous inner class?,,,,,"A class without a name declared and instantiated in a single expression, typically to implement an interface or extend a class inline, e.g. `new Runnable() { public void run() { ... } }`. Lambdas replace most uses for functional interfaces.",
+OOP063,Object Class,Medium,MCQ,What does the default Object.toString() return?,The field values,ClassName@hexHashCode,The class name only,null,B,"The default is `getClass().getName() + ""@"" + Integer.toHexString(hashCode())`."
+OOP064,Object Class,Medium,Short Answer,State the equals() and hashCode() contract.,,,,,"If `a.equals(b)` is true, then `a.hashCode() == b.hashCode()` must hold. Equal hash codes do not imply equal objects. `equals` must be reflexive, symmetric, transitive, consistent, and false for null. Override both together, otherwise hash-based collections misbehave.",
+OOP065,Object Class,Hard,Output Prediction,"What is the output of this program?
+
+public class Main {
+    public static void main(String[] args) {
+        String a = new String(""hi"");
+        String b = new String(""hi"");
+        System.out.println(a == b);
+        System.out.println(a.equals(b));
+    }
+}",,,,,"false
+true","`new String` creates two distinct objects, so `==` (reference comparison) is false, while `equals` compares content."
+OOP066,Exceptions in OOP,Medium,True/False,"When using multiple catch blocks, a subclass exception must be caught before its superclass.",,,,,True,Otherwise the subclass catch is unreachable and the compiler reports an error.
+OOP067,Design Principles,Medium,MCQ,The Single Responsibility Principle states that a class should:,Have only one method,Have only one reason to change,Have only one subclass,Be final,B,Each class should encapsulate a single responsibility.
+OOP068,Design Principles,Medium,MCQ,"Which relationship represents ""HAS-A""?",Inheritance,Composition/Aggregation,Overloading,Polymorphism,B,Inheritance is IS-A; composition and aggregation model containment (HAS-A).
+OOP069,Design Principles,Medium,Short Answer,Explain the Liskov Substitution Principle.,,,,,"Objects of a subclass must be usable wherever the superclass is expected without breaking correctness. Subclasses must honor the parent's contract (preconditions not stronger, postconditions not weaker).",
+OOP070,Design Principles,Medium,Short Answer,Differentiate between aggregation and composition.,,,,,"Both are HAS-A. In aggregation the part can exist independently of the whole (Department and Teacher). In composition the part's lifecycle is bound to the whole (House and Room); when the whole is destroyed, so are the parts.",
+OOP071,Design Principles,Medium,MCQ,The Open/Closed Principle says software entities should be:,"Open for modification, closed for extension","Open for extension, closed for modification",Open for both,Closed for both,B,"Add new behavior by extending (e.g., new subclasses) rather than editing tested code."
+OOP072,Design Principles,Hard,Short Answer,What does the Dependency Inversion Principle say?,,,,,"High-level modules should not depend on low-level modules; both should depend on abstractions. Abstractions should not depend on details; details depend on abstractions (e.g., program to interfaces and inject implementations).",
+OOP073,Design Principles,Hard,MCQ,The Singleton pattern ensures that:,A class has only one instance and provides global access to it,A class has no instances,A class has only one method,All subclasses share fields,A,Implemented with a private constructor and a static accessor (or an enum).

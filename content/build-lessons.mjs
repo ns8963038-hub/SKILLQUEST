@@ -20,6 +20,13 @@
 // Narration: a line of lesson code may end in  //~ some words  — that text is
 // Nova's narration for the line in the Watch-it-run step. It is stripped before
 // the code is compiled or shown (backend/src/lessons/content.ts mirrors this).
+//
+// Concept steps: { "type": "concept", "ref": "OOP008" } pulls a theory question
+// (MCQ or true/false) out of content/questions/java-oop.json. The question,
+// options, answer and explanation are inlined here so the app never has to load
+// the bank. A predict step may also carry "ref": an Output Prediction item from
+// the bank, whose program is then RUN and cross-checked against the bank's
+// answer key — if the bank is wrong about its own program, the build fails.
 // =============================================================================
 
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -38,7 +45,7 @@ const only = new Set(args.filter((a) => !a.startsWith('--')));
 const BLANK = '____';
 const COMPILE_ERROR = "It doesn't compile";
 const MAX_TRACE_FRAMES = 120;
-const STEP_TYPES = new Set(['hook', 'predict', 'trace', 'explain', 'fill']);
+const STEP_TYPES = new Set(['hook', 'predict', 'trace', 'explain', 'fill', 'concept']);
 
 // Mirror of backend/src/execution/compare.ts — keep in sync.
 const normalize = (s) =>
@@ -65,6 +72,11 @@ export function splitNarration(code) {
 }
 
 const skillIds = new Set(JSON.parse(readFileSync(join(HERE, 'skills.json'), 'utf8')).skills.map((s) => s.id));
+
+// The theory question bank (imported from the team's Java OOP dataset).
+const BANK = new Map(
+  JSON.parse(readFileSync(join(HERE, 'questions', 'java-oop.json'), 'utf8')).questions.map((q) => [q.id, q]),
+);
 
 // ---- Java helpers -------------------------------------------------------------
 function compile(source, extra = []) {
@@ -170,10 +182,49 @@ for (const file of files) {
   }
 
   for (const s of steps) {
+    // ---- Concept: a theory question taken from the bank ----
+    if (s.type === 'concept') {
+      const q = BANK.get(s.ref);
+      if (!q) {
+        fail(id, `${s.id}: no question "${s.ref}" in content/questions/java-oop.json`);
+        continue;
+      }
+      if (!Array.isArray(q.options) || typeof q.answerIndex !== 'number') {
+        fail(id, `${s.id}: question ${s.ref} is a ${q.type} — only MCQ and True/False can be asked here`);
+        continue;
+      }
+      const built = { question: q.question, options: q.options, answer: q.answerIndex, explanation: q.explanation ?? '', topic: q.topic };
+      if (FILL && !same({ question: s.question, options: s.options, answer: s.answer, explanation: s.explanation, topic: s.topic }, built)) {
+        Object.assign(s, built);
+        changed = true;
+      } else if (!FILL && !same({ question: s.question, options: s.options, answer: s.answer, explanation: s.explanation, topic: s.topic }, built)) {
+        fail(id, `${s.id}: out of date with the question bank (run --fill)`);
+      }
+      continue;
+    }
+
     // ---- Predict: exactly one option is what really happens ----
     if (s.type === 'predict') {
+      // A predict step may borrow its program from an Output Prediction item in
+      // the bank; then the bank's own answer key is checked against the real run.
+      if (s.ref) {
+        const q = BANK.get(s.ref);
+        if (!q?.code) {
+          fail(id, `${s.id}: question "${s.ref}" has no runnable program`);
+          continue;
+        }
+        if (FILL && s.code !== q.code) {
+          s.code = q.code;
+          changed = true;
+        }
+      }
       const { clean } = splitNarration(s.code);
       const got = outcome(clean);
+      if (s.ref) {
+        // Cross-check the bank: its stated answer must be what the program prints.
+        const want = normalize(BANK.get(s.ref).expectedOutput ?? '');
+        if (want !== got.text) fail(id, `${s.id}: the bank says ${s.ref} prints ${JSON.stringify(want)}, but it prints ${JSON.stringify(got.text)}`);
+      }
       const matches = s.options
         .map((o, i) => ({ i, hit: normalize(o.text) === got.text }))
         .filter((m) => m.hit);

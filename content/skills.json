@@ -11,7 +11,9 @@
       "title": "Java Basics",
       "description": "Variables, data types, input/output, and program structure.",
       "conceptType": "practical",
-      "tags": ["basics"],
+      "tags": [
+        "basics"
+      ],
       "estimatedMinutes": 60,
       "displayOrder": 1,
       "prerequisites": []
@@ -21,180 +23,286 @@
       "title": "Operators & Expressions",
       "description": "Arithmetic, relational, logical operators and expression evaluation.",
       "conceptType": "practical",
-      "tags": ["basics"],
+      "tags": [
+        "basics"
+      ],
       "estimatedMinutes": 45,
       "displayOrder": 2,
-      "prerequisites": ["java-basics"]
+      "prerequisites": [
+        "java-basics"
+      ]
     },
     {
       "id": "conditionals",
       "title": "Conditionals",
       "description": "Decision-making with if / else-if / else and switch.",
       "conceptType": "practical",
-      "tags": ["basics", "control-flow"],
+      "tags": [
+        "basics",
+        "control-flow"
+      ],
       "estimatedMinutes": 60,
       "displayOrder": 3,
-      "prerequisites": ["operators-expressions"]
+      "prerequisites": [
+        "operators-expressions"
+      ]
     },
     {
       "id": "loops",
       "title": "Loops",
       "description": "Repetition with for, while, and do-while loops.",
       "conceptType": "practical",
-      "tags": ["control-flow"],
+      "tags": [
+        "control-flow"
+      ],
       "estimatedMinutes": 75,
       "displayOrder": 4,
-      "prerequisites": ["conditionals"]
+      "prerequisites": [
+        "conditionals"
+      ]
     },
     {
       "id": "methods",
       "title": "Methods",
       "description": "Defining and calling methods, parameters, and return values.",
       "conceptType": "practical",
-      "tags": ["basics"],
+      "tags": [
+        "basics"
+      ],
       "estimatedMinutes": 60,
       "displayOrder": 5,
-      "prerequisites": ["loops"]
+      "prerequisites": [
+        "loops"
+      ]
     },
     {
       "id": "arrays",
       "title": "Arrays",
       "description": "Fixed-size sequences: declaration, indexing, and iteration.",
       "conceptType": "practical",
-      "tags": ["arrays", "ds"],
+      "tags": [
+        "arrays",
+        "ds"
+      ],
       "estimatedMinutes": 90,
       "displayOrder": 6,
-      "prerequisites": ["loops"]
+      "prerequisites": [
+        "loops"
+      ]
     },
     {
       "id": "strings",
       "title": "Strings",
       "description": "String manipulation, common methods, and character handling.",
       "conceptType": "practical",
-      "tags": ["strings"],
+      "tags": [
+        "strings"
+      ],
       "estimatedMinutes": 75,
       "displayOrder": 7,
-      "prerequisites": ["arrays"]
+      "prerequisites": [
+        "arrays"
+      ]
     },
     {
       "id": "oop-basics",
       "title": "OOP Basics",
       "description": "Classes, objects, fields, constructors, and encapsulation.",
       "conceptType": "practical",
-      "tags": ["oop"],
+      "tags": [
+        "oop"
+      ],
       "estimatedMinutes": 90,
       "displayOrder": 8,
-      "prerequisites": ["methods"]
+      "prerequisites": [
+        "methods"
+      ]
     },
     {
       "id": "oop-advanced",
       "title": "OOP Advanced",
       "description": "Inheritance, polymorphism, interfaces, and abstract classes.",
       "conceptType": "practical",
-      "tags": ["oop"],
+      "tags": [
+        "oop"
+      ],
       "estimatedMinutes": 90,
       "displayOrder": 9,
-      "prerequisites": ["oop-basics"]
+      "prerequisites": [
+        "oop-basics"
+      ]
+    },
+    {
+      "id": "exceptions",
+      "title": "Exceptions & Error Handling",
+      "description": "try/catch/finally, checked vs unchecked exceptions, and writing your own.",
+      "conceptType": "practical",
+      "tags": [
+        "exceptions",
+        "oop"
+      ],
+      "estimatedMinutes": 90,
+      "displayOrder": 10,
+      "prerequisites": [
+        "oop-basics"
+      ]
     },
     {
       "id": "recursion",
       "title": "Recursion",
       "description": "Solving problems by having a method call itself; base cases.",
       "conceptType": "practical",
-      "tags": ["recursion"],
+      "tags": [
+        "recursion"
+      ],
       "estimatedMinutes": 90,
-      "displayOrder": 10,
-      "prerequisites": ["methods", "arrays"]
+      "displayOrder": 11,
+      "prerequisites": [
+        "methods",
+        "arrays"
+      ]
     },
     {
       "id": "time-complexity",
       "title": "Time Complexity",
       "description": "Big-O notation and reasoning about how algorithms scale.",
       "conceptType": "conceptual",
-      "tags": ["complexity"],
+      "tags": [
+        "complexity"
+      ],
       "estimatedMinutes": 60,
-      "displayOrder": 11,
-      "prerequisites": ["loops", "arrays"]
+      "displayOrder": 12,
+      "prerequisites": [
+        "loops",
+        "arrays"
+      ]
     },
     {
       "id": "collections",
       "title": "Collections",
       "description": "Java's List, Set, and Map and when to use each.",
       "conceptType": "practical",
-      "tags": ["collections", "ds"],
+      "tags": [
+        "collections",
+        "ds"
+      ],
       "estimatedMinutes": 90,
-      "displayOrder": 12,
-      "prerequisites": ["oop-basics", "arrays"]
+      "displayOrder": 13,
+      "prerequisites": [
+        "oop-basics",
+        "arrays"
+      ]
     },
     {
       "id": "searching",
       "title": "Searching",
       "description": "Linear search and binary search on sorted data.",
       "conceptType": "practical",
-      "tags": ["searching", "algorithms"],
+      "tags": [
+        "searching",
+        "algorithms"
+      ],
       "estimatedMinutes": 75,
-      "displayOrder": 13,
-      "prerequisites": ["arrays", "time-complexity"]
+      "displayOrder": 14,
+      "prerequisites": [
+        "arrays",
+        "time-complexity"
+      ]
     },
     {
       "id": "sorting",
       "title": "Sorting",
       "description": "Bubble, selection, insertion, and an intro to merge sort.",
       "conceptType": "practical",
-      "tags": ["sorting", "algorithms"],
+      "tags": [
+        "sorting",
+        "algorithms"
+      ],
       "estimatedMinutes": 105,
-      "displayOrder": 14,
-      "prerequisites": ["recursion", "time-complexity"]
+      "displayOrder": 15,
+      "prerequisites": [
+        "recursion",
+        "time-complexity"
+      ]
     },
     {
       "id": "linked-lists",
       "title": "Linked Lists",
       "description": "Node-based sequences: traversal, insertion, and deletion.",
       "conceptType": "practical",
-      "tags": ["linkedlist", "ds"],
+      "tags": [
+        "linkedlist",
+        "ds"
+      ],
       "estimatedMinutes": 90,
-      "displayOrder": 15,
-      "prerequisites": ["oop-basics", "recursion"]
+      "displayOrder": 16,
+      "prerequisites": [
+        "oop-basics",
+        "recursion"
+      ]
     },
     {
       "id": "stacks-queues",
       "title": "Stacks & Queues",
       "description": "LIFO and FIFO structures and their classic uses.",
       "conceptType": "practical",
-      "tags": ["stack-queue", "ds"],
+      "tags": [
+        "stack-queue",
+        "ds"
+      ],
       "estimatedMinutes": 75,
-      "displayOrder": 16,
-      "prerequisites": ["linked-lists"]
+      "displayOrder": 17,
+      "prerequisites": [
+        "linked-lists"
+      ]
     },
     {
       "id": "hashing",
       "title": "Hashing",
       "description": "Hash maps and hash sets for O(1) lookup patterns.",
       "conceptType": "practical",
-      "tags": ["hashing", "ds"],
+      "tags": [
+        "hashing",
+        "ds"
+      ],
       "estimatedMinutes": 75,
-      "displayOrder": 17,
-      "prerequisites": ["collections", "strings"]
+      "displayOrder": 18,
+      "prerequisites": [
+        "collections",
+        "strings"
+      ]
     },
     {
       "id": "trees-basics",
       "title": "Trees (Basics)",
       "description": "Binary trees and traversals (in/pre/post-order).",
       "conceptType": "practical",
-      "tags": ["trees", "ds"],
+      "tags": [
+        "trees",
+        "ds"
+      ],
       "estimatedMinutes": 105,
-      "displayOrder": 18,
-      "prerequisites": ["recursion", "linked-lists"]
+      "displayOrder": 19,
+      "prerequisites": [
+        "recursion",
+        "linked-lists"
+      ]
     },
     {
       "id": "interview-patterns",
       "title": "Interview Patterns",
       "description": "Two-pointer, sliding window, and frequency-map patterns.",
       "conceptType": "practical",
-      "tags": ["patterns", "interview"],
+      "tags": [
+        "patterns",
+        "interview"
+      ],
       "estimatedMinutes": 120,
-      "displayOrder": 19,
-      "prerequisites": ["searching", "hashing"]
+      "displayOrder": 20,
+      "prerequisites": [
+        "searching",
+        "hashing"
+      ]
     }
   ]
 }

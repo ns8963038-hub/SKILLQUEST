@@ -13,6 +13,7 @@ the source** — edit here, then re-seed.
 | `goal_profiles.json` | Per-goal weight vectors over skill tags — makes the roadmap change by goal |
 | `levels/*.json` | One file per playable level: problem, starter code, hidden test cases |
 | `lessons/*.json` | One Learn-mode lesson per skill (PRIMM steps), played before its levels |
+| `questions/java-oop.json` | Java OOP theory question bank (73 items) used by lesson "concept" steps |
 | `verify-levels.mjs` / `build-lessons.mjs` | Checkers — compile and RUN every program; fill in generated fields |
 | `tools/Tracer.java` | Records a program's execution (JDI) for the lessons' "Watch it run" step |
 
@@ -46,6 +47,8 @@ A lesson is a list of steps: `hook` → `predict` → `trace` (`"from": "p1"`) �
   trace from the real JVM, and runs every accepted fill-in answer (and every
   listed `wrong` answer, which must fail).
 - Options can be outputs, `It doesn't compile`, or `Crashes: <ExceptionName>`.
+- A **concept** step asks a theory question from the bank: `{"id": "c1", "type": "concept", "ref": "OOP008"}`. The builder inlines the question, options, answer and explanation, and fails if the id is missing or the item isn't an MCQ / true-false. Put concept steps AFTER the `explain` step, so they count as evidence.
+- A predict step may also carry `"ref": "<bank id>"` for an Output Prediction item: the builder uses the bank's program, runs it, and fails if the bank's own answer key disagrees with the real output.
 - Make the fill-in program test **several inputs**, so a literal answer can't pass.
 - Then `node content/build-lessons.mjs` (check mode) and `npm run seed`.
 

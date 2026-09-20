@@ -1,0 +1,47 @@
+{
+  "id": "strings-04",
+  "skillId": "strings",
+  "title": "Build It Fast (StringBuilder)",
+  "difficulty": 2,
+  "statementMd": "Joining text with `+` inside a loop copies the whole string every round — O(n²). A **StringBuilder** changes one buffer instead.\n\nJoin the words with `-` between them, then print the joined text and its length.\n\n**Input**\nLine 1: `n`. Line 2: n words separated by spaces.\n\n**Output**\nLine 1: the words joined by `-`. Line 2: `Length: <characters>`.\n\nBuild the answer with a StringBuilder (`append`), not with `+` in the loop.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n; i++) {\n            String word = sc.next();\n            // TODO: append the word, with a \"-\" before it except for the first one\n        }\n        // TODO: print the joined text, then its length\n    }\n}",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n; i++) {\n            String word = sc.next();\n            if (i > 0) sb.append('-');\n            sb.append(word);\n        }\n        System.out.println(sb);\n        System.out.println(\"Length: \" + sb.length());\n    }\n}",
+  "hints": [
+    "sb.append(x) adds to the end and returns the same builder, so calls can be chained.",
+    "Add the separator only when i > 0, so the first word has nothing in front of it. sb.length() is the character count."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 4,
+  "testCases": [
+    {
+      "stdin": "3\njava is fun\n",
+      "expectedOutput": "java-is-fun\nLength: 11",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "1\nhello\n",
+      "expectedOutput": "hello\nLength: 5",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "4\na b c d\n",
+      "expectedOutput": "a-b-c-d\nLength: 7",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "2\nSkill Quest\n",
+      "expectedOutput": "Skill-Quest\nLength: 11",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

@@ -10,10 +10,12 @@ import {
   countsAsEvidence,
   fillProgram,
   isAcceptedFill,
+  isQuestion,
   sanitizeLesson,
   scoreAnswers,
   type LessonContent,
   type LessonStep,
+  type PredictOption,
 } from '../lessons/content';
 import { nextLevelInSkill } from '../progress/levels';
 
@@ -43,6 +45,23 @@ async function loadLesson(skillId: string, userId: string) {
 // Find one step of a lesson by id and type.
 function findStep(content: LessonContent, stepId: string, type: LessonStep['type']) {
   return content.steps.find((s) => s.id === stepId && s.type === type);
+}
+
+// Find a question step (Predict or Concept) by id.
+function findQuestion(content: LessonContent, stepId: string) {
+  return content.steps.find((s) => s.id === stepId && isQuestion(s));
+}
+
+// What to tell the student about the option they picked, and about the right
+// answer. Predict options carry their own explanation; a concept question has
+// one explanation for the whole question.
+function explain(step: LessonStep, choice: number | undefined): { why?: string; answerWhy?: string } {
+  if (step.type === 'concept') return { why: step.explanation, answerWhy: step.explanation };
+  const options = (step.options ?? []) as PredictOption[];
+  return {
+    why: choice === undefined ? undefined : options[choice]?.why,
+    answerWhy: options[step.answer ?? 0]?.why,
+  };
 }
 
 // GET /api/lessons/:skillId — the lesson to play (no answers inside).
@@ -105,7 +124,7 @@ const AnswerBody = z.object({
   reveal: z.boolean().optional(),
 });
 
-// POST /api/lessons/:skillId/answer — check one Predict answer.
+// POST /api/lessons/:skillId/answer — check one question (Predict or Concept).
 //
 // Only the FIRST answer to a step counts as evidence: it is recorded with an
 // atomic "insert if absent" on the answered map, so a retry (or a double click)
@@ -118,14 +137,14 @@ lessonsRouter.post(
     const { stepId, choice, reveal } = AnswerBody.parse(req.body);
 
     const found = await loadLesson(skillId, userId);
-    const step = found && findStep(found.content, stepId, 'predict');
+    const step = found && findQuestion(found.content, stepId);
     if (!found || !step) {
       res.status(404).json({ error: 'no such question' });
       return;
     }
     const answer = step.answer ?? 0;
-    const options = step.options ?? [];
     const correct = choice === answer;
+    const { why, answerWhy } = explain(step, choice);
 
     // Record the first answer (and only the first) for this step. The row is
     // created first in case the lesson was opened without /start.
@@ -161,9 +180,9 @@ lessonsRouter.post(
     res.json({
       correct,
       // Why the option they picked is right or wrong; on a reveal, the answer too.
-      why: choice !== undefined ? options[choice]?.why : undefined,
+      why,
       answer: correct || reveal ? answer : undefined,
-      answerWhy: correct || reveal ? options[answer]?.why : undefined,
+      answerWhy: correct || reveal ? answerWhy : undefined,
       firstTry,
       mastery,
     });

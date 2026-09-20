@@ -970,6 +970,19 @@
       "pattern": "class Student {\n    private String name;\n    Student(String name) { this.name = name; }\n    String getName() { return name; }\n}"
     },
     {
+      "id": "c1",
+      "type": "concept",
+      "ref": "OOP008",
+      "question": "The compiler still provides a default constructor if you define a parameterized constructor.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answer": 1,
+      "explanation": "Once any constructor is declared explicitly, the compiler no longer adds the default one.",
+      "topic": "Constructors"
+    },
+    {
       "id": "p2",
       "type": "predict",
       "prompt": "A classic trap. What does this print?",

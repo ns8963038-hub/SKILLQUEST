@@ -27,6 +27,16 @@ const LESSON: LessonContent = {
       answer: 0,
     },
     { id: 'run', type: 'trace', from: 'p1', trace: { frames: [] } },
+    {
+      id: 'c1',
+      type: 'concept',
+      ref: 'OOP008',
+      topic: 'Constructors',
+      question: 'The compiler still provides a default constructor if you define a parameterized constructor.',
+      options: ['True', 'False'],
+      answer: 1,
+      explanation: 'Once any constructor is declared explicitly, the compiler no longer adds the default one.',
+    },
     { id: 'fill', type: 'fill', prompt: 'Finish it', code: 'int a = ____;', accepted: ['1', '0 + 1'], expectedOutput: '1', hint: 'one', explain: 'because' },
   ],
 };
@@ -56,6 +66,14 @@ describe('sanitizeLesson', () => {
     expect(fill).not.toHaveProperty('explain');
     expect(fill?.expectedOutput).toBe('1');
     expect(fill?.hint).toBe('one');
+  });
+
+  it('sends a concept question without its answer or explanation', () => {
+    const concept = steps.find((s) => s.id === 'c1') as unknown as { question: string; options: string[] };
+    expect(concept.options).toEqual(['True', 'False']);
+    expect(concept.question).toContain('default constructor');
+    expect(steps.find((s) => s.id === 'c1')).not.toHaveProperty('answer');
+    expect(JSON.stringify(steps)).not.toContain('no longer adds the default one');
   });
 
   it('gives the trace step the code and narration of the step it traces', () => {
@@ -101,9 +119,9 @@ describe('lesson answers as evidence', () => {
 });
 
 describe('scoreAnswers', () => {
-  it('counts first-try correct answers out of the lesson questions', () => {
-    expect(scoreAnswers({ p1: true }, LESSON.steps)).toEqual({ correct: 1, total: 1 });
-    expect(scoreAnswers({ p1: false }, LESSON.steps)).toEqual({ correct: 0, total: 1 });
-    expect(scoreAnswers({}, LESSON.steps)).toEqual({ correct: 0, total: 1 });
+  it('counts first-try correct answers across predict AND concept questions', () => {
+    expect(scoreAnswers({ p1: true, c1: true }, LESSON.steps)).toEqual({ correct: 2, total: 2 });
+    expect(scoreAnswers({ p1: false, c1: true }, LESSON.steps)).toEqual({ correct: 1, total: 2 });
+    expect(scoreAnswers({}, LESSON.steps)).toEqual({ correct: 0, total: 2 });
   });
 });

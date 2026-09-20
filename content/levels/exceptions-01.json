@@ -1,0 +1,47 @@
+{
+  "id": "exceptions-01",
+  "skillId": "exceptions",
+  "title": "Catch It Before It Crashes",
+  "difficulty": 1,
+  "statementMd": "Dividing by zero throws an **ArithmeticException** and stops the program. Catch it instead: print the result of `a / b`, or `Cannot divide by zero` when b is 0.\n\n**Input**\nTwo integers `a b`.\n\n**Output**\nThe whole-number result, or `Cannot divide by zero`.\n\nUse try/catch — don’t check b with an `if`. Catching the exception is the point of this level.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        // TODO: try the division; catch ArithmeticException and print the message\n    }\n}",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        try {\n            System.out.println(a / b);\n        } catch (ArithmeticException e) {\n            System.out.println(\"Cannot divide by zero\");\n        }\n    }\n}",
+  "hints": [
+    "Put the risky line inside try { … } and handle the failure in catch (ArithmeticException e) { … }.",
+    "Integer division by zero throws ArithmeticException; the catch block runs instead of the program crashing."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 1,
+  "testCases": [
+    {
+      "stdin": "10 2\n",
+      "expectedOutput": "5",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "7 0\n",
+      "expectedOutput": "Cannot divide by zero",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "-9 3\n",
+      "expectedOutput": "-3",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "0 5\n",
+      "expectedOutput": "0",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

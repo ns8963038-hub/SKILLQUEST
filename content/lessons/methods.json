@@ -228,6 +228,21 @@
       "pattern": "static int add(int a, int b) {\n    return a + b;\n}\n\nint total = add(2, 3); // 5"
     },
     {
+      "id": "c1",
+      "type": "concept",
+      "ref": "OOP025",
+      "question": "Method overloading is an example of:",
+      "options": [
+        "Runtime polymorphism",
+        "Compile-time polymorphism",
+        "Encapsulation",
+        "Abstraction"
+      ],
+      "answer": 1,
+      "explanation": "The compiler chooses the overload based on argument types at compile time.",
+      "topic": "Polymorphism"
+    },
+    {
       "id": "p2",
       "type": "predict",
       "prompt": "A classic trap. What does this print?",

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Product** | SkillQuest — AI-Powered Gamified Skill Learning Platform |
-| **Version** | 1.2 — adds F8 Learn mode (a PRIMM lesson before each topic's levels); previous stretch list renumbered F9 |
+| **Version** | 1.3 — course-material alignment: adds the `exceptions` skill (20 topics), 56 levels, and concept checks drawn from the team's Java OOP question bank |
 | **Team** | Nandan S (1SP23AD016), Anjith K.J (1SP23AD032), Bhanushree C.V (1SP23AD005) |
 | **Institution** | S.E.A College of Engineering & Technology, Bangalore — Dept. of AI & DS, VTU |
 | **Timeline** | Single semester (~14 working weeks) |
@@ -66,7 +66,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - **Acceptance:** two students with different quiz results and hours/week receive visibly different roadmaps.
 
 ### F2 — Personalized Roadmap (P0)
-- Skills are stored as a **prerequisite DAG** (directed acyclic graph): e.g., `variables → loops → functions → recursion → …`.
+- Skills are stored as a **prerequisite DAG** (directed acyclic graph): e.g., `variables → loops → functions → recursion → …`. The track holds **20 skills**: 10 Java fundamentals (including exception handling) and 10 DSA topics.
 - The roadmap engine applies **goal-specific skill weights**, then does a weighted topological sort (prerequisites always respected; the goal only orders choices among currently-unblocked nodes), drops zero-weight optional nodes, and packs the rest into weeks by hours/week. Full algorithm in TRD §6.2.
 - The goal must **demonstrably** change the plan — otherwise the personalization claim is dropped from this document.
 - Rendered as an interactive node tree on the dashboard: completed / current / locked states.
@@ -76,7 +76,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - Monaco editor in the browser; each level = problem statement + starter code + hidden test cases.
 - Code execution via **Judge0** (hosted API or self-hosted) — never executed on our own backend.
 - Per-level: pass/fail per test case, XP award on full pass, hint system (hint costs a small XP amount — gamified help).
-- **Content commitment: 40–50 levels** across the Java + DSA track (this is a team-wide authoring task, not just engineering).
+- **Content commitment: 40–50 levels** across the Java + DSA track (this is a team-wide authoring task, not just engineering). **Delivered: 56 levels across 20 skills**, every expected output machine-verified (`content/verify-levels.mjs`).
 - **Acceptance:** a student can complete a level end-to-end — read problem, write code, run tests, earn XP. Timing requirement: **UI acknowledges the run in < 200 ms**; **p95 end-to-end test execution < 15 s** (JVM startup per test case makes anything faster infeasible — see TRD §5). Actual p95 is measured during UAT and reported.
 
 ### F4 — Gamification Layer (P0)
@@ -112,7 +112,8 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - **No passive content** — no videos or long notes (see Problem §2); every step asks the student to act.
 - Adaptive: tested-out topics are skipped by the roadmap; high-mastery students are offered a recap or skip; first answers update BKT mastery with multiple-choice parameters.
 - Answers are checked server-side; fill-in answers not in the accepted list are actually executed.
-- **Acceptance:** all 19 topics have a lesson whose every expected output is machine-verified; a new student can go lesson → first level in one flow; lesson start / answer / complete / skip are logged. Design: docs/notes/M7-learn-mode.md.
+- Lessons may also ask a **concept question** (theory: MCQ or true/false) after the teaching, taken from the team's Java OOP question bank (`content/questions/java-oop.json`) — the kind of thing service-company MCQ rounds test and code-only levels cannot.
+- **Acceptance:** all 20 topics have a lesson whose every expected output is machine-verified; a new student can go lesson → first level in one flow; lesson start / answer / complete / skip are logged. Design: docs/notes/M7-learn-mode.md, alignment: docs/notes/M8-syllabus-alignment.md.
 
 ### F9 — Stretch (P2)
 - LSTM dropout model comparison (report material), resume bullet generator, email nudges, faculty/TPO dashboard.

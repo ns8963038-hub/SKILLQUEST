@@ -1,0 +1,47 @@
+{
+  "id": "conditionals-04",
+  "skillId": "conditionals",
+  "title": "Day Type (switch)",
+  "difficulty": 1,
+  "statementMd": "A `switch` chooses between many fixed values without a long if / else-if chain. Given a day number (1 = Monday … 7 = Sunday), print `Weekday`, `Weekend`, or `Invalid day`.\n\n**Input**\nOne integer `day`.\n\n**Output**\n`Weekday`, `Weekend` or `Invalid day`.\n\nUse `switch` — note that several cases can share one result.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int day = sc.nextInt();\n        switch (day) {\n            // TODO: 1-5 are weekdays, 6 and 7 are the weekend, anything else is invalid\n        }\n    }\n}",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int day = sc.nextInt();\n        switch (day) {\n            case 1:\n            case 2:\n            case 3:\n            case 4:\n            case 5:\n                System.out.println(\"Weekday\");\n                break;\n            case 6:\n            case 7:\n                System.out.println(\"Weekend\");\n                break;\n            default:\n                System.out.println(\"Invalid day\");\n        }\n    }\n}",
+  "hints": [
+    "Cases with no code fall through to the next one, so `case 6: case 7:` share a result.",
+    "Every branch needs a break (or it falls into the next one), and default catches the rest."
+  ],
+  "xpReward": 50,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 4,
+  "testCases": [
+    {
+      "stdin": "3\n",
+      "expectedOutput": "Weekday",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "7\n",
+      "expectedOutput": "Weekend",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "9\n",
+      "expectedOutput": "Invalid day",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "1\n",
+      "expectedOutput": "Weekday",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}

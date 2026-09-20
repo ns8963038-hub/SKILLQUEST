@@ -1,0 +1,916 @@
+{
+  "//": "Java OOP question bank. Source: team-supplied dataset (docs/java_oops_dataset.json), imported 2026-09-20. Provenance of the original file is unconfirmed — cite it before publishing the report if it came from a third party.",
+  "//usage": "Lessons reference these by id from a \"concept\" step (\"ref\": \"OOP008\"); content/build-lessons.mjs inlines the question and checks the id exists. Output Prediction items carry a runnable program, so the builder RUNS them and confirms expectedOutput matches.",
+  "version": 1,
+  "questions": [
+    {
+      "id": "OOP001",
+      "topic": "Classes & Objects",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Which keyword is used to create an object in Java?",
+      "options": [
+        "new",
+        "create",
+        "alloc",
+        "make"
+      ],
+      "answerIndex": 0,
+      "explanation": "`new` allocates memory on the heap and invokes the constructor."
+    },
+    {
+      "id": "OOP002",
+      "topic": "Classes & Objects",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Which of the following is a blueprint from which objects are created?",
+      "options": [
+        "Method",
+        "Class",
+        "Package",
+        "Variable"
+      ],
+      "answerIndex": 1,
+      "explanation": "A class defines the fields and behavior; objects are its instances."
+    },
+    {
+      "id": "OOP003",
+      "topic": "Classes & Objects",
+      "difficulty": "Easy",
+      "type": "True/False",
+      "question": "An object is created as soon as a class is declared.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "Declaring a class only defines a type. An object exists only after `new` (or another creation mechanism) is executed."
+    },
+    {
+      "id": "OOP004",
+      "topic": "Classes & Objects",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "Where are Java objects stored in memory?",
+      "options": [
+        "Stack",
+        "Heap",
+        "Metaspace",
+        "CPU registers"
+      ],
+      "answerIndex": 1,
+      "explanation": "Objects live on the heap; local reference variables live on the thread's stack."
+    },
+    {
+      "id": "OOP005",
+      "topic": "Classes & Objects",
+      "difficulty": "Medium",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class A {\n    int x = 5;\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        A p = new A();\n        A q = p;\n        q.x = 9;\n        System.out.println(p.x);\n    }\n}",
+      "expectedOutput": "9",
+      "explanation": "p and q are two references to the same object, so changing x through q is visible through p."
+    },
+    {
+      "id": "OOP006",
+      "topic": "Constructors",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Which statement about constructors is TRUE?",
+      "options": [
+        "They have a return type of void",
+        "They have the same name as the class and no return type",
+        "They can be declared final",
+        "They can be declared static"
+      ],
+      "answerIndex": 1,
+      "explanation": "Constructors share the class name, have no return type, and cannot be final, static, or abstract."
+    },
+    {
+      "id": "OOP007",
+      "topic": "Constructors",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "If you write no constructor in a class, the compiler provides:",
+      "options": [
+        "Nothing; the class cannot be instantiated",
+        "A default no-argument constructor",
+        "A copy constructor",
+        "A private constructor"
+      ],
+      "answerIndex": 1,
+      "explanation": "The compiler adds a public no-arg default constructor (same access as the class)."
+    },
+    {
+      "id": "OOP008",
+      "topic": "Constructors",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "The compiler still provides a default constructor if you define a parameterized constructor.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "Once any constructor is declared explicitly, the compiler no longer adds the default one."
+    },
+    {
+      "id": "OOP009",
+      "topic": "Constructors",
+      "difficulty": "Medium",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class P {\n    P() { System.out.println(\"P\"); }\n}\n\nclass C extends P {\n    C() { System.out.println(\"C\"); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new C();\n    }\n}",
+      "expectedOutput": "P\nC",
+      "explanation": "The subclass constructor implicitly calls `super()` first, so the parent constructor runs before the child body."
+    },
+    {
+      "id": "OOP010",
+      "topic": "Constructors",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "What is constructor chaining?",
+      "answer": "Calling one constructor from another: `this(...)` invokes another constructor of the same class and `super(...)` invokes a parent constructor. The call must be the first statement in the constructor.",
+      "explanation": "Chaining avoids duplicated initialization code and guarantees parent initialization happens first."
+    },
+    {
+      "id": "OOP011",
+      "topic": "Constructors",
+      "difficulty": "Hard",
+      "type": "MCQ",
+      "question": "Which design commonly relies on a private constructor?",
+      "options": [
+        "Singleton pattern",
+        "Abstract classes",
+        "Interfaces",
+        "Method overloading"
+      ],
+      "answerIndex": 0,
+      "explanation": "A private constructor prevents outside instantiation; the class controls creation itself (Singleton, utility classes, factories)."
+    },
+    {
+      "id": "OOP012",
+      "topic": "Encapsulation",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Encapsulation is best achieved by:",
+      "options": [
+        "Making fields public",
+        "Making fields private and exposing public getters/setters",
+        "Using only static methods",
+        "Using inheritance"
+      ],
+      "answerIndex": 1,
+      "explanation": "Data is hidden behind a controlled public interface."
+    },
+    {
+      "id": "OOP013",
+      "topic": "Encapsulation",
+      "difficulty": "Easy",
+      "type": "True/False",
+      "question": "Encapsulation and abstraction mean exactly the same thing.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "Encapsulation bundles data with methods and restricts direct access. Abstraction hides implementation complexity and exposes only essential behavior."
+    },
+    {
+      "id": "OOP014",
+      "topic": "Encapsulation",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "Why use setter methods instead of public fields?",
+      "answer": "Setters allow validation, enforce invariants, permit read-only or computed properties, enable logging/notification, and let you change the internal representation without breaking callers."
+    },
+    {
+      "id": "OOP015",
+      "topic": "Encapsulation",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "Which of these classes is immutable?",
+      "options": [
+        "String",
+        "StringBuilder",
+        "ArrayList",
+        "HashMap"
+      ],
+      "answerIndex": 0,
+      "explanation": "String objects cannot be modified after creation; the others are mutable."
+    },
+    {
+      "id": "OOP016",
+      "topic": "Encapsulation",
+      "difficulty": "Hard",
+      "type": "Short Answer",
+      "question": "How do you make a class immutable?",
+      "answer": "Declare the class `final`, make all fields `private final`, provide no setters, initialize everything in the constructor, and return defensive copies of any mutable fields (and copy mutable inputs on the way in).",
+      "explanation": "Immutable objects are inherently thread-safe and safe to use as map keys."
+    },
+    {
+      "id": "OOP017",
+      "topic": "Inheritance",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Which keyword is used to inherit a class in Java?",
+      "options": [
+        "implements",
+        "extends",
+        "inherits",
+        "super"
+      ],
+      "answerIndex": 1,
+      "explanation": "A class uses `extends` for a superclass and `implements` for interfaces."
+    },
+    {
+      "id": "OOP018",
+      "topic": "Inheritance",
+      "difficulty": "Easy",
+      "type": "True/False",
+      "question": "Java supports multiple inheritance of classes.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "A class can extend only one class. Multiple inheritance of type is achieved through interfaces."
+    },
+    {
+      "id": "OOP019",
+      "topic": "Inheritance",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "Which of the following is NOT inherited by a subclass?",
+      "options": [
+        "Protected methods",
+        "Public fields",
+        "Constructors",
+        "Public methods"
+      ],
+      "answerIndex": 2,
+      "explanation": "Constructors are not inherited (they can be invoked via `super(...)`)."
+    },
+    {
+      "id": "OOP020",
+      "topic": "Inheritance",
+      "difficulty": "Medium",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class A {\n    void show() { System.out.println(\"A\"); }\n}\n\nclass B extends A {\n    @Override\n    void show() { System.out.println(\"B\"); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        A obj = new B();\n        obj.show();\n    }\n}",
+      "expectedOutput": "B",
+      "explanation": "Overridden instance methods are dispatched on the actual object type at runtime."
+    },
+    {
+      "id": "OOP021",
+      "topic": "Inheritance",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "What is the diamond problem and how does Java handle it?",
+      "answer": "Ambiguity that arises when a class inherits the same member from two parents that share a common ancestor. Java avoids it for classes by allowing only single class inheritance. For interfaces with conflicting default methods, the implementing class must override the method and may pick one with `Interface.super.method()`."
+    },
+    {
+      "id": "OOP022",
+      "topic": "Inheritance",
+      "difficulty": "Hard",
+      "type": "MCQ",
+      "question": "Which class is the root of the Java class hierarchy?",
+      "options": [
+        "Class",
+        "Object",
+        "Root",
+        "Main"
+      ],
+      "answerIndex": 1,
+      "explanation": "Every class implicitly extends `java.lang.Object`."
+    },
+    {
+      "id": "OOP023",
+      "topic": "Inheritance",
+      "difficulty": "Hard",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class A {\n    static void f() { System.out.println(\"A\"); }\n}\n\nclass B extends A {\n    static void f() { System.out.println(\"B\"); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        A obj = new B();\n        obj.f();\n    }\n}",
+      "expectedOutput": "A",
+      "explanation": "Static methods are hidden, not overridden. They are resolved at compile time using the reference type (A)."
+    },
+    {
+      "id": "OOP024",
+      "topic": "Inheritance",
+      "difficulty": "Hard",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class A {\n    int x = 10;\n}\n\nclass B extends A {\n    int x = 20;\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        A obj = new B();\n        System.out.println(obj.x);\n    }\n}",
+      "expectedOutput": "10",
+      "explanation": "Fields are not polymorphic. Field access is resolved by the reference type (A), not the object type."
+    },
+    {
+      "id": "OOP025",
+      "topic": "Polymorphism",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Method overloading is an example of:",
+      "options": [
+        "Runtime polymorphism",
+        "Compile-time polymorphism",
+        "Encapsulation",
+        "Abstraction"
+      ],
+      "answerIndex": 1,
+      "explanation": "The compiler chooses the overload based on argument types at compile time."
+    },
+    {
+      "id": "OOP026",
+      "topic": "Polymorphism",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Method overriding is resolved at:",
+      "options": [
+        "Compile time",
+        "Runtime",
+        "Link time",
+        "Build time"
+      ],
+      "answerIndex": 1,
+      "explanation": "The JVM picks the method by the actual object type (dynamic dispatch)."
+    },
+    {
+      "id": "OOP027",
+      "topic": "Polymorphism",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "Methods can be overloaded by changing only the return type.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "Overloads must differ in parameter list (number, type, or order). Return type alone is not enough."
+    },
+    {
+      "id": "OOP028",
+      "topic": "Polymorphism",
+      "difficulty": "Medium",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "public class Main {\n    static void p(int a)    { System.out.println(\"int\"); }\n    static void p(double a) { System.out.println(\"double\"); }\n\n    public static void main(String[] args) {\n        p(5L);\n    }\n}",
+      "expectedOutput": "double",
+      "explanation": "A `long` cannot narrow to `int` implicitly, but it can widen to `double`, so `p(double)` is chosen."
+    },
+    {
+      "id": "OOP029",
+      "topic": "Polymorphism",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "Differentiate between method overloading and method overriding.",
+      "answer": "Overloading: same name, different parameters, same class (or inherited), resolved at compile time. Overriding: same signature in a subclass that redefines the parent's behavior, resolved at runtime; requires IS-A relationship and cannot reduce access or throw broader checked exceptions."
+    },
+    {
+      "id": "OOP030",
+      "topic": "Polymorphism",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "Which annotation asks the compiler to verify that a method really overrides a superclass method?",
+      "options": [
+        "@Override",
+        "@Overload",
+        "@Super",
+        "@Verify"
+      ],
+      "answerIndex": 0,
+      "explanation": "`@Override` causes a compile error if the method does not override anything."
+    },
+    {
+      "id": "OOP031",
+      "topic": "Polymorphism",
+      "difficulty": "Hard",
+      "type": "MCQ",
+      "question": "Which is NOT allowed when overriding a public method?",
+      "options": [
+        "Changing the method body",
+        "Making it protected",
+        "Returning a covariant (subtype) return type",
+        "Adding @Override"
+      ],
+      "answerIndex": 1,
+      "explanation": "An overriding method cannot have weaker (more restrictive) access than the method it overrides."
+    },
+    {
+      "id": "OOP032",
+      "topic": "Polymorphism",
+      "difficulty": "Hard",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "public class Main {\n    static void f(Object o) { System.out.println(\"Object\"); }\n    static void f(String s) { System.out.println(\"String\"); }\n\n    public static void main(String[] args) {\n        f(null);\n    }\n}",
+      "expectedOutput": "String",
+      "explanation": "Java picks the most specific applicable overload; String is more specific than Object."
+    },
+    {
+      "id": "OOP033",
+      "topic": "Polymorphism",
+      "difficulty": "Hard",
+      "type": "Short Answer",
+      "question": "Can static or private methods be overridden?",
+      "answer": "No. A static method with the same signature in a subclass hides the parent's method (resolved by reference type). A private method is not visible to the subclass, so a same-named method is simply a new, unrelated method."
+    },
+    {
+      "id": "OOP034",
+      "topic": "Polymorphism",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "An overriding method may throw a broader checked exception than the method it overrides.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "It may throw the same, a narrower, or no checked exception, but never a broader checked one."
+    },
+    {
+      "id": "OOP035",
+      "topic": "Abstraction",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Which keyword declares a class that cannot be instantiated and may contain abstract methods?",
+      "options": [
+        "final",
+        "abstract",
+        "static",
+        "virtual"
+      ],
+      "answerIndex": 1,
+      "explanation": "An abstract class is meant to be extended."
+    },
+    {
+      "id": "OOP036",
+      "topic": "Abstraction",
+      "difficulty": "Easy",
+      "type": "True/False",
+      "question": "An abstract class can have constructors.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 0,
+      "explanation": "They are invoked through `super(...)` when a concrete subclass is created."
+    },
+    {
+      "id": "OOP037",
+      "topic": "Abstraction",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "A class that contains an abstract method must be:",
+      "options": [
+        "Declared abstract",
+        "Declared final",
+        "Declared static",
+        "Declared public"
+      ],
+      "answerIndex": 0,
+      "explanation": "Otherwise the class would have unimplemented behavior yet be instantiable."
+    },
+    {
+      "id": "OOP038",
+      "topic": "Abstraction",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "An abstract class must contain at least one abstract method.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "An abstract class may have zero abstract methods; it is abstract simply to prevent instantiation."
+    },
+    {
+      "id": "OOP039",
+      "topic": "Abstraction",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "When would you choose an abstract class over an interface?",
+      "answer": "When related classes share state (fields), constructors, or common concrete implementation, or when you need non-public members. Use an interface to define a capability/contract that unrelated classes can implement, especially when multiple inheritance of type is needed."
+    },
+    {
+      "id": "OOP040",
+      "topic": "Abstraction",
+      "difficulty": "Hard",
+      "type": "MCQ",
+      "question": "Which modifier combination is INVALID for a method?",
+      "options": [
+        "public static",
+        "abstract final",
+        "protected abstract",
+        "private static"
+      ],
+      "answerIndex": 1,
+      "explanation": "`abstract` requires overriding, while `final` forbids it, so they contradict each other."
+    },
+    {
+      "id": "OOP041",
+      "topic": "Interfaces",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Which keyword does a class use to adopt an interface?",
+      "options": [
+        "extends",
+        "implements",
+        "uses",
+        "inherits"
+      ],
+      "answerIndex": 1,
+      "explanation": "A class `implements` interfaces; an interface `extends` other interfaces."
+    },
+    {
+      "id": "OOP042",
+      "topic": "Interfaces",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "Since Java 8, interfaces can additionally contain:",
+      "options": [
+        "Constructors",
+        "Default and static methods",
+        "Instance fields",
+        "Protected members"
+      ],
+      "answerIndex": 1,
+      "explanation": "`default` and `static` methods were added in Java 8 (`private` methods in Java 9)."
+    },
+    {
+      "id": "OOP043",
+      "topic": "Interfaces",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "Fields declared in an interface are implicitly public, static, and final.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 0,
+      "explanation": "Interface fields are constants."
+    },
+    {
+      "id": "OOP044",
+      "topic": "Interfaces",
+      "difficulty": "Medium",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "interface X {\n    default void hi() { System.out.println(\"X\"); }\n}\n\ninterface Y {\n    default void hi() { System.out.println(\"Y\"); }\n}\n\nclass Z implements X, Y {\n    public void hi() { X.super.hi(); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new Z().hi();\n    }\n}",
+      "expectedOutput": "X",
+      "explanation": "When two interfaces provide the same default method, the class must override it and can choose one with `X.super.hi()`."
+    },
+    {
+      "id": "OOP045",
+      "topic": "Interfaces",
+      "difficulty": "Hard",
+      "type": "Short Answer",
+      "question": "What is a functional interface?",
+      "answer": "An interface with exactly one abstract method (it may also have default/static methods). It can be the target of a lambda or method reference. `@FunctionalInterface` makes the compiler enforce this. Examples: `Runnable`, `Comparator`, `Function`."
+    },
+    {
+      "id": "OOP046",
+      "topic": "Interfaces",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "An interface can extend more than one interface.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 0,
+      "explanation": "Interfaces support multiple inheritance of type via `extends A, B`."
+    },
+    {
+      "id": "OOP047",
+      "topic": "Static & Final",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Static members belong to:",
+      "options": [
+        "Each object",
+        "The class",
+        "The JVM only",
+        "The method"
+      ],
+      "answerIndex": 1,
+      "explanation": "There is one copy per class, shared by all instances."
+    },
+    {
+      "id": "OOP048",
+      "topic": "Static & Final",
+      "difficulty": "Easy",
+      "type": "True/False",
+      "question": "A final variable can be reassigned after initialization.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "A `final` variable can be assigned only once."
+    },
+    {
+      "id": "OOP049",
+      "topic": "Static & Final",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "A class declared `final` means it:",
+      "options": [
+        "Cannot be extended",
+        "Cannot be instantiated",
+        "Has only static members",
+        "Cannot have constructors"
+      ],
+      "answerIndex": 0,
+      "explanation": "`String` and wrapper classes are final."
+    },
+    {
+      "id": "OOP050",
+      "topic": "Static & Final",
+      "difficulty": "Medium",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class C {\n    static int n = 0;\n    C() { n++; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new C();\n        new C();\n        new C();\n        System.out.println(C.n);\n    }\n}",
+      "expectedOutput": "3",
+      "explanation": "`n` is shared across all instances, so each constructor call increments the same variable."
+    },
+    {
+      "id": "OOP051",
+      "topic": "Static & Final",
+      "difficulty": "Hard",
+      "type": "True/False",
+      "question": "A static method can directly access instance variables of its class.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "Static methods have no `this`; they need an object reference to access instance members."
+    },
+    {
+      "id": "OOP052",
+      "topic": "Static & Final",
+      "difficulty": "Hard",
+      "type": "Short Answer",
+      "question": "Differentiate between final, finally, and finalize.",
+      "answer": "`final`: modifier for constants, non-overridable methods, and non-extendable classes. `finally`: block that runs after try/catch for cleanup. `finalize()`: Object method called by GC before reclaiming an object; deprecated and should not be used."
+    },
+    {
+      "id": "OOP053",
+      "topic": "Static & Final",
+      "difficulty": "Hard",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class T {\n    static { System.out.println(\"static\"); }\n    { System.out.println(\"instance\"); }\n    T() { System.out.println(\"ctor\"); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new T();\n        new T();\n    }\n}",
+      "expectedOutput": "static\ninstance\nctor\ninstance\nctor",
+      "explanation": "The static block runs once when the class loads. The instance block runs before the constructor body for every new object."
+    },
+    {
+      "id": "OOP054",
+      "topic": "Access Modifiers",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "Which access modifier is the most restrictive?",
+      "options": [
+        "public",
+        "protected",
+        "default",
+        "private"
+      ],
+      "answerIndex": 3,
+      "explanation": "`private` limits access to the declaring class only."
+    },
+    {
+      "id": "OOP055",
+      "topic": "Access Modifiers",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "A member with no access modifier (default) is visible:",
+      "options": [
+        "Everywhere",
+        "Within the same package",
+        "Only in subclasses",
+        "Only in the same class"
+      ],
+      "answerIndex": 1,
+      "explanation": "Default (package-private) access is limited to the same package."
+    },
+    {
+      "id": "OOP056",
+      "topic": "Access Modifiers",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "Protected members are accessible:",
+      "options": [
+        "Only in the same class",
+        "In the same package and in subclasses (even in other packages)",
+        "Only in the same package",
+        "Everywhere"
+      ],
+      "answerIndex": 1,
+      "explanation": "`protected` = package access plus subclass access."
+    },
+    {
+      "id": "OOP057",
+      "topic": "this & super",
+      "difficulty": "Easy",
+      "type": "MCQ",
+      "question": "The keyword `this` refers to:",
+      "options": [
+        "The parent class",
+        "The current object",
+        "The current class loader",
+        "The main method"
+      ],
+      "answerIndex": 1,
+      "explanation": "`this` is a reference to the object on which the method or constructor is executing."
+    },
+    {
+      "id": "OOP058",
+      "topic": "this & super",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "`this()` and `super()` can both be called in the same constructor.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "Each must be the first statement, so only one can appear."
+    },
+    {
+      "id": "OOP059",
+      "topic": "this & super",
+      "difficulty": "Medium",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "class A {\n    int x = 1;\n}\n\nclass B extends A {\n    int x = 2;\n\n    void show() {\n        int x = 3;\n        System.out.println(x + \" \" + this.x + \" \" + super.x);\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new B().show();\n    }\n}",
+      "expectedOutput": "3 2 1",
+      "explanation": "Local `x` = 3, `this.x` = field of B (2), `super.x` = field of A (1)."
+    },
+    {
+      "id": "OOP060",
+      "topic": "Inner Classes",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "A non-static inner class always holds an implicit reference to:",
+      "options": [
+        "The enclosing class instance",
+        "The Object class",
+        "A static context",
+        "The main thread"
+      ],
+      "answerIndex": 0,
+      "explanation": "That is why it can access the outer instance's members, including private ones."
+    },
+    {
+      "id": "OOP061",
+      "topic": "Inner Classes",
+      "difficulty": "Hard",
+      "type": "True/False",
+      "question": "A static nested class can directly access the non-static members of its outer class.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 1,
+      "explanation": "It has no outer instance; it needs an explicit object reference."
+    },
+    {
+      "id": "OOP062",
+      "topic": "Inner Classes",
+      "difficulty": "Hard",
+      "type": "Short Answer",
+      "question": "What is an anonymous inner class?",
+      "answer": "A class without a name declared and instantiated in a single expression, typically to implement an interface or extend a class inline, e.g. `new Runnable() { public void run() { ... } }`. Lambdas replace most uses for functional interfaces."
+    },
+    {
+      "id": "OOP063",
+      "topic": "Object Class",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "What does the default Object.toString() return?",
+      "options": [
+        "The field values",
+        "ClassName@hexHashCode",
+        "The class name only",
+        "null"
+      ],
+      "answerIndex": 1,
+      "explanation": "The default is `getClass().getName() + \"@\" + Integer.toHexString(hashCode())`."
+    },
+    {
+      "id": "OOP064",
+      "topic": "Object Class",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "State the equals() and hashCode() contract.",
+      "answer": "If `a.equals(b)` is true, then `a.hashCode() == b.hashCode()` must hold. Equal hash codes do not imply equal objects. `equals` must be reflexive, symmetric, transitive, consistent, and false for null. Override both together, otherwise hash-based collections misbehave."
+    },
+    {
+      "id": "OOP065",
+      "topic": "Object Class",
+      "difficulty": "Hard",
+      "type": "Output Prediction",
+      "question": "What is the output of this program?",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        String a = new String(\"hi\");\n        String b = new String(\"hi\");\n        System.out.println(a == b);\n        System.out.println(a.equals(b));\n    }\n}",
+      "expectedOutput": "false\ntrue",
+      "explanation": "`new String` creates two distinct objects, so `==` (reference comparison) is false, while `equals` compares content."
+    },
+    {
+      "id": "OOP066",
+      "topic": "Exceptions in OOP",
+      "difficulty": "Medium",
+      "type": "True/False",
+      "question": "When using multiple catch blocks, a subclass exception must be caught before its superclass.",
+      "options": [
+        "True",
+        "False"
+      ],
+      "answerIndex": 0,
+      "explanation": "Otherwise the subclass catch is unreachable and the compiler reports an error."
+    },
+    {
+      "id": "OOP067",
+      "topic": "Design Principles",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "The Single Responsibility Principle states that a class should:",
+      "options": [
+        "Have only one method",
+        "Have only one reason to change",
+        "Have only one subclass",
+        "Be final"
+      ],
+      "answerIndex": 1,
+      "explanation": "Each class should encapsulate a single responsibility."
+    },
+    {
+      "id": "OOP068",
+      "topic": "Design Principles",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "Which relationship represents \"HAS-A\"?",
+      "options": [
+        "Inheritance",
+        "Composition/Aggregation",
+        "Overloading",
+        "Polymorphism"
+      ],
+      "answerIndex": 1,
+      "explanation": "Inheritance is IS-A; composition and aggregation model containment (HAS-A)."
+    },
+    {
+      "id": "OOP069",
+      "topic": "Design Principles",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "Explain the Liskov Substitution Principle.",
+      "answer": "Objects of a subclass must be usable wherever the superclass is expected without breaking correctness. Subclasses must honor the parent's contract (preconditions not stronger, postconditions not weaker)."
+    },
+    {
+      "id": "OOP070",
+      "topic": "Design Principles",
+      "difficulty": "Medium",
+      "type": "Short Answer",
+      "question": "Differentiate between aggregation and composition.",
+      "answer": "Both are HAS-A. In aggregation the part can exist independently of the whole (Department and Teacher). In composition the part's lifecycle is bound to the whole (House and Room); when the whole is destroyed, so are the parts."
+    },
+    {
+      "id": "OOP071",
+      "topic": "Design Principles",
+      "difficulty": "Medium",
+      "type": "MCQ",
+      "question": "The Open/Closed Principle says software entities should be:",
+      "options": [
+        "Open for modification, closed for extension",
+        "Open for extension, closed for modification",
+        "Open for both",
+        "Closed for both"
+      ],
+      "answerIndex": 1,
+      "explanation": "Add new behavior by extending (e.g., new subclasses) rather than editing tested code."
+    },
+    {
+      "id": "OOP072",
+      "topic": "Design Principles",
+      "difficulty": "Hard",
+      "type": "Short Answer",
+      "question": "What does the Dependency Inversion Principle say?",
+      "answer": "High-level modules should not depend on low-level modules; both should depend on abstractions. Abstractions should not depend on details; details depend on abstractions (e.g., program to interfaces and inject implementations)."
+    },
+    {
+      "id": "OOP073",
+      "topic": "Design Principles",
+      "difficulty": "Hard",
+      "type": "MCQ",
+      "question": "The Singleton pattern ensures that:",
+      "options": [
+        "A class has only one instance and provides global access to it",
+        "A class has no instances",
+        "A class has only one method",
+        "All subclasses share fields"
+      ],
+      "answerIndex": 0,
+      "explanation": "Implemented with a private constructor and a static accessor (or an enum)."
+    }
+  ]
+}

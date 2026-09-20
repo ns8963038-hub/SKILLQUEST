@@ -32,7 +32,8 @@ describe('summarizePlan', () => {
       node(s.id, i < 2 ? 'completed' : i === 2 ? 'current' : 'locked', i === 2 ? 0.5 : undefined),
     );
     const plan = summarizePlan(nodes);
-    expect(plan.total).toBe(19);
+    // Derived from the graph, so adding a skill to the syllabus can't break this.
+    expect(plan.total).toBe(SKILL_GRAPH.length);
     expect(plan.testedOut).toBe(1);
     expect(plan.completed).toBe(3);
     expect(plan.frontier?.skillId).toBe(SKILL_GRAPH[3]!.id);
