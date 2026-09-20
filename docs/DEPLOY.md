@@ -31,6 +31,22 @@ latency was ~1.5 s. With the API *next to* the database they take a few ms.
 Keep a text file open while you work: you will copy several URLs and keys
 between dashboards. **Never commit that file, or any `.env` file.**
 
+## Live deployment (done 2026-09-20)
+
+| | |
+|---|---|
+| Site | https://skillquest-henna.vercel.app |
+| API | https://skillquest-api-ygfd.onrender.com |
+| AI service | https://skillquest-ai-mnrd.onrender.com |
+| Database | Supabase `skillquest-prod`, Singapore |
+
+Measured on the deployed stack with a brand-new account (end-to-end):
+sign-up → consent 360 ms → onboarding + roadmap 7.6 s (goal mapping + planning)
+→ lesson 210 ms → **real Java submission 4.3 s** → dashboard 194 ms. Ordinary
+API calls land at **130–310 ms** (target < 500 ms) and code execution at 4.3 s
+(target < 15 s). From a laptop in India the same calls took ~1.5 s, which is
+why the API and the database are both in Singapore.
+
 ---
 
 ## 1. The database

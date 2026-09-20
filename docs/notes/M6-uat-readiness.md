@@ -158,6 +158,12 @@ the pilot; they **cannot** show that nudges reduce dropout (PRD §6).
   query is a ~100–250 ms round trip, so locally platform p95 is ~1.5 s and a
   whole submit takes ~11 s. **Measure the targets on the deployed stack**
   (API in the same region as the database), not on a laptop.
+- **Measured on the deployment (2026-09-20)**, API and database both in
+  Singapore, one full journey with a new account: ordinary API calls
+  **130–310 ms** (target < 500 ms) and a real Java submission **4.3 s**
+  (target < 15 s). Onboarding takes ~7.6 s because it maps the goal with the
+  embedding model and plans the whole roadmap. The UAT figures should come from
+  the research console over many students, but the targets are clearly reachable.
 - **SUS.** The ten standard items (Brooke 1996) with "SkillQuest" substituted —
   wording and order unchanged, so the score is comparable to the 68 benchmark.
   Scored server-side (odd items a−1, even items 5−a, sum × 2.5). Offered after
