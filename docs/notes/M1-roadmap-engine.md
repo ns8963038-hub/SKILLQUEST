@@ -173,3 +173,32 @@ Auth, onboarding (goal-map + quiz + roadmap generation + persistence), and the r
 
 ## What's next — M2 (the vertical slice)
 The play screen: Monaco editor + the `ExecutionService` (mock first, then Judge0) + XP on pass. This is the make-or-break milestone.
+
+---
+
+## Update (2026-09-20): goal-mapping descriptions rewritten
+
+Live testing on the deployed app showed the mapper sending ordinary placement
+goals to **higher_studies** — e.g. "Improve my Java basics for placements" and
+"I want to join a good software company after my degree". Two causes, both in
+the category *descriptions* the student's text is compared against:
+
+1. The higher-studies description ended with "rather than placement
+   preparation". Embeddings have no notion of *not*: that sentence simply made
+   the category look similar to anything mentioning placements.
+2. The product description opened with "Cracking coding interviews", so
+   "Crack the Infosys and TCS coding rounds" matched it instead of the service
+   category that names those very companies.
+
+The three descriptions were rewritten to be positively phrased and clearly
+distinct (company names and exam names where they help, no negations).
+Measured on 10 realistic student goals: **6/10 → 9/10** correct. The remaining
+one maps an "AI & Data Science career" sentence to product rather than service
+placement; both are placement plans, so the roadmap stays sensible.
+
+The cases are kept as an opt-in test (they need the real model):
+`SQ_EMBED_TESTS=1 pytest tests/test_goal_map_quality.py -q`.
+
+**Viva point:** this is a good example of how embedding similarity differs from
+reading comprehension — the fix was in the wording being matched against, not in
+the algorithm.

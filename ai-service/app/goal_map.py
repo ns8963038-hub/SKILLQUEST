@@ -23,18 +23,22 @@ from dataclasses import dataclass
 # fallback when confidence is too low, not something we match against.
 CATEGORY_DESCRIPTIONS: dict[str, str] = {
     "service_placement": (
-        "Getting placed at a service-based IT company such as TCS, Infosys, "
-        "Wipro, Accenture, or Cognizant through campus placement, focusing on "
-        "aptitude and coding fundamentals."
+        "Getting a software job in the IT industry through campus placement at a "
+        "service company such as TCS, Infosys, Wipro, Accenture, Cognizant or "
+        "Capgemini. Aptitude tests, basic coding rounds and interviews on "
+        "programming fundamentals. Improving Java basics for placement drives, "
+        "and starting a career in the IT or software industry after the degree."
     ),
     "product_placement": (
-        "Cracking coding interviews at product-based technology companies with "
-        "strong data structures and algorithms, competitive programming, and "
-        "problem solving."
+        "Getting hired by a product-based technology company such as Google, "
+        "Amazon, Microsoft, Flipkart or a funded startup, where the interviews "
+        "are hard data structures and algorithms problems, competitive "
+        "programming and system design."
     ),
     "higher_studies": (
-        "Preparing for higher studies, a master's degree, GATE, or research with "
-        "strong computer science fundamentals and theory."
+        "Studying further after the degree: the GATE exam, an M.Tech, a master's "
+        "degree abroad, research, a PhD or a teaching career. Academic and theory "
+        "subjects, entrance exam syllabus, thesis and publications."
     ),
 }
 
