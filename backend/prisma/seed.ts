@@ -5,6 +5,12 @@
 // checked with zod, and the skill graph is proven acyclic. A bad edge or a typo
 // therefore fails loudly here, never in a half-loaded database.
 //
+// It also SURVIVES A DROPPED CONNECTION. Every write is a small unit that is safe
+// to repeat — an upsert, or a clear-and-refill inside ONE transaction, so a table
+// is never left cleared but not refilled — and each unit is retried while the
+// failure is the connection's fault (src/dbRetry.ts). At the end it reads the
+// database back and checks nothing is missing, so "Seeded" means it really is.
+//
 // Run with:  npm run seed   (from the backend/ directory)
 
 import 'dotenv/config'; // load DATABASE_URL from .env before Prisma connects
@@ -13,8 +19,25 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { z } from 'zod';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { withDbRetry } from '../src/dbRetry';
 
-const prisma = new PrismaClient();
+// The seed is a long admin job, so it uses the SESSION connection (DIRECT_URL,
+// the one `prisma migrate deploy` uses) rather than the transaction pooler the
+// running API shares. Falls back to DATABASE_URL when no DIRECT_URL is set.
+const prisma = new PrismaClient({
+  datasources: { db: { url: process.env.DIRECT_URL ?? process.env.DATABASE_URL } },
+});
+
+// One unit of work, retried while the connection is the problem. After a drop
+// the dead connection is closed, so the next attempt starts on a fresh one.
+function unit<T>(label: string, work: () => Promise<T>): Promise<T> {
+  return withDbRetry(label, work, {
+    onRetry: async ({ attempt, of, waitMs, error }) => {
+      console.warn(`  connection dropped during ${label} (${error.message.split('\n').pop()?.trim()}) — retry ${attempt}/${of} in ${waitMs / 1000}s`);
+      await prisma.$disconnect().catch(() => undefined);
+    },
+  });
+}
 
 // Resolve the repo's /content directory relative to THIS file (backend/prisma/).
 const CONTENT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'content');
@@ -265,23 +288,28 @@ async function seed(): Promise<void> {
       estimatedMinutes: s.estimatedMinutes,
       displayOrder: s.displayOrder,
     };
-    await prisma.skill.upsert({ where: { id: s.id }, create: { id: s.id, ...data }, update: data });
+    await unit(`skill ${s.id}`, () => prisma.skill.upsert({ where: { id: s.id }, create: { id: s.id, ...data }, update: data }));
   }
+  console.log(`  skills ${skills.length}/${skills.length}`);
 
   // Prerequisite edges: clear and rebuild, so removing an edge in JSON removes it
-  // from the DB too. (These rows are tiny and have no dependents, so this is safe.)
-  await prisma.skillPrerequisite.deleteMany();
-  for (const s of skills) {
-    for (const prereqId of s.prerequisites) {
-      await prisma.skillPrerequisite.create({ data: { skillId: s.id, prereqId } });
-    }
-  }
+  // from the DB too — in ONE transaction, so the roadmap engine never sees a
+  // half-empty graph.
+  const edges = skills.flatMap((s) => s.prerequisites.map((prereqId) => ({ skillId: s.id, prereqId })));
+  await unit('prerequisites', () =>
+    prisma.$transaction([prisma.skillPrerequisite.deleteMany(), prisma.skillPrerequisite.createMany({ data: edges })]),
+  );
+  console.log(`  prerequisite links ${edges.length}`);
 
   // Goal weight vectors: clear and rebuild the same way.
-  await prisma.goalProfile.deleteMany();
-  await prisma.goalProfile.createMany({ data: goalProfiles });
+  await unit('goal weights', () =>
+    prisma.$transaction([prisma.goalProfile.deleteMany(), prisma.goalProfile.createMany({ data: goalProfiles })]),
+  );
+  console.log(`  goal weights ${goalProfiles.length}`);
 
-  // Levels, then their test cases (test cases point at a level).
+  // Levels with their test cases, one transaction per level: a level is never
+  // left without its tests (which would let any submission "pass").
+  let doneLevels = 0;
   for (const lv of levels) {
     const data = {
       skillId: lv.skillId,
@@ -296,13 +324,16 @@ async function seed(): Promise<void> {
       published: lv.published,
       orderInSkill: lv.orderInSkill,
     };
-    await prisma.level.upsert({ where: { id: lv.id }, create: { id: lv.id, ...data }, update: data });
-
-    // Replace this level's test cases so edits in JSON fully take effect.
-    await prisma.testCase.deleteMany({ where: { levelId: lv.id } });
-    await prisma.testCase.createMany({
-      data: lv.testCases.map((tc) => ({ levelId: lv.id, ...tc })),
-    });
+    await unit(`level ${lv.id}`, () =>
+      prisma.$transaction([
+        prisma.level.upsert({ where: { id: lv.id }, create: { id: lv.id, ...data }, update: data }),
+        // Replace this level's test cases so edits in JSON fully take effect.
+        prisma.testCase.deleteMany({ where: { levelId: lv.id } }),
+        prisma.testCase.createMany({ data: lv.testCases.map((tc) => ({ levelId: lv.id, ...tc })) }),
+      ]),
+    );
+    doneLevels++;
+    if (doneLevels % 10 === 0 || doneLevels === levels.length) console.log(`  levels ${doneLevels}/${levels.length}`);
   }
 
   // Lessons (Learn mode): one per skill, the steps stored as jsonb.
@@ -316,24 +347,30 @@ async function seed(): Promise<void> {
       content: { steps: ls.steps } as Prisma.InputJsonObject,
       published: true,
     };
-    await prisma.lesson.upsert({ where: { skillId: ls.skillId }, create: { skillId: ls.skillId, ...data }, update: data });
+    await unit(`lesson ${ls.skillId}`, () =>
+      prisma.lesson.upsert({ where: { skillId: ls.skillId }, create: { skillId: ls.skillId, ...data }, update: data }),
+    );
   }
+  console.log(`  lessons ${lessons.length}/${lessons.length}`);
 
   // Badge catalog (display data). Upsert by id.
   for (const b of badges) {
     const data = { title: b.title, description: b.description, icon: b.icon ?? null, criteria: b.criteria ?? null };
-    await prisma.badge.upsert({ where: { id: b.id }, create: { id: b.id, ...data }, update: data });
+    await unit(`badge ${b.id}`, () => prisma.badge.upsert({ where: { id: b.id }, create: { id: b.id, ...data }, update: data }));
   }
 
   // Companies -> role profiles -> company skills. Re-authoring a role should
-  // fully replace its skill set, so we clear and rebuild the skills each time.
+  // fully replace its skill set, so each role is upserted and its skills cleared
+  // and rebuilt inside one transaction.
   let roleCount = 0;
   for (const c of companies) {
-    await prisma.company.upsert({
-      where: { id: c.id },
-      create: { id: c.id, name: c.name, logo: c.logo ?? null },
-      update: { name: c.name, logo: c.logo ?? null },
-    });
+    await unit(`company ${c.id}`, () =>
+      prisma.company.upsert({
+        where: { id: c.id },
+        create: { id: c.id, name: c.name, logo: c.logo ?? null },
+        update: { name: c.name, logo: c.logo ?? null },
+      }),
+    );
     for (const r of c.roles) {
       const profileData = {
         location: r.location ?? null,
@@ -342,35 +379,77 @@ async function seed(): Promise<void> {
         isActive: true,
         externalRequirements: r.externalRequirements,
       };
-      const profile = await prisma.companyRoleProfile.upsert({
-        where: {
-          companyId_roleTitle_profileVersion: {
-            companyId: c.id,
-            roleTitle: r.roleTitle,
-            profileVersion: r.profileVersion,
+      await unit(`role ${c.id} / ${r.roleTitle}`, () =>
+        prisma.$transaction(
+          async (tx) => {
+            const profile = await tx.companyRoleProfile.upsert({
+              where: {
+                companyId_roleTitle_profileVersion: {
+                  companyId: c.id,
+                  roleTitle: r.roleTitle,
+                  profileVersion: r.profileVersion,
+                },
+              },
+              create: { companyId: c.id, roleTitle: r.roleTitle, profileVersion: r.profileVersion, ...profileData },
+              update: profileData,
+            });
+            await tx.companySkill.deleteMany({ where: { profileId: profile.id } });
+            await tx.companySkill.createMany({
+              data: r.skills.map((s) => ({
+                profileId: profile.id,
+                skillId: s.skillId,
+                weight: s.weight,
+                jdPhrase: s.jdPhrase ?? null,
+                isTracked: true,
+              })),
+            });
           },
-        },
-        create: { companyId: c.id, roleTitle: r.roleTitle, profileVersion: r.profileVersion, ...profileData },
-        update: profileData,
-      });
-      await prisma.companySkill.deleteMany({ where: { profileId: profile.id } });
-      await prisma.companySkill.createMany({
-        data: r.skills.map((s) => ({
-          profileId: profile.id,
-          skillId: s.skillId,
-          weight: s.weight,
-          jdPhrase: s.jdPhrase ?? null,
-          isTracked: true,
-        })),
-      });
+          { timeout: 30_000 }, // three statements over a slow link can exceed the 5 s default
+        ),
+      );
       roleCount++;
     }
   }
+  console.log(`  companies ${companies.length} (${roleCount} roles)`);
+
+  // Read it back: prove nothing that was cleared was left empty.
+  await unit('final check', () => verifySeed(edges.length, goalProfiles.length, levels.map((l) => l.id), lessons.length));
 
   // A short summary so a successful run is obvious.
   console.log(
-    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${lessons.length} lessons, ${badges.length} badges, ${companies.length} companies (${roleCount} roles).`,
+    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${lessons.length} lessons, ${badges.length} badges, ${companies.length} companies (${roleCount} roles). Verified.`,
   );
+}
+
+// The database must now hold everything the content describes. Checked after
+// every run, because an interrupted older run could have left a level with no
+// test cases or a role with no skills.
+async function verifySeed(edgeCount: number, goalCount: number, levelIds: string[], lessonCount: number): Promise<void> {
+  const problems: string[] = [];
+  const [edgesInDb, goalsInDb, lessonsInDb] = await Promise.all([
+    prisma.skillPrerequisite.count(),
+    prisma.goalProfile.count(),
+    prisma.lesson.count({ where: { published: true } }),
+  ]);
+  if (edgesInDb !== edgeCount) problems.push(`prerequisite links: ${edgesInDb} in the database, ${edgeCount} in content`);
+  if (goalsInDb !== goalCount) problems.push(`goal weights: ${goalsInDb} in the database, ${goalCount} in content`);
+  if (lessonsInDb < lessonCount) problems.push(`lessons: ${lessonsInDb} published, ${lessonCount} in content`);
+
+  const levelsWithoutTests = await prisma.level.findMany({
+    where: { id: { in: levelIds }, testCases: { none: {} } },
+    select: { id: true },
+  });
+  if (levelsWithoutTests.length) problems.push(`levels with no test cases: ${levelsWithoutTests.map((l) => l.id).join(', ')}`);
+
+  const rolesWithoutSkills = await prisma.companyRoleProfile.findMany({
+    where: { isActive: true, skills: { none: {} } },
+    select: { companyId: true, roleTitle: true },
+  });
+  if (rolesWithoutSkills.length) {
+    problems.push(`roles with no skills: ${rolesWithoutSkills.map((r) => `${r.companyId}/${r.roleTitle}`).join(', ')}`);
+  }
+
+  if (problems.length) throw new Error(`the database doesn't match the content —\n  ${problems.join('\n  ')}`);
 }
 
 // Run, and always disconnect — a dangling connection would keep the process alive.

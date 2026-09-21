@@ -81,7 +81,7 @@ project (the free plan allows two).
    export DATABASE_URL="<transaction pooler URL>?pgbouncer=true"
    export DIRECT_URL="<session pooler URL>"
    npx prisma migrate deploy   # creates every table, with row-level security on
-   npm run seed                # "Seeded: 20 skills, … 56 levels, 20 lessons …"
+   npm run seed                # ends "Seeded: 20 skills, … 56 levels, 20 lessons … Verified."
    unset DATABASE_URL DIRECT_URL
    ```
 
@@ -259,5 +259,6 @@ If all seven pass, you're live.
 | `/health` shows `"db":"down"` | Wrong `DATABASE_URL`, or the Supabase project is paused | Check the URL and password; restore the project in Supabase |
 | Onboarding says the tutor didn't wake up in time | AI service asleep and the browser's wake-up poke didn't reach it, or a wrong `AI_SERVICE_URL` / key | Open `<ai>/health` in a browser tab (that wakes it), wait until it answers, press Build my quest again; check `AI_SERVICE_URL` on the API. Render logs: the API shows `AI service … is not responding`, and the AI service shows **no lines at all** if it never started |
 | Students never receive the confirmation email | Default Supabase sender (team-only) | §4.2: turn confirmation off, or set up Gmail SMTP |
+| Seed stops with "Server has closed the connection" | The laptop's network dropped (Wi-Fi switch, hotspot) mid-run | The seed retries drops by itself for ~30 s; if it still stops, just run it again — it is idempotent, and its final check reports anything left incomplete |
 | Everything suddenly down near month end | 750 free Render hours used up | Cancel any running "Keep awake" job; services return on the 1st of the month |
 | Code runs time out for everyone | Paiza busy or rate-limiting | Wait and retry; for large sessions plan a self-hosted runner |
