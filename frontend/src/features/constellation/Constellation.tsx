@@ -2,7 +2,7 @@ import { useId, useMemo, useState, type CSSProperties, type KeyboardEvent } from
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { cn } from '../../lib/cn';
 import type { RoadmapNode, SkillStatus } from '../roadmap/types';
-import { SKILL_GRAPH, ancestorsOf, dependentsOf, layoutGraph, type PositionedSkill } from './skillGraph';
+import { SKILL_GRAPH, ancestorsOf, computeDepths, dependentsOf, layoutGraph, type PositionedSkill } from './skillGraph';
 import { MASTERY_THRESHOLD } from '../tutor/bkt';
 
 // =============================================================================
@@ -44,6 +44,13 @@ const VISUAL_FALLBACK: Record<SkillStatus, number> = {
 };
 
 const W = 1000; // viewBox width
+
+// On-screen width comes from the number of prerequisite columns: a deeper course
+// scrolls a little further sideways instead of squeezing its stars together
+// (the course-order edges in M10 took it from 9 columns to 12). The aspect
+// ratio is fixed, so a wider map is also taller and its columns spread out too.
+const COLUMNS = Math.max(...computeDepths(SKILL_GRAPH).values()) + 1;
+const MIN_WIDTH_PX = { compact: Math.max(640, COLUMNS * 64), full: Math.max(880, COLUMNS * 84) };
 
 // Merge the static skill graph with the student's plan. Graph skills missing from
 // the plan were tested out during onboarding, so they're drawn as known.
@@ -165,8 +172,8 @@ export function Constellation({
   return (
     <div className={cn('relative w-full overflow-x-auto overflow-y-hidden', className)}>
       <div
-        className={cn('relative', compact ? 'min-w-[640px]' : 'min-w-[880px]')}
-        style={{ aspectRatio: `${W} / ${H}` }}
+        className="relative"
+        style={{ aspectRatio: `${W} / ${H}`, minWidth: compact ? MIN_WIDTH_PX.compact : MIN_WIDTH_PX.full }}
       >
         <svg
           viewBox={`0 0 ${W} ${H}`}

@@ -811,7 +811,7 @@
         "**Bubble sort**: repeated passes, swapping neighbours. Up to n − 1 passes, so **O(n²)**.",
         "**Selection sort** picks the minimum each pass; **insertion sort** slides each item into place. Both are O(n²).",
         "**Merge sort** splits the array in half, sorts each half and merges them: **O(n log n)**.",
-        "In real code, `Arrays.sort(a)` or `Collections.sort(list)` do the job, but interviews ask you to know how."
+        "In real code, `Arrays.sort(a)` does the job, but interviews ask you to know how."
       ],
       "pattern": "int t = a[i];\na[i] = a[j];\na[j] = t; // swap needs a temporary"
     },

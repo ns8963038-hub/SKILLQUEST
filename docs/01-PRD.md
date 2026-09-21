@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Product** | SkillQuest — AI-Powered Gamified Skill Learning Platform |
-| **Version** | 1.3 — course-material alignment: adds the `exceptions` skill (20 topics), 56 levels, and concept checks drawn from the team's Java OOP question bank |
+| **Version** | 1.4 — course order: every lesson and level uses only topics already taught (checked in CI); 57 levels. (1.3 added the `exceptions` skill and concept checks from the team's Java OOP question bank.) |
 | **Team** | Nandan S (1SP23AD016), Anjith K.J (1SP23AD032), Bhanushree C.V (1SP23AD005) |
 | **Institution** | S.E.A College of Engineering & Technology, Bangalore — Dept. of AI & DS, VTU |
 | **Timeline** | Single semester (~14 working weeks) |
@@ -76,7 +76,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - Monaco editor in the browser; each level = problem statement + starter code + hidden test cases.
 - Code execution via **Judge0** (hosted API or self-hosted) — never executed on our own backend.
 - Per-level: pass/fail per test case, XP award on full pass, hint system (hint costs a small XP amount — gamified help).
-- **Content commitment: 40–50 levels** across the Java + DSA track (this is a team-wide authoring task, not just engineering). **Delivered: 56 levels across 20 skills**, every expected output machine-verified (`content/verify-levels.mjs`).
+- **Content commitment: 40–50 levels** across the Java + DSA track (this is a team-wide authoring task, not just engineering). **Delivered: 57 levels across 20 skills**, every expected output machine-verified (`content/verify-levels.mjs`), and no level asks for a topic the student hasn't been taught yet (`content/check-order.mjs`, see F8).
 - **Acceptance:** a student can complete a level end-to-end — read problem, write code, run tests, earn XP. Timing requirement: **UI acknowledges the run in < 200 ms**; **p95 end-to-end test execution < 15 s** (JVM startup per test case makes anything faster infeasible — see TRD §5). Actual p95 is measured during UAT and reported.
 
 ### F4 — Gamification Layer (P0)
@@ -114,6 +114,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - Answers are checked server-side; fill-in answers not in the accepted list are actually executed.
 - Lessons may also ask a **concept question** (theory: MCQ or true/false) after the teaching, taken from the team's Java OOP question bank (`content/questions/java-oop.json`) — the kind of thing service-company MCQ rounds test and code-only levels cannot.
 - **Watch it run is shown, not written.** The recorded execution is animated rather than listed: a green/red chip marks the result of the condition just tested, an arrow in the gutter shows a loop going round again or a block being skipped, changed numbers count to their new value, output types out, call frames slide on and off the stack with the returned value landing in the caller, and searching/sorting lessons draw the array itself with its pointers. Every mark is derived from the recording and stays hidden whenever the trace cannot prove it (`frontend/src/features/learn/traceAnalysis.ts`), so the picture can never contradict the JVM. Students who prefer stillness can switch the movement off in **Settings → Animations**, which also respects the device's own reduce-motion setting.
+- **Taught before tested.** No lesson or level may use a topic the student hasn't been taught: the code they read or must write uses only what the topic itself and its prerequisites teach. A student meeting `for` loops and arrays in lesson 1 is lost before the idea lands. Enforced in CI by `content/check-order.mjs`. To stop a typed-in answer passing a fill-in without resorting to loops, a fill step may carry **hidden cases** — other values the checker also tries (see docs/notes/M10-course-order.md).
 - **Acceptance:** all 20 topics have a lesson whose every expected output is machine-verified; a new student can go lesson → first level in one flow; lesson start / answer / complete / skip are logged. Design: docs/notes/M7-learn-mode.md, alignment: docs/notes/M8-syllabus-alignment.md, animation layer: docs/notes/M9-watch-it-run.md.
 
 ### F9 — Stretch (P2)

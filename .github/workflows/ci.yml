@@ -61,7 +61,8 @@ jobs:
 
   # The content pipeline: every level and lesson program is compiled and RUN, and
   # each generated field (expected outputs, predict answers, recorded traces,
-  # array pictures) is checked against what the JVM actually did. Needs a JDK.
+  # array pictures, hidden cases) is checked against what the JVM actually did;
+  # then every question is checked against the course order. Needs a JDK.
   content:
     runs-on: ubuntu-latest
     steps:
@@ -75,3 +76,4 @@ jobs:
           java-version: '21' # the programs themselves are compiled with --release 11
       - run: node content/verify-levels.mjs
       - run: node content/build-lessons.mjs # no --fill: fails if anything stored is out of date
+      - run: node content/check-order.mjs # no question may use a topic the student hasn't been taught

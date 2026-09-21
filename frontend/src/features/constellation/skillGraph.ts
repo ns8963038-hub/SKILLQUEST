@@ -1,5 +1,5 @@
-// The Java + DSA skill graph (mirrors content/skills.json): 20 skills and their
-// prerequisites. The Knowledge Constellation is drawn from this, so every skill
+// The Java + DSA skill graph (mirrors content/skills.json — a test fails if the
+// two ever disagree): 20 skills and their prerequisites. The Knowledge Constellation is drawn from this, so every skill
 // appears even when a student's personal plan skips it (tested out in the quiz).
 
 export interface SkillDef {
@@ -14,18 +14,18 @@ export const SKILL_GRAPH: SkillDef[] = [
   { id: 'conditionals', title: 'Conditionals', prereqs: ['operators-expressions'] },
   { id: 'loops', title: 'Loops', prereqs: ['conditionals'] },
   { id: 'methods', title: 'Methods', prereqs: ['loops'] },
-  { id: 'arrays', title: 'Arrays', prereqs: ['loops'] },
+  { id: 'arrays', title: 'Arrays', prereqs: ['loops', 'methods'] },
   { id: 'strings', title: 'Strings', prereqs: ['arrays'] },
-  { id: 'oop-basics', title: 'OOP Basics', prereqs: ['methods'] },
+  { id: 'oop-basics', title: 'OOP Basics', prereqs: ['methods', 'strings'] },
   { id: 'oop-advanced', title: 'OOP Advanced', prereqs: ['oop-basics'] },
-  { id: 'exceptions', title: 'Exceptions', prereqs: ['oop-basics'] },
+  { id: 'exceptions', title: 'Exceptions', prereqs: ['oop-advanced'] },
   { id: 'recursion', title: 'Recursion', prereqs: ['methods', 'arrays'] },
   { id: 'time-complexity', title: 'Time Complexity', prereqs: ['loops', 'arrays'] },
-  { id: 'collections', title: 'Collections', prereqs: ['oop-basics', 'arrays'] },
+  { id: 'collections', title: 'Collections', prereqs: ['oop-advanced'] },
   { id: 'searching', title: 'Searching', prereqs: ['arrays', 'time-complexity'] },
   { id: 'sorting', title: 'Sorting', prereqs: ['recursion', 'time-complexity'] },
   { id: 'linked-lists', title: 'Linked Lists', prereqs: ['oop-basics', 'recursion'] },
-  { id: 'stacks-queues', title: 'Stacks & Queues', prereqs: ['linked-lists'] },
+  { id: 'stacks-queues', title: 'Stacks & Queues', prereqs: ['linked-lists', 'collections'] },
   { id: 'hashing', title: 'Hashing', prereqs: ['collections', 'strings'] },
   { id: 'trees-basics', title: 'Trees (Basics)', prereqs: ['recursion', 'linked-lists'] },
   { id: 'interview-patterns', title: 'Interview Patterns', prereqs: ['searching', 'hashing'] },

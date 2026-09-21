@@ -5,7 +5,7 @@
   "difficulty": 1,
   "statementMd": "Read **n** integers and print them in reverse order, separated by single spaces.\n\n**Input**\nLine 1: `n` (1 ≤ n ≤ 1000). Line 2: n integers.\n\n**Output**\nThe integers in reverse order, space-separated.",
   "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        // TODO: print a in reverse order\n    }\n}\n",
-  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        StringBuilder sb = new StringBuilder();\n        for (int i = n - 1; i >= 0; i--) {\n            sb.append(a[i]);\n            if (i > 0) sb.append(' ');\n        }\n        System.out.println(sb);\n    }\n}\n",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] a = new int[n];\n        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n        for (int i = n - 1; i >= 0; i--) {\n            System.out.print(a[i]);\n            if (i > 0) System.out.print(\" \");\n        }\n        System.out.println();\n    }\n}\n",
   "hints": [
     "Loop from the last index (n - 1) down to 0.",
     "Build the line with a StringBuilder, adding a space between numbers."

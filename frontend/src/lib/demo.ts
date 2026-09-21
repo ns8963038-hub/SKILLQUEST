@@ -52,13 +52,15 @@ interface DemoSkill {
   mastery: number; // BKT estimate 0..1
 }
 
+// Only the student's history is written here. Which other skills are unlocked is
+// worked out from the prerequisite graph when the demo starts (recomputeStatuses),
+// so the demo can never show a skill as open before what it needs is done.
 const SEED: Record<string, DemoSkill> = {
   'java-basics': { status: 'completed', mastery: 0.98 },
   'operators-expressions': { status: 'tested-out', mastery: 1 },
   conditionals: { status: 'completed', mastery: 0.97 },
   loops: { status: 'completed', mastery: 0.96 },
   methods: { status: 'current', mastery: 0.58 },
-  arrays: { status: 'available', mastery: 0.24 },
 };
 
 const HINT_COST = 5;
@@ -90,6 +92,9 @@ const state = {
     SKILL_GRAPH.map((s) => [s.id, { ...(SEED[s.id] ?? { status: 'locked', mastery: 0 }) }]),
   ) as Record<string, DemoSkill>,
 };
+
+// Unlock whatever the seeded history already allows (see SEED above).
+recomputeStatuses();
 
 const BADGES: Record<string, { title: string; description: string }> = {
   first_quest: { title: 'First Quest', description: 'Solved your first level.' },

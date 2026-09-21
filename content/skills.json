@@ -87,7 +87,8 @@
       "estimatedMinutes": 90,
       "displayOrder": 6,
       "prerequisites": [
-        "loops"
+        "loops",
+        "methods"
       ]
     },
     {
@@ -115,7 +116,8 @@
       "estimatedMinutes": 90,
       "displayOrder": 8,
       "prerequisites": [
-        "methods"
+        "methods",
+        "strings"
       ]
     },
     {
@@ -144,7 +146,7 @@
       "estimatedMinutes": 90,
       "displayOrder": 10,
       "prerequisites": [
-        "oop-basics"
+        "oop-advanced"
       ]
     },
     {
@@ -189,8 +191,7 @@
       "estimatedMinutes": 90,
       "displayOrder": 13,
       "prerequisites": [
-        "oop-basics",
-        "arrays"
+        "oop-advanced"
       ]
     },
     {
@@ -253,7 +254,8 @@
       "estimatedMinutes": 75,
       "displayOrder": 17,
       "prerequisites": [
-        "linked-lists"
+        "linked-lists",
+        "collections"
       ]
     },
     {

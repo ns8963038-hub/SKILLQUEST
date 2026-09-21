@@ -1,0 +1,47 @@
+{
+  "id": "arrays-05",
+  "skillId": "arrays",
+  "title": "Varargs Sum",
+  "difficulty": 2,
+  "statementMd": "A **varargs** parameter (`int... nums`) lets one method take any number of arguments — inside the method it is simply an `int[]`.\n\nComplete `sum` so it adds up however many numbers it is given. `main` calls it with zero, one, and several arguments, and also with the numbers you type in.\n\n**Input**\nLine 1: `n`. Line 2: n integers.\n\n**Output**\nFour lines: `sum()`, `sum(5)`, `sum(1, 2, 3)`, and the sum of your n numbers.",
+  "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    // Add up any number of ints (including none at all).\n    static int sum(int... nums) {\n        // TODO\n        return -1;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] mine = new int[n];\n        for (int i = 0; i < n; i++) mine[i] = sc.nextInt();\n        System.out.println(sum());\n        System.out.println(sum(5));\n        System.out.println(sum(1, 2, 3));\n        System.out.println(sum(mine));\n    }\n}",
+  "referenceSolution": "import java.util.Scanner;\n\npublic class Main {\n    static int sum(int... nums) {\n        int total = 0;\n        for (int x : nums) total += x;\n        return total;\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int[] mine = new int[n];\n        for (int i = 0; i < n; i++) mine[i] = sc.nextInt();\n        System.out.println(sum());\n        System.out.println(sum(5));\n        System.out.println(sum(1, 2, 3));\n        System.out.println(sum(mine));\n    }\n}",
+  "hints": [
+    "Inside the method, nums is an ordinary int[] — loop over it.",
+    "With no arguments the array is empty and the total stays 0. An existing int[] can be passed straight in."
+  ],
+  "xpReward": 75,
+  "timeLimitMs": 5000,
+  "published": true,
+  "orderInSkill": 5,
+  "testCases": [
+    {
+      "stdin": "3\n4 5 6\n",
+      "expectedOutput": "0\n5\n6\n15",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 1
+    },
+    {
+      "stdin": "0\n",
+      "expectedOutput": "0\n5\n6\n0",
+      "isHidden": false,
+      "weight": 1,
+      "ordinal": 2
+    },
+    {
+      "stdin": "1\n-7\n",
+      "expectedOutput": "0\n5\n6\n-7",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 3
+    },
+    {
+      "stdin": "5\n10 20 30 40 50\n",
+      "expectedOutput": "0\n5\n6\n150",
+      "isHidden": true,
+      "weight": 1,
+      "ordinal": 4
+    }
+  ]
+}
