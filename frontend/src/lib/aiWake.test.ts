@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from './api';
+import { ApiError } from './apiError';
 import { AI_RETRY_ATTEMPTS, AI_RETRY_WAIT_MS, isAiWaking, rememberAiWakeUrl, resetAiWake, retryWhileAiWakes, wakeAi } from './aiWake';
 
 const URL = 'https://skillquest-ai.example.com/health';

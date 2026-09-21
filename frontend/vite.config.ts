@@ -13,5 +13,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    // Tests see the same (empty) connection settings on every machine as in CI,
+    // whatever is in a developer's local .env — so a test that accidentally
+    // needs a real Supabase project fails here first, not only on GitHub.
+    env: { VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '', VITE_API_URL: '' },
   },
 });

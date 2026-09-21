@@ -1,21 +1,11 @@
 import { supabase } from './supabase';
 import { DEMO, demoApi, demoCsv } from './demo';
+import { ApiError } from './apiError';
+
+export { ApiError }; // screens import it from here, alongside api()
 
 // Base URL of the Node Web API.
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
-
-// A failed API call, keeping the HTTP status so a screen can react to it
-// (503 = the AI tutor is waking up; see lib/aiWake.ts). The message is the same
-// "Request to … failed (N)" text as before.
-export class ApiError extends Error {
-  constructor(
-    readonly path: string,
-    readonly status: number,
-  ) {
-    super(`Request to ${path} failed (${status})`);
-    this.name = 'ApiError';
-  }
-}
 
 // Call the Web API with the current user's Supabase access token attached.
 // Every data request goes through here, so authentication is applied in exactly
