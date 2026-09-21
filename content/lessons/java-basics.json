@@ -2,7 +2,7 @@
   "skillId": "java-basics",
   "title": "Java basics: variables and output",
   "minutes": 5,
-  "version": 1,
+  "version": 2,
   "steps": [
     {
       "id": "hook",
@@ -180,8 +180,18 @@
     {
       "id": "fill",
       "type": "fill",
-      "prompt": "Your turn. Make each line print the real total, like \"Sum: 8\".",
-      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] as = {5, 10, 7};\n        int[] bs = {3, 20, 0};\n        for (int i = 0; i < 3; i++) { // tries three pairs of numbers\n            int a = as[i];\n            int b = bs[i];\n            System.out.println(\"Sum: \" + ____);\n        }\n    }\n}",
+      "prompt": "Your turn. Fix the trap so it prints the real total, \"Sum: 8\". We'll also try your line with other numbers in a and b.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int a = 5;\n        int b = 3;\n        System.out.println(\"Sum: \" + ____);\n    }\n}",
+      "cases": [
+        {
+          "a": "10",
+          "b": "20"
+        },
+        {
+          "a": "7",
+          "b": "0"
+        }
+      ],
       "accepted": [
         "(a + b)",
         "(b + a)",
@@ -194,7 +204,9 @@
       ],
       "hint": "Brackets are worked out first, so put the addition in brackets.",
       "explain": "`(a + b)` is added as numbers **before** it meets the text, so you get `Sum: 8` instead of `Sum: 53`.",
-      "expectedOutput": "Sum: 8\nSum: 30\nSum: 7"
+      "expectedOutput": "Sum: 8",
+      "checkProgram": "public class Main {\n    public static void main(String[] args) {\n        {\n        int a = 5;\n        int b = 3;\n        System.out.println(\"Sum: \" + ____);\n    }\n        System.out.println((char) 30); // next case\n\n        {\n        int a = 10;\n        int b = 20;\n        System.out.println(\"Sum: \" + ____);\n    }\n        System.out.println((char) 30); // next case\n\n        {\n        int a = 7;\n        int b = 0;\n        System.out.println(\"Sum: \" + ____);\n    }\n}\n}",
+      "checkOutput": "Sum: 8\n\u001e\nSum: 30\n\u001e\nSum: 7"
     }
   ]
 }

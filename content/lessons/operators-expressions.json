@@ -2,7 +2,7 @@
   "skillId": "operators-expressions",
   "title": "Operators: Java’s calculator rules",
   "minutes": 5,
-  "version": 1,
+  "version": 2,
   "steps": [
     {
       "id": "hook",
@@ -192,8 +192,18 @@
     {
       "id": "fill",
       "type": "fill",
-      "prompt": "Your turn. Each line should print the exact average of the two numbers, decimals included.",
-      "code": "public class Main {\n    public static void main(String[] args) {\n        int[] as = {7, 10, 3};\n        int[] bs = {8, 10, 4};\n        for (int i = 0; i < 3; i++) { // tries three pairs\n            int a = as[i];\n            int b = bs[i];\n            double avg = ____;\n            System.out.println(avg);\n        }\n    }\n}",
+      "prompt": "Your turn. Store the exact average of a and b, decimals included. We'll also try your line with other numbers.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int a = 7;\n        int b = 8;\n        double avg = ____;\n        System.out.println(avg);\n    }\n}",
+      "cases": [
+        {
+          "a": "10",
+          "b": "10"
+        },
+        {
+          "a": "3",
+          "b": "4"
+        }
+      ],
       "accepted": [
         "(a + b) / 2.0",
         "(a + b) / 2d",
@@ -205,11 +215,14 @@
       "wrong": [
         "(a + b) / 2",
         "a + b / 2.0",
-        "a + b / 2"
+        "a + b / 2",
+        "7.5"
       ],
       "hint": "Brackets for the sum, and make the 2 a decimal (2.0) so the division keeps the .5.",
       "explain": "`(a + b) / 2.0` adds first, then divides by a `double`, so 7 and 8 give `7.5` instead of `7.0`.",
-      "expectedOutput": "7.5\n10.0\n3.5"
+      "expectedOutput": "7.5",
+      "checkProgram": "public class Main {\n    public static void main(String[] args) {\n        {\n        int a = 7;\n        int b = 8;\n        double avg = ____;\n        System.out.println(avg);\n    }\n        System.out.println((char) 30); // next case\n\n        {\n        int a = 10;\n        int b = 10;\n        double avg = ____;\n        System.out.println(avg);\n    }\n        System.out.println((char) 30); // next case\n\n        {\n        int a = 3;\n        int b = 4;\n        double avg = ____;\n        System.out.println(avg);\n    }\n}\n}",
+      "checkOutput": "7.5\n\u001e\n10.0\n\u001e\n3.5"
     }
   ]
 }

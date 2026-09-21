@@ -1,14 +1,21 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import {
+  CASE_BREAK,
   LESSON_BKT,
   countsAsEvidence,
+  fillCheckProgram,
   fillProgram,
+  firstFailingCase,
   isAcceptedFill,
   normalizeFillAnswer,
   sanitizeLesson,
   scoreAnswers,
+  splitCaseOutputs,
   splitNarration,
   type LessonContent,
+  type LessonStep,
 } from './content';
 import { bktUpdate } from '../tutor/bkt';
 
@@ -136,5 +143,51 @@ describe('scoreAnswers', () => {
     expect(scoreAnswers({ p1: true, c1: true }, LESSON.steps)).toEqual({ correct: 2, total: 2 });
     expect(scoreAnswers({ p1: false, c1: true }, LESSON.steps)).toEqual({ correct: 1, total: 2 });
     expect(scoreAnswers({}, LESSON.steps)).toEqual({ correct: 0, total: 2 });
+  });
+});
+
+describe('hidden cases in a fill step', () => {
+  // The real lesson 1 exercise, exactly as the build script generated it.
+  const lesson = JSON.parse(
+    readFileSync(join(__dirname, '..', '..', '..', 'content', 'lessons', 'java-basics.json'), 'utf8'),
+  ) as LessonContent;
+  const fill = lesson.steps.find((s) => s.type === 'fill') as LessonStep;
+  const out = (...cases: string[]) => cases.join(`\n${CASE_BREAK}\n`);
+
+  it('shows the student a program with no loop or array, just the variables', () => {
+    const body = fill.code!.replace(/main\s*\(String\[\] args\)/, 'main()'); // main's own signature isn't "using arrays"
+    expect(body).not.toMatch(/\bfor\b|\bwhile\b|\[/);
+    expect(fill.cases?.length).toBeGreaterThan(0);
+    expect(fill.checkProgram).toBeDefined();
+  });
+
+  it('puts the answer into every case, and inserts "$&" as plain text', () => {
+    const program = fillCheckProgram(fill.checkProgram!, '(a + b)');
+    expect(program).not.toContain('____');
+    expect(program.split('(a + b)').length - 1).toBe(fill.cases!.length + 1);
+    expect(fillProgram('x = ____;', '"$&"')).toBe('x = "$&";');
+  });
+
+  it('splits the output back into one piece per case', () => {
+    expect(splitCaseOutputs(out('Sum: 8 ', 'Sum: 30', ''))).toEqual(['Sum: 8', 'Sum: 30', '']);
+  });
+
+  it('names the case a hard-coded answer gets wrong', () => {
+    // Typing 8 prints "Sum: 8" for every pair.
+    const failed = firstFailingCase(out('Sum: 8', 'Sum: 8', 'Sum: 8'), fill);
+    expect(failed).toEqual({ values: { a: '10', b: '20' }, expected: 'Sum: 30', actual: 'Sum: 8' });
+  });
+
+  it('stays quiet when the answer is already wrong on screen, or right everywhere', () => {
+    expect(firstFailingCase(out('Sum: 53', 'Sum: 1020', 'Sum: 70'), fill)).toBeUndefined(); // ordinary feedback covers it
+    expect(firstFailingCase(fill.checkOutput!, fill)).toBeUndefined();
+    expect(firstFailingCase('anything', { cases: undefined, checkOutput: undefined })).toBeUndefined();
+  });
+
+  it('never sends the cases or the check program to the browser', () => {
+    const sent = JSON.stringify(sanitizeLesson(lesson));
+    expect(sent).not.toContain('checkProgram');
+    expect(sent).not.toContain('checkOutput');
+    expect(sent).not.toContain('"cases"');
   });
 });

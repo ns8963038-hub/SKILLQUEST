@@ -124,16 +124,22 @@ export function FillStep({ skillId, step, onSolved }: { skillId: string; step: F
         <AnimatePresence mode="wait">
           {result && !result.correct && (
             <motion.div key={`miss-${misses}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} role="status" className="mt-4 space-y-2 rounded-2xl border border-danger/25 bg-danger-tint px-4 py-3 text-sm">
-              <p>
-                <strong className="text-danger">Not yet. </strong>
-                {result.via === 'run' && result.output !== undefined
-                  ? 'Your line ran, but the output was different:'
-                  : 'That doesn’t give the output above.'}
-              </p>
-              {result.via === 'run' && result.output !== undefined && (
-                <pre className="max-h-28 overflow-auto whitespace-pre-wrap rounded-lg bg-base/60 px-3 py-2 font-mono text-[12px] text-content-muted">{result.output || '(nothing)'}</pre>
+              {result.failedCase ? (
+                <HiddenCaseMiss failed={result.failedCase} />
+              ) : (
+                <>
+                  <p>
+                    <strong className="text-danger">Not yet. </strong>
+                    {result.via === 'run' && result.output !== undefined
+                      ? 'Your line ran, but the output was different:'
+                      : 'That doesn’t give the output above.'}
+                  </p>
+                  {result.via === 'run' && result.output !== undefined && (
+                    <pre className="max-h-28 overflow-auto whitespace-pre-wrap rounded-lg bg-base/60 px-3 py-2 font-mono text-[12px] text-content-muted">{result.output || '(nothing)'}</pre>
+                  )}
+                </>
               )}
-              {step.hint && (
+              {step.hint && !result.failedCase && (
                 <p className="flex items-start gap-2 text-content-muted">
                   <Lightbulb size={14} className="mt-0.5 shrink-0 text-accent" aria-hidden /> <span><Inline text={step.hint} /></span>
                 </p>
@@ -161,5 +167,33 @@ export function FillStep({ skillId, step, onSolved }: { skillId: string; step: F
         )}
       </div>
     </div>
+  );
+}
+
+// Right for the numbers on screen, wrong for another set the checker tried —
+// almost always a typed-in answer ("8") instead of the variables. Shown as a
+// tiny side-by-side so it reads at a glance, with one plain sentence of advice:
+// this is the moment the point of a variable lands.
+function HiddenCaseMiss({ failed }: { failed: NonNullable<FillResult['failedCase']> }) {
+  const values = Object.entries(failed.values)
+    .map(([name, value]) => `${name} = ${value}`)
+    .join(', ');
+  return (
+    <>
+      <p>
+        <strong className="text-danger">Almost. </strong>
+        It works for the numbers above, but we also tried <code className="rounded bg-base/60 px-1 font-mono text-[12px] text-content">{values}</code>:
+      </p>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-lg bg-base/60 px-3 py-2 font-mono text-[12px]">
+        <dt className="text-content-muted">Your line printed</dt>
+        <dd className="whitespace-pre-wrap text-danger">{failed.actual || '(nothing)'}</dd>
+        <dt className="text-content-muted">It should print</dt>
+        <dd className="whitespace-pre-wrap text-success">{failed.expected || '(nothing)'}</dd>
+      </dl>
+      <p className="flex items-start gap-2 text-content-muted">
+        <Lightbulb size={14} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+        <span>Use the variables, not the answer — then your line works for any numbers.</span>
+      </p>
+    </>
   );
 }

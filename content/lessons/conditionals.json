@@ -2,7 +2,7 @@
   "skillId": "conditionals",
   "title": "Conditionals: teaching Java to decide",
   "minutes": 5,
-  "version": 1,
+  "version": 2,
   "steps": [
     {
       "id": "hook",
@@ -189,8 +189,19 @@
     {
       "id": "fill",
       "type": "fill",
-      "prompt": "Your turn. Write the condition that is true exactly when n is even.",
-      "code": "public class Main {\n    public static void main(String[] args) {\n        for (int n = 1; n <= 6; n++) { // tries n = 1, 2, 3, 4, 5, 6\n            if (____) {\n                System.out.println(n + \" even\");\n            } else {\n                System.out.println(n + \" odd\");\n            }\n        }\n    }\n}",
+      "prompt": "Your turn. Write the condition that is true exactly when n is even. We'll also try it with other values of n.",
+      "code": "public class Main {\n    public static void main(String[] args) {\n        int n = 4;\n        if (____) {\n            System.out.println(n + \" is even\");\n        } else {\n            System.out.println(n + \" is odd\");\n        }\n    }\n}",
+      "cases": [
+        {
+          "n": "7"
+        },
+        {
+          "n": "10"
+        },
+        {
+          "n": "1"
+        }
+      ],
       "accepted": [
         "n % 2 == 0",
         "0 == n % 2",
@@ -204,7 +215,9 @@
       ],
       "hint": "An even number leaves no remainder when divided by 2.",
       "explain": "`n % 2 == 0` is true exactly when dividing by 2 leaves nothing over, which is what \"even\" means.",
-      "expectedOutput": "1 odd\n2 even\n3 odd\n4 even\n5 odd\n6 even"
+      "expectedOutput": "4 is even",
+      "checkProgram": "public class Main {\n    public static void main(String[] args) {\n        {\n        int n = 4;\n        if (____) {\n            System.out.println(n + \" is even\");\n        } else {\n            System.out.println(n + \" is odd\");\n        }\n    }\n        System.out.println((char) 30); // next case\n\n        {\n        int n = 7;\n        if (____) {\n            System.out.println(n + \" is even\");\n        } else {\n            System.out.println(n + \" is odd\");\n        }\n    }\n        System.out.println((char) 30); // next case\n\n        {\n        int n = 10;\n        if (____) {\n            System.out.println(n + \" is even\");\n        } else {\n            System.out.println(n + \" is odd\");\n        }\n    }\n        System.out.println((char) 30); // next case\n\n        {\n        int n = 1;\n        if (____) {\n            System.out.println(n + \" is even\");\n        } else {\n            System.out.println(n + \" is odd\");\n        }\n    }\n}\n}",
+      "checkOutput": "4 is even\n\u001e\n7 is odd\n\u001e\n10 is even\n\u001e\n1 is odd"
     }
   ]
 }

@@ -127,7 +127,10 @@ export interface AnswerResult {
 export interface FillResult {
   correct: boolean;
   via: 'match' | 'run';
-  output?: string;
+  output?: string; // what their line printed for the values on screen
   explain?: string;
   expectedOutput: string;
+  // Right for the values on screen, wrong for another set the checker tried —
+  // e.g. a typed "8" instead of (a + b).
+  failedCase?: { values: Record<string, string>; expected: string; actual: string };
 }

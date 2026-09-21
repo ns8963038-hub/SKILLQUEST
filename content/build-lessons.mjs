@@ -28,6 +28,16 @@
 // the bank, whose program is then RUN and cross-checked against the bank's
 // answer key — if the bank is wrong about its own program, the build fails.
 //
+// Hidden cases: a fill step may carry
+//   "cases": [ { "a": "10", "b": "20" }, { "a": "7", "b": "0" } ]
+// — other values for variables declared in main. The student sees only the
+// program as written; the checker also runs their line with each case, so a
+// hard-coded answer ("8") fails while the visible code stays beginner-simple
+// (no loop or array just to try several inputs). Generated from it:
+//   fill.checkProgram   main's body once per case, each in its own { block },
+//                       with a marker line printed between cases
+//   fill.checkOutput    what that program prints with the first accepted answer
+//
 // Array pictures: a trace step may carry
 //   "visual": { "array": "a", "pointers": ["lo","mid","hi"],
 //               "range": ["lo","hi"], "mode": "cells" | "bars" }
@@ -164,6 +174,63 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 const files = readdirSync(LESSONS_DIR).filter((f) => f.endsWith('.json')).sort();
 let checked = 0;
+// ---- Hidden cases for a fill step ----------------------------------------------
+
+// The line printed between one case's output and the next: the ASCII "record
+// separator" (char 30). Java prints it as-is; a student never types it. Mirrored
+// in backend/src/lessons/content.ts (CASE_BREAK).
+const CASE_BREAK = String.fromCharCode(30);
+
+// Blank out string/char literals and // comments, keeping positions, so braces
+// inside them never confuse a brace count.
+function maskLiterals(code) {
+  return code.replace(/"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
+}
+
+// Where main's body sits: the index just after its "{" and the index of its
+// matching "}". Null when there is no main or its braces don't balance.
+function mainBody(code) {
+  const masked = maskLiterals(code);
+  const head = /public\s+static\s+void\s+main\s*\([^)]*\)\s*(?:throws\s+[\w.,\s]+)?\{/.exec(masked);
+  if (!head) return null;
+  const start = head.index + head[0].length;
+  let depth = 1;
+  for (let i = start; i < masked.length; i++) {
+    if (masked[i] === '{') depth++;
+    else if (masked[i] === '}' && --depth === 0) return { start, end: i };
+  }
+  return null;
+}
+
+// Build the program the checker really runs. Each case gets main's body in its
+// own { block } — so its variables can be declared again — with that case's
+// values put into the declarations; case 0 is the program exactly as shown.
+// Returns { program } or { problem } explaining what the author must fix.
+function checkProgramFor(code, cases) {
+  const body = mainBody(code);
+  if (!body) return { problem: 'cases need a main method whose braces balance' };
+  const inside = code.slice(body.start, body.end);
+  if (!inside.includes(BLANK)) return { problem: `cases need the ${BLANK} inside main` };
+
+  const blocks = [];
+  for (const [n, values] of [{}, ...cases].entries()) {
+    let text = inside;
+    for (const [name, value] of Object.entries(values)) {
+      if (!/^[A-Za-z_]\w*$/.test(name)) return { problem: `case ${n}: "${name}" is not a variable name` };
+      if (typeof value !== 'string' || value.trim() === '') return { problem: `case ${n}: "${name}" needs a value written as Java, e.g. "10"` };
+      // The one line in main that declares this variable: `int a = 5;`
+      const decl = new RegExp(`^([ \\t]*(?:final\\s+)?[A-Za-z_][\\w<>\\[\\], ]*?\\s+${name}\\s*=\\s*)([^;\\n]+)(;[^\\n]*)$`, 'gm');
+      const found = [...text.matchAll(decl)];
+      if (found.length !== 1) return { problem: `case ${n}: "${name}" must be declared exactly once in main (found ${found.length})` };
+      if (found[0][0].includes(BLANK)) return { problem: `case ${n}: "${name}" is declared on the line with the blank` };
+      text = text.replace(decl, (_all, before, _old, after) => `${before}${value}${after}`);
+    }
+    blocks.push(`\n        {${text}}\n`);
+  }
+  const between = '        System.out.println((char) 30); // next case\n';
+  return { program: code.slice(0, body.start) + blocks.join(between) + code.slice(body.end) };
+}
+
 // ---- The optional array picture ----------------------------------------------
 
 // Everything a "visual" block names must exist in the recording with the right
@@ -328,15 +395,49 @@ for (const file of files) {
         continue;
       }
       const { clean } = splitNarration(s.code);
-      const results = s.accepted.map((a) => outcome(clean.replace(BLANK, a)));
+      // The answer goes into the blank as-is (split/join, so "$&" in an answer is
+      // never read as a replacement pattern).
+      const put = (program, answer) => program.split(BLANK).join(answer);
+      const results = s.accepted.map((a) => outcome(put(clean, a)));
       const expected = results[0].kind === 'ok' ? results[0].text : null;
       if (!expected) fail(id, `${s.id}: first accepted answer doesn't run (${results[0].text}: ${results[0].error ?? ''})`);
       results.forEach((r, i) => {
         if (r.text !== expected) fail(id, `${s.id}: accepted "${s.accepted[i]}" prints ${JSON.stringify(r.text)}`);
       });
+
+      // Hidden cases: the same line must also work for the other values.
+      let check = null; // { program, output } when the step has cases
+      if (s.cases !== undefined) {
+        if (!Array.isArray(s.cases) || s.cases.length === 0 || !s.cases.every((c) => c && typeof c === 'object' && !Array.isArray(c))) {
+          fail(id, `${s.id}: "cases" must be a list of { variable: value } objects`);
+        } else {
+          const built = checkProgramFor(clean, s.cases);
+          if (built.problem) fail(id, `${s.id}: ${built.problem}`);
+          else {
+            const runs = s.accepted.map((a) => outcome(put(built.program, a)));
+            if (runs[0].kind !== 'ok') fail(id, `${s.id}: the hidden cases don't run with "${s.accepted[0]}" (${runs[0].text}: ${runs[0].error ?? ''})`);
+            else {
+              check = { program: built.program, output: runs[0].text };
+              runs.forEach((r, i) => {
+                if (r.text !== check.output) fail(id, `${s.id}: accepted "${s.accepted[i]}" fails a hidden case`);
+              });
+              const parts = check.output.split(CASE_BREAK).map((x) => normalize(x));
+              if (parts.length !== s.cases.length + 1) fail(id, `${s.id}: expected ${s.cases.length + 1} case outputs, got ${parts.length}`);
+              if (parts[0] !== expected) fail(id, `${s.id}: case 0 should print exactly what the student is shown`);
+              parts.slice(1).forEach((p, i) => {
+                if (p === parts[0]) fail(id, `${s.id}: hidden case ${i + 1} prints the same as the shown one, so it can't catch anything`);
+              });
+            }
+          }
+        }
+      }
+
+      // A wrong answer (and the empty blank) must fail — against the hidden cases
+      // too when there are some, which is what makes a hard-coded "8" wrong.
       for (const wrong of ['', ...(s.wrong ?? [])]) {
-        const r = outcome(clean.replace(BLANK, wrong));
-        if (r.kind === 'ok' && r.text === expected) fail(id, `${s.id}: the wrong answer "${wrong}" also works`);
+        const r = outcome(put(check ? check.program : clean, wrong));
+        const target = check ? check.output : expected;
+        if (r.kind === 'ok' && r.text === target) fail(id, `${s.id}: the wrong answer "${wrong}" also works`);
       }
       if (expected !== null) {
         if (FILL && s.expectedOutput !== expected) {
@@ -345,6 +446,23 @@ for (const file of files) {
         } else if (!FILL && s.expectedOutput !== expected) {
           fail(id, `${s.id}: expectedOutput out of date (run --fill)`);
         }
+      }
+      if (check) {
+        const stale = s.checkProgram !== check.program || s.checkOutput !== check.output;
+        if (FILL && stale) {
+          s.checkProgram = check.program;
+          s.checkOutput = check.output;
+          changed = true;
+        } else if (!FILL && stale) {
+          fail(id, `${s.id}: checkProgram/checkOutput out of date (run --fill)`);
+        }
+      } else if (s.cases === undefined && (s.checkProgram !== undefined || s.checkOutput !== undefined)) {
+        // The cases were removed: drop what was generated from them.
+        if (FILL) {
+          delete s.checkProgram;
+          delete s.checkOutput;
+          changed = true;
+        } else fail(id, `${s.id}: has checkProgram but no cases (run --fill)`);
       }
     }
   }

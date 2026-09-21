@@ -1,4 +1,5 @@
 import { DEFAULT_BKT, type BktParams } from '../tutor/bkt';
+import { normalizeOutput } from '../execution/compare';
 
 // Lesson content handling (Learn mode, PRD F8). Pure functions only — no DB, no
 // I/O — so the rules that matter (what the browser is allowed to see, what
@@ -66,8 +67,47 @@ export function isAcceptedFill(answer: string, accepted: string[]): boolean {
 }
 
 // Put the student's answer into the blank, giving a complete program to run.
+// (A function replacer, so "$&" or "$'" typed by a student is inserted as text,
+// not read as a replacement pattern.)
 export function fillProgram(code: string, answer: string): string {
-  return splitNarration(code).code.replace(BLANK, answer);
+  return splitNarration(code).code.replace(BLANK, () => answer);
+}
+
+// ---- Hidden cases ------------------------------------------------------------
+
+// The line printed between one case's output and the next in a checkProgram:
+// the ASCII "record separator", char 30. Mirrors CASE_BREAK in build-lessons.mjs.
+export const CASE_BREAK = String.fromCharCode(30);
+
+// The check program with the student's answer in every case's blank.
+export function fillCheckProgram(checkProgram: string, answer: string): string {
+  return checkProgram.split(BLANK).join(answer);
+}
+
+// One output per case, each tidied the same way outputs are compared.
+export function splitCaseOutputs(output: string): string[] {
+  return output.split(CASE_BREAK).map(normalizeOutput);
+}
+
+export interface FailedCase {
+  values: Record<string, string>; // the variables as they were set for this case
+  expected: string;
+  actual: string;
+}
+
+// When an answer is right for the values on screen but wrong for a hidden case,
+// say which case — that is the whole lesson ("use the variables, not the
+// answer"). Undefined when the answer already fails on screen (the ordinary
+// "your output was different" feedback covers that) or when nothing failed.
+export function firstFailingCase(actualOutput: string, step: Pick<LessonStep, 'cases' | 'checkOutput'>): FailedCase | undefined {
+  if (!step.cases?.length || step.checkOutput === undefined) return undefined;
+  const actual = splitCaseOutputs(actualOutput);
+  const expected = splitCaseOutputs(step.checkOutput);
+  if (actual[0] !== expected[0]) return undefined;
+  for (let i = 1; i < expected.length; i++) {
+    if (actual[i] !== expected[i]) return { values: step.cases[i - 1] ?? {}, expected: expected[i]!, actual: actual[i] ?? '' };
+  }
+  return undefined;
 }
 
 // ---- The shape of a lesson ---------------------------------------------------
@@ -122,6 +162,12 @@ export interface LessonStep {
   expectedOutput?: string;
   hint?: string;
   explain?: string; // revealed once they get it right
+  // Hidden cases (content/build-lessons.mjs): other values for main's variables.
+  // The student sees only the program as written; their line must also work for
+  // these, so a hard-coded answer fails. Never sent to the browser.
+  cases?: Record<string, string>[];
+  checkProgram?: string; // generated: main's body once per case, with CASE_BREAK between
+  checkOutput?: string; // generated: what checkProgram prints with a right answer
 }
 
 export interface LessonContent {

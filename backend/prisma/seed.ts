@@ -107,6 +107,8 @@ const LessonStepSchema = z
       (step.type === 'predict' && typeof s.answer !== 'number' && 'answer') ||
       (step.type === 'trace' && !s.trace && 'trace') ||
       (step.type === 'fill' && typeof s.expectedOutput !== 'string' && 'expectedOutput') ||
+      // Hidden cases need their generated check program and output.
+      (step.type === 'fill' && s.cases !== undefined && (typeof s.checkProgram !== 'string' || typeof s.checkOutput !== 'string') && 'checkProgram/checkOutput') ||
       // A concept step is inlined from content/questions/java-oop.json.
       (step.type === 'concept' && (typeof s.answer !== 'number' || !Array.isArray(s.options) || !s.question) && 'question/options/answer');
     if (missing) ctx.addIssue({ code: 'custom', message: `step "${step.id}" has no ${missing} — run: node content/build-lessons.mjs --fill` });

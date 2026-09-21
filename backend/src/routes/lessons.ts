@@ -8,11 +8,15 @@ import { bktUpdate, DEFAULT_BKT } from '../tutor/bkt';
 import {
   LESSON_BKT,
   countsAsEvidence,
+  fillCheckProgram,
   fillProgram,
+  firstFailingCase,
   isAcceptedFill,
   isQuestion,
   sanitizeLesson,
   scoreAnswers,
+  splitCaseOutputs,
+  type FailedCase,
   type LessonContent,
   type LessonStep,
   type PredictOption,
@@ -217,16 +221,26 @@ lessonsRouter.post(
     let correct = isAcceptedFill(answer, step.accepted ?? []);
     let via: 'match' | 'run' = 'match';
     let output: string | undefined;
+    let failedCase: FailedCase | undefined;
     if (!correct) {
-      // Run it for real — same sandbox as a level submission.
+      // Run it for real — same sandbox as a level submission. With hidden cases
+      // the line is run for the values on screen AND the others in one program,
+      // so a hard-coded answer that only fits the numbers shown still fails.
       via = 'run';
+      const hidden = Boolean(step.cases?.length && step.checkProgram && step.checkOutput !== undefined);
       const run = await getExecutor().run(
-        fillProgram(step.code ?? '', answer),
-        [{ stdin: '', expectedOutput: expected, isHidden: false }],
+        hidden ? fillCheckProgram(step.checkProgram!, answer) : fillProgram(step.code ?? '', answer),
+        [{ stdin: '', expectedOutput: hidden ? step.checkOutput! : expected, isHidden: false }],
         5000,
       );
       correct = run.results[0]?.passed ?? false;
-      output = run.results[0]?.actualOutput;
+      const actual = run.results[0]?.actualOutput;
+      if (hidden && actual !== undefined) {
+        output = splitCaseOutputs(actual)[0]; // what their line printed for the numbers on screen
+        if (!correct) failedCase = firstFailingCase(actual, step);
+      } else {
+        output = actual;
+      }
     }
 
     await prisma.userLesson.updateMany({ where: { userId, skillId }, data: { fillAttempts: { increment: 1 } } });
@@ -236,6 +250,8 @@ lessonsRouter.post(
       correct,
       via,
       output,
+      // Right for the numbers shown, wrong for another set: which one, and how.
+      failedCase,
       // The teaching point, and a worked answer, once they've got it (or asked).
       explain: correct ? step.explain : undefined,
       expectedOutput: expected,
