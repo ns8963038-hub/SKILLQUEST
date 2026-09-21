@@ -26,7 +26,13 @@ const LESSON: LessonContent = {
       ],
       answer: 0,
     },
-    { id: 'run', type: 'trace', from: 'p1', trace: { frames: [] } },
+    {
+      id: 'run',
+      type: 'trace',
+      from: 'p1',
+      visual: { array: 'a', pointers: ['i'], mode: 'cells' },
+      trace: { frames: [] },
+    },
     {
       id: 'c1',
       type: 'concept',
@@ -66,6 +72,13 @@ describe('sanitizeLesson', () => {
     expect(fill).not.toHaveProperty('explain');
     expect(fill?.expectedOutput).toBe('1');
     expect(fill?.hint).toBe('one');
+  });
+
+  it('keeps a trace step\'s code, narration and array picture', () => {
+    const run = steps.find((s) => s.id === 'run');
+    expect(run?.code).toBe('int a = 1;\nSystem.out.println(a);'); // borrowed from the predict step, narration removed
+    expect(run?.notes).toEqual({ 1: 'a starts at one' });
+    expect(run?.visual).toEqual({ array: 'a', pointers: ['i'], mode: 'cells' }); // the browser draws the strip from this
   });
 
   it('sends a concept question without its answer or explanation', () => {

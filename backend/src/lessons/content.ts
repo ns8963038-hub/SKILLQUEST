@@ -81,6 +81,16 @@ export interface PredictOption {
 // Concept step (theory, taken from content/questions/java-oop.json).
 export const QUESTION_TYPES = ['predict', 'concept'] as const;
 
+// One array drawn beside the trace (searching, sorting). Every name in here is
+// checked against the recording by the build script, so the picture can never
+// disagree with what the JVM actually did.
+export interface TraceVisual {
+  array: string;
+  pointers?: string[];
+  range?: [string, string];
+  mode?: 'cells' | 'bars';
+}
+
 export interface LessonStep {
   id: string;
   type: 'hook' | 'predict' | 'trace' | 'explain' | 'fill' | 'concept';
@@ -102,6 +112,10 @@ export interface LessonStep {
   // trace
   from?: string; // the step whose code this traces
   trace?: unknown; // recorded by content/tools/Tracer.java
+  visual?: TraceVisual; // optional array picture, checked by content/build-lessons.mjs
+  // added by sanitizeLesson for predict and trace steps: line number -> Nova's
+  // narration, split out of the code (the browser needs both halves)
+  notes?: Record<number, string>;
   // fill
   accepted?: string[]; // never sent to the browser
   wrong?: string[];
@@ -129,7 +143,7 @@ export function sanitizeLesson(content: LessonContent): LessonStep[] {
     if (s.type === 'trace') {
       const source = s.from ? steps.find((x) => x.id === s.from) : s;
       const { code, notes } = splitNarration(source?.code ?? '');
-      return { id: s.id, type: s.type, title: s.title, code, notes, trace: s.trace };
+      return { id: s.id, type: s.type, title: s.title, code, notes, trace: s.trace, visual: s.visual };
     }
     if (s.type === 'concept') {
       // Theory question: the text and the options, never the answer.

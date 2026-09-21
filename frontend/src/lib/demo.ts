@@ -1,6 +1,7 @@
 import { SKILL_GRAPH } from '../features/constellation/skillGraph';
 import { bktUpdate, LESSON_BKT, MASTERY_THRESHOLD } from '../features/tutor/bkt';
 import type { RoadmapNode, SkillStatus } from '../features/roadmap/types';
+import type { TraceVisual } from '../features/learn/types';
 
 // =============================================================================
 // DEMO MODE
@@ -639,6 +640,7 @@ interface DemoLessonStep {
   answer?: number;
   accepted?: string[];
   explain?: string;
+  visual?: TraceVisual; // the array picture for a trace step
   [key: string]: unknown;
 }
 interface DemoLesson {
@@ -679,7 +681,9 @@ function lessonSteps(lesson: DemoLesson) {
     if (s.type === 'trace') {
       const src = s.from ? lesson.steps.find((x) => x.id === s.from) : s;
       const { code, notes } = splitNarration(src?.code ?? '');
-      return { id: s.id, type: s.type, title: s.title, code, notes, trace: s.trace };
+      // `visual` travels with the step, exactly as sanitizeLesson sends it, so
+      // the array strip works offline too.
+      return { id: s.id, type: s.type, title: s.title, code, notes, trace: s.trace, visual: s.visual };
     }
     if (s.type === 'fill') {
       return { id: s.id, type: s.type, prompt: s.prompt, code: splitNarration(s.code ?? '').code, expectedOutput: s.expectedOutput, hint: s.hint, blank: '____' };

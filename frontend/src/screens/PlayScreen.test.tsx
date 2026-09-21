@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 // Replace the Monaco editor with a plain textarea so it renders in jsdom.
@@ -47,7 +47,7 @@ describe('PlayScreen', () => {
     expect(await screen.findByRole('heading', { name: /max in array/i })).toBeInTheDocument();
 
     // Running the tests opens the treasure chest and shows the XP.
-    screen.getByRole('button', { name: /run tests/i }).click();
+    fireEvent.click(screen.getByRole('button', { name: /run tests/i })); // via fireEvent, so React sees it inside act()
     expect(await screen.findByText(/treasure unlocked/i)).toBeInTheDocument();
     expect(screen.getAllByText(/\+50 xp/i).length).toBeGreaterThan(0);
   });

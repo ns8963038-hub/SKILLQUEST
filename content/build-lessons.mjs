@@ -27,6 +27,12 @@
 // the bank. A predict step may also carry "ref": an Output Prediction item from
 // the bank, whose program is then RUN and cross-checked against the bank's
 // answer key — if the bank is wrong about its own program, the build fails.
+//
+// Array pictures: a trace step may carry
+//   "visual": { "array": "a", "pointers": ["lo","mid","hi"],
+//               "range": ["lo","hi"], "mode": "cells" | "bars" }
+// which draws that array beside the code. Every name in it is checked against
+// the recording below, so the picture can never show something the JVM didn't do.
 // =============================================================================
 
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -158,6 +164,53 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 const files = readdirSync(LESSONS_DIR).filter((f) => f.endsWith('.json')).sort();
 let checked = 0;
+// ---- The optional array picture ----------------------------------------------
+
+// Everything a "visual" block names must exist in the recording with the right
+// type, or the drawing would quietly disagree with the program. Checked against
+// the trace we have just recorded, never against what an author believed.
+function checkVisual(id, step, trace) {
+  const v = step.visual;
+  const where = `${step.id}: visual`;
+  const KEYS = ['array', 'pointers', 'range', 'mode'];
+  for (const key of Object.keys(v)) {
+    if (!KEYS.includes(key)) fail(id, `${where} has an unknown key "${key}" (allowed: ${KEYS.join(', ')})`);
+  }
+
+  // Does a variable of this type ever exist in the recording?
+  const isEver = (name, ...types) =>
+    trace.frames.some((f) => (f.stack ?? []).some((sf) => types.includes(sf.vars?.[name]?.t)));
+
+  if (typeof v.array !== 'string' || v.array === '') {
+    fail(id, `${where}.array must name a variable`);
+    return;
+  }
+  if (!isEver(v.array, 'array')) fail(id, `${where}.array "${v.array}" is never an array in the recording`);
+
+  const pointers = v.pointers ?? [];
+  if (!Array.isArray(pointers)) {
+    fail(id, `${where}.pointers must be a list of variable names`);
+    return;
+  }
+  for (const name of pointers) {
+    if (!isEver(name, 'int', 'long')) fail(id, `${where}.pointers "${name}" is never a whole number in the recording`);
+  }
+
+  if (v.range !== undefined) {
+    if (!Array.isArray(v.range) || v.range.length !== 2) {
+      fail(id, `${where}.range must be exactly two pointer names`);
+    } else {
+      for (const name of v.range) {
+        if (!pointers.includes(name)) fail(id, `${where}.range "${name}" is not one of the pointers`);
+      }
+    }
+  }
+
+  if (v.mode !== undefined && !['cells', 'bars'].includes(v.mode)) {
+    fail(id, `${where}.mode must be "cells" or "bars"`);
+  }
+}
+
 for (const file of files) {
   const lesson = JSON.parse(readFileSync(join(LESSONS_DIR, file), 'utf8'));
   const id = lesson.skillId ?? file;
@@ -251,6 +304,7 @@ for (const file of files) {
       try {
         const trace = recordTrace(clean);
         if (trace.truncated) fail(id, `${s.id}: over ${MAX_TRACE_FRAMES} steps — shorten the program`);
+        if (s.visual) checkVisual(id, s, trace);
         if (FILL && !same(s.trace, trace)) {
           s.trace = trace;
           changed = true;

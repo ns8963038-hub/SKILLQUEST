@@ -2,8 +2,12 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Pause, Play, SkipBack, SkipForward, Terminal } from 'lucide-react';
 import { cn } from '../../lib/cn';
+import { useMotionOff } from '../../lib/motionPref';
 import { Nova } from '../../ui/Nova';
-import { CodeView } from './CodeView';
+import { ArrayStrip, frameWithArray } from './ArrayStrip';
+import { Scalar, Variable, sig } from './values';
+import { CodeView, type DecisionMark } from './CodeView';
+import { conditionText, decisionAt, findControlBlocks, jumpAt } from './traceAnalysis';
 import type { TraceFrame, TraceStackFrame, TraceStep, TraceValue } from './types';
 
 // "WATCH IT RUN" — plays back an execution recorded from the real JVM
@@ -11,11 +15,16 @@ import type { TraceFrame, TraceStackFrame, TraceStep, TraceValue } from './types
 // highlighted line runs: every call on the stack with its variables, the
 // program's own objects, and everything printed so far. Values that just
 // changed flash gold, so the eye goes straight to what the line did.
+//
+// Two more things are read out of the recording (traceAnalysis.ts) and drawn on
+// the code itself, so a student can follow the run without reading much English:
+// the true/false result of the condition that led here, and an arrow when
+// execution jumped — back to the top of a loop, or past a block that was
+// skipped. Both describe the step just taken, like the gold flash does.
 
 const AUTOPLAY_MS = 1100;
-
-// A stable string for comparing two values between frames.
-const sig = (v: TraceValue | undefined) => JSON.stringify(v ?? null);
+// The new output types out inside one autoplay tick, like the value animations.
+const TYPE_MS = 420;
 
 // A value as plain words, for Nova's narration ("returned 9").
 function plain(v: TraceValue | null | undefined): string {
@@ -36,6 +45,33 @@ function plain(v: TraceValue | null | undefined): string {
   }
 }
 
+// New output appearing character by character, like a real terminal. The whole
+// line is revealed inside TYPE_MS however long it is.
+function Typed({ text, stepKey }: { text: string; stepKey: number }) {
+  const off = useMotionOff();
+  const [shown, setShown] = useState(text.length);
+
+  useEffect(() => {
+    if (off || text.length === 0) {
+      setShown(text.length);
+      return;
+    }
+    setShown(0);
+    const per = Math.min(28, TYPE_MS / text.length);
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const n = Math.min(text.length, Math.floor((now - start) / per));
+      setShown(n);
+      if (n < text.length) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [text, stepKey, off]);
+
+  return <>{text.slice(0, shown)}</>;
+}
+
 // Match a stack frame to the same call in the previous frame (counted from the
 // bottom of the stack, so a new call on top doesn't shift the others).
 function previousFrameOf(prev: TraceFrame | undefined, stack: TraceStackFrame[], index: number): TraceStackFrame | undefined {
@@ -54,6 +90,26 @@ export function TracePlayer({ step, onFinished }: { step: TraceStep; onFinished?
   const frame = frames[i]!;
   const prev = i > 0 ? frames[i - 1] : undefined;
   const line = frame.stack[0]?.line;
+
+  // Where every `if`, `for` and `while` in this listing keeps its body.
+  const blocks = useMemo(() => findControlBlocks(step.code), [step.code]);
+
+  // What the step just taken did: the condition that decided it (when the
+  // recording proves it) and the jump it made. Both stay undefined whenever the
+  // trace can't say for certain, and then nothing is drawn.
+  const decision = useMemo<DecisionMark | undefined>(() => {
+    const value = prev ? decisionAt(blocks, frames, i - 1) : undefined;
+    if (!value || !prev) return undefined;
+    const at = prev.stack[0]!.line;
+    return { line: at, value, condition: conditionText(step.code.split('\n')[at - 1] ?? ''), token: i };
+  }, [blocks, frames, i, prev, step.code]);
+  const jump = prev ? jumpAt(frames, i - 1) : undefined;
+
+  // A lesson can ask for one array to be drawn in full (searching, sorting).
+  // When it is drawn, the memory panel leaves that variable out instead of
+  // showing the same array twice on a small screen.
+  const strip = step.visual && !frame.done ? frameWithArray(frame.stack, step.visual.array) : undefined;
+  const hidden = strip && step.visual ? { m: strip.m, name: step.visual.array } : undefined;
 
   // Move to a frame, clamped; reaching the end stops autoplay and tells the lesson.
   const go = useCallback(
@@ -131,7 +187,7 @@ export function TracePlayer({ step, onFinished }: { step: TraceStep; onFinished?
             </motion.p>
           </AnimatePresence>
         </div>
-        <CodeView code={step.code} activeLine={line} />
+        <CodeView code={step.code} activeLine={line} decision={decision} jump={jump} jumpLane />
 
         {/* Transport controls */}
         <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-3 py-2">
@@ -173,7 +229,8 @@ export function TracePlayer({ step, onFinished }: { step: TraceStep; onFinished?
 
       {/* ---- Right: memory and output ---- */}
       <div className="min-w-0 space-y-3">
-        <Memory frame={frame} prev={prev} />
+        {step.visual && <ArrayStrip visual={step.visual} frame={frame} prev={prev} />}
+        <Memory frame={frame} prev={prev} hidden={hidden} />
         <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#070B16]">
           <p className="flex items-center gap-2 border-b border-white/[0.05] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-content-muted">
             <Terminal size={12} aria-hidden /> Output
@@ -186,7 +243,7 @@ export function TracePlayer({ step, onFinished }: { step: TraceStep; onFinished?
                 {oldOutput}
                 {newOutput && (
                   <motion.span key={i} initial={{ backgroundColor: 'rgba(127,168,255,0.35)' }} animate={{ backgroundColor: 'rgba(127,168,255,0)' }} transition={{ duration: 1.2 }} className="rounded text-ion-soft">
-                    {newOutput}
+                    <Typed text={newOutput} stepKey={i} />
                   </motion.span>
                 )}
               </>
@@ -200,59 +257,75 @@ export function TracePlayer({ step, onFinished }: { step: TraceStep; onFinished?
 
 // ---- Memory: the call stack, then the program's own objects -----------------------
 
-function Memory({ frame, prev }: { frame: TraceFrame; prev?: TraceFrame }) {
+function Memory({
+  frame,
+  prev,
+  hidden,
+}: {
+  frame: TraceFrame;
+  prev?: TraceFrame;
+  hidden?: { m: string; name: string }; // a variable already drawn by the array strip
+}) {
   const objects = Object.entries(frame.heap);
   return (
     <div className="glass rounded-2xl p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="eyebrow">{frame.stack.length > 1 ? `Memory · ${frame.stack.length} calls deep` : 'Memory'}</p>
-        {/* A method just handed a value back to its caller. */}
-        {frame.ret && (
-          <motion.span
-            key={`${frame.ret.m}-${sig(frame.ret.v ?? undefined)}-${frame.stack.length}`}
-            initial={{ opacity: 0, y: -6, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-tint px-2.5 py-1 font-mono text-[11px] text-accent"
-          >
-            ↩ {frame.ret.m}() returned{frame.ret.v ? <> <Scalar value={frame.ret.v} /></> : ''}
-          </motion.span>
+        {/* Nothing is left to receive the last return, so it is shown up here. */}
+        {frame.ret && frame.stack.length === 0 && (
+          <ReturnChip key={`${frame.ret.m}-${sig(frame.ret.v ?? undefined)}-end`} ret={frame.ret} />
         )}
       </div>
       {frame.done ? (
         <p className="text-sm text-content-muted">The program has ended, so its variables are gone.</p>
       ) : (
         <ol className="space-y-2.5">
-          {frame.stack.map((f, idx) => {
-            const before = previousFrameOf(prev, frame.stack, idx);
-            const top = idx === 0;
-            return (
-              <motion.li
-                key={`${frame.stack.length - idx}-${f.m}`}
-                layout
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: top ? 1 : 0.62, y: 0, scale: 1 }}
-                transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                className={cn(
-                  'rounded-xl border px-3 py-2.5',
-                  top ? 'border-ion/35 bg-ion-tint/50' : 'border-line bg-surface-2/50',
-                )}
-              >
-                <p className="mb-2 flex items-center justify-between font-mono text-[11px]">
-                  <span className={top ? 'text-ion' : 'text-content-muted'}>{f.m}()</span>
-                  <span className="text-content-faint">{top ? `line ${f.line}` : `waiting at line ${f.line}`}</span>
-                </p>
-                {Object.keys(f.vars).length === 0 ? (
-                  <p className="text-xs text-content-faint">no variables yet</p>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(f.vars).map(([name, v]) => (
-                      <Variable key={name} name={name} value={v} changed={!before || sig(before.vars[name]) !== sig(v)} previous={before?.vars[name]} />
-                    ))}
-                  </div>
-                )}
-              </motion.li>
-            );
-          })}
+          <AnimatePresence initial={false}>
+            {frame.stack.map((f, idx) => {
+              const before = previousFrameOf(prev, frame.stack, idx);
+              const top = idx === 0;
+              return (
+                <motion.li
+                  key={`${frame.stack.length - idx}-${f.m}`}
+                  layout
+                  initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                  animate={{ opacity: top ? 1 : 0.62, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.97, transition: { duration: 0.16 } }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                  className={cn(
+                    'rounded-xl border px-3 py-2.5',
+                    top ? 'border-ion/35 bg-ion-tint/50' : 'border-line bg-surface-2/50',
+                  )}
+                >
+                  <p className="mb-2 flex items-center justify-between font-mono text-[11px]">
+                    <span className={top ? 'text-ion' : 'text-content-muted'}>{f.m}()</span>
+                    <span className="text-content-faint">{top ? `line ${f.line}` : `waiting at line ${f.line}`}</span>
+                  </p>
+                  {/* The value the call below just handed back, dropping into
+                      the frame that asked for it. */}
+                  {top && frame.ret && (
+                    <ReturnChip key={`${frame.ret.m}-${sig(frame.ret.v ?? undefined)}-${frame.stack.length}`} ret={frame.ret} />
+                  )}
+                  {(() => {
+                    const shown = Object.entries(f.vars).filter(
+                      ([name]) => !(hidden && hidden.name === name && hidden.m === f.m),
+                    );
+                    return shown.length === 0 ? (
+                      <p className="text-xs text-content-faint">
+                        {Object.keys(f.vars).length === 0 ? 'no variables yet' : `${hidden?.name} is drawn above`}
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {shown.map(([name, v]) => (
+                          <Variable key={name} name={name} value={v} changed={!before || sig(before.vars[name]) !== sig(v)} previous={before?.vars[name]} />
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
         </ol>
       )}
       {objects.length > 0 && !frame.done && <Objects heap={frame.heap} prevHeap={prev?.heap} />}
@@ -260,89 +333,25 @@ function Memory({ frame, prev }: { frame: TraceFrame; prev?: TraceFrame }) {
   );
 }
 
-// One variable: its name above a value box that flashes when the value changes.
-function Variable({ name, value, changed, previous }: { name: string; value: TraceValue; changed: boolean; previous?: TraceValue }) {
+// "↩ factorial() returned 6" — the value a finished call handed back, dropping
+// into the frame that receives it (or into the header once nothing is left).
+function ReturnChip({ ret }: { ret: NonNullable<TraceFrame['ret']> }) {
   return (
-    <div className="min-w-0">
-      <p className="mb-1 font-mono text-[10px] text-content-muted">{name}</p>
-      <ValueBox value={value} changed={changed} previous={previous} />
-    </div>
-  );
-}
-
-function ValueBox({ value, changed, previous }: { value: TraceValue; changed: boolean; previous?: TraceValue }) {
-  if (value.t === 'array') {
-    const prevItems = previous?.t === 'array' ? previous.items ?? [] : undefined;
-    return (
-      <div className="flex">
-        {(value.items ?? []).map((item, k) => {
-          const cellChanged = prevItems ? sig(prevItems[k]) !== sig(item) : changed;
-          return (
-            <div key={k} className="flex flex-col items-center">
-              <Flash on={cellChanged} token={sig(item)}>
-                <span className={cn('grid h-8 min-w-[2.25rem] place-items-center border border-line-strong bg-base/70 px-1.5 font-mono text-[12px]', k === 0 && 'rounded-l-lg', k === (value.items?.length ?? 0) - 1 && 'rounded-r-lg', k > 0 && '-ml-px')}>
-                  <Scalar value={item} />
-                </span>
-              </Flash>
-              <span className="mt-0.5 font-mono text-[9px] text-content-faint">[{k}]</span>
-            </div>
-          );
-        })}
-        {(value.items ?? []).length === 0 && <span className="font-mono text-xs text-content-faint">[ ] empty</span>}
-      </div>
-    );
-  }
-  return (
-    <Flash on={changed} token={sig(value)}>
-      <span className="inline-flex h-8 min-w-[2.5rem] items-center justify-center rounded-lg border border-line-strong bg-base/70 px-2.5 font-mono text-[12.5px]">
-        <Scalar value={value} />
-      </span>
-    </Flash>
-  );
-}
-
-// A gold flash when a value changes (keyed on the value so each change replays it).
-function Flash({ on, token, children }: { on: boolean; token: string; children: ReactNode }) {
-  return (
-    <motion.span
-      key={on ? token : 'still'}
-      initial={on ? { boxShadow: '0 0 0 2px rgba(255,197,61,0.95), 0 0 18px rgba(255,197,61,0.55)', scale: 1.08 } : false}
-      animate={{ boxShadow: '0 0 0 0px rgba(255,197,61,0)', scale: 1 }}
-      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-      className="inline-block rounded-lg"
+    <motion.p
+      initial={{ opacity: 0, y: -14, scale: 0.92 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 26 }}
+      className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-tint px-2.5 py-1 font-mono text-[11px] text-accent"
     >
-      {children}
-    </motion.span>
+      {ret.v ? (
+        <>
+          ↩ {ret.m}() returned <Scalar value={ret.v} />
+        </>
+      ) : (
+        <>↩ {ret.m}() finished</>
+      )}
+    </motion.p>
   );
-}
-
-// A primitive / string / collection / reference, coloured like the code.
-function Scalar({ value }: { value: TraceValue }) {
-  switch (value.t) {
-    case 'str':
-      return <span className="text-success">&quot;{String(value.v)}&quot;</span>;
-    case 'char':
-      return <span className="text-success">&apos;{String(value.v)}&apos;</span>;
-    case 'boolean':
-      return <span className="text-ion">{String(value.v)}</span>;
-    case 'null':
-      return <span className="text-content-faint">null</span>;
-    case 'coll':
-      return (
-        <span>
-          <span className="text-ion-soft">{value.cls} </span>
-          <span className="text-content">{String(value.v)}</span>
-        </span>
-      );
-    case 'ref':
-      return <span className="text-ember">→ #{value.id}</span>;
-    case 'array':
-      return <span className="text-content-muted">[…]</span>;
-    case 'more':
-      return <span className="text-content-faint">…</span>;
-    default:
-      return <span className="text-accent">{String(value.v)}</span>;
-  }
 }
 
 // ---- Objects: linked lists as chains, everything else as cards ---------------------

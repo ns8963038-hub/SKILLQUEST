@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { CalendarClock, Check, Lock, Target, User } from 'lucide-react';
+import { CalendarClock, Check, Lock, Sparkles, Target, User } from 'lucide-react';
 import { api } from '../lib/api';
 import { invalidate, useApi } from '../lib/useApi';
+import { deviceWantsReducedMotion, useMotionPref } from '../lib/motionPref';
 import { cn } from '../lib/cn';
 import { Nova } from '../ui/Nova';
 import { Button, ErrorState, GlassCard, PageHeader, Skeleton, Switch, rise, stagger } from '../ui/primitives';
@@ -47,6 +48,7 @@ function editable(s: Settings) {
 // participation (withdraw at any time — Backend Schema §5.1).
 export function SettingsScreen() {
   const { data, error, reload } = useApi<Settings>('/api/settings');
+  const anim = useMotionPref(); // animations: this device only, saved in the browser
   const [form, setForm] = useState<Settings | null>(null);
   const [saved, setSaved] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
@@ -194,6 +196,40 @@ export function SettingsScreen() {
                   </button>
                 );
               })}
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        {/* ---- Display (this device only) ---- */}
+        <motion.div variants={rise}>
+          <GlassCard className="p-6">
+            <SectionTitle icon={Sparkles} title="Animations" />
+            <p className="mt-1.5 text-sm text-content-muted">
+              Lessons animate the code as it runs. Turn that down if you prefer it still, or if your phone feels slow.
+            </p>
+            <div className="mt-5">
+              <Switch
+                id="motion"
+                checked={!anim.off}
+                onChange={(on) => anim.setChoice(!on)}
+                label="Play animations"
+                description={
+                  anim.choice === null
+                    ? `Following your device setting (currently ${deviceWantsReducedMotion() ? 'reduced motion' : 'animations on'}).`
+                    : anim.off
+                      ? 'Off: values and steps change instantly, with no movement.'
+                      : 'On: values slide and count, and the call stack animates.'
+                }
+              />
+              {anim.choice !== null && (
+                <button
+                  type="button"
+                  onClick={() => anim.setChoice(null)}
+                  className="mt-3 text-xs text-content-muted underline-offset-4 transition-colors hover:text-content hover:underline"
+                >
+                  Use my device setting instead
+                </button>
+              )}
             </div>
           </GlassCard>
         </motion.div>

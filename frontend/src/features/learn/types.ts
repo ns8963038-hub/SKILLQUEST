@@ -59,6 +59,17 @@ export interface ConceptStep {
   options: string[];
 }
 
+// An optional picture of one array while the program runs (content/lessons/*.json,
+// checked against the recording by content/build-lessons.mjs). Everything named
+// here must really exist in the trace, so the drawing can never disagree with
+// what the JVM did.
+export interface TraceVisual {
+  array: string; // the variable to draw
+  pointers?: string[]; // int variables to mark under the cells (i, lo, mid, hi …)
+  range?: [string, string]; // two of those pointers bound the part still in play
+  mode?: 'cells' | 'bars'; // cells for indexing and searching, bars for sorting
+}
+
 export interface TraceStep {
   id: string;
   type: 'trace';
@@ -66,6 +77,7 @@ export interface TraceStep {
   code: string;
   notes: Record<string, string>; // line number -> Nova's narration
   trace: Trace;
+  visual?: TraceVisual;
 }
 
 export interface ExplainStep {

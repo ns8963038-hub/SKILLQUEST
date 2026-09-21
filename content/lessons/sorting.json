@@ -40,6 +40,13 @@
       "type": "trace",
       "from": "p1",
       "title": "Watch it run",
+      "visual": {
+        "array": "a",
+        "pointers": [
+          "i"
+        ],
+        "mode": "bars"
+      },
       "trace": {
         "frames": [
           {
