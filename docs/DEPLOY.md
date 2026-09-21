@@ -65,15 +65,15 @@ project (the free plan allows two).
    - **Session pooler** (port **5432**). This is `DIRECT_URL`.
 3. **Project Settings → API** → copy the **Project URL** (`SUPABASE_URL`) and the
    **anon public** key (`SUPABASE_ANON_KEY`, only the frontend uses it).
-4. From your laptop, create the tables and load the content (46 levels, 19
-   lessons, skills, companies). Values in the shell override the local `.env`:
+4. From your laptop, create the tables and load the content (56 levels, 20
+   lessons, 20 skills, companies). Values in the shell override the local `.env`:
 
    ```bash
    cd backend
    export DATABASE_URL="<transaction pooler URL>?pgbouncer=true"
    export DIRECT_URL="<session pooler URL>"
    npx prisma migrate deploy   # creates every table, with row-level security on
-   npm run seed                # "Seeded: 19 skills, … 46 levels, 19 lessons …"
+   npm run seed                # "Seeded: 20 skills, … 56 levels, 20 lessons …"
    unset DATABASE_URL DIRECT_URL
    ```
 

@@ -66,10 +66,10 @@ SKILLQUEST-DEV/
 
 1. Frontend signs in via `supabase-js` (email/password or Google) → receives a Supabase **access token** (JWT, ~1 h expiry, SDK auto-refreshes). Google sign-in needs a one-time Google Cloud OAuth client configured in the Supabase dashboard.
 2. Every Web API request carries `Authorization: Bearer <accessToken>`.
-3. Express middleware verifies the JWT with the project's `SUPABASE_JWT_SECRET` (HS256), reads the `sub` claim (the `auth.users` UUID), and looks up/creates the matching row in our `profiles` table (`profiles.id` = that UUID).
+3. Express middleware (`backend/src/auth.ts`) verifies the JWT against Supabase's **published JWKS** at `${SUPABASE_URL}/auth/v1/.well-known/jwks.json` (ES256; `jose` fetches, caches and rotates the keys), checking the issuer and the `authenticated` audience. It then reads the `sub` claim (the `auth.users` UUID) and looks up/creates the matching row in our `profiles` table (`profiles.id` = that UUID). *(Older Supabase projects signed tokens HS256 with a shared `SUPABASE_JWT_SECRET`; this project's keys are asymmetric, so that secret is unused.)*
 4. **The browser uses Supabase for auth only.** The anon key grants no table access (RLS enabled with no public policies) — all data flows through the Web API, which connects to Postgres with its own least-privilege DB role (§4.1).
 5. Web API → AI service calls carry `X-Internal-Key: <shared secret>` (env var on both services). The AI service rejects requests without it. **The browser never calls `/ai/*` directly** — every AI call is server-to-server behind the Web API gateway.
-6. Admin routes (risk dashboard, level seeding) gated by an `is_admin` flag on the profile row — set manually in the Supabase dashboard for the 3 team members.
+6. Admin routes (risk dashboard, research exports) are gated by the `is_admin` flag on the profile row. The flag is set automatically on sign-in when the account's email is listed in the API's `ADMIN_EMAILS` env var (the 3 team members), so nothing has to be edited by hand in the database.
 
 ### 4.1 Post-onboarding routing
 

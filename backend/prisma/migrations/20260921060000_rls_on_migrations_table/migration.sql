@@ -1,0 +1,13 @@
+-- Close the one public table Supabase's REST API could still read.
+--
+-- Every application table already has row-level security enabled with no
+-- policies, so the publishable anon key gets nothing from them. Prisma's own
+-- bookkeeping table is created by the migration engine rather than by our
+-- schema, so it never had RLS turned on — which left migration names,
+-- timestamps and checksums readable through /rest/v1/_prisma_migrations.
+--
+-- The table's owner (the `postgres` role that both our API and
+-- `prisma migrate deploy` connect as) bypasses row-level security, so
+-- migrations keep working exactly as before; only the `anon` and
+-- `authenticated` roles lose the read.
+ALTER TABLE public._prisma_migrations ENABLE ROW LEVEL SECURITY;
