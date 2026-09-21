@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useMotionOff } from '../lib/motionPref';
 
 // The living background: slow aurora light plus a faint "neural field" of drifting
 // points that link up when they pass close to each other. Your cursor is a neuron
@@ -6,16 +7,20 @@ import { useEffect, useRef } from 'react';
 //
 // Performance budget (UI doc §1 "fast, then rich"): one canvas rendered below
 // native resolution, ~30fps, paused while the tab is hidden, a single still frame
-// under reduced motion — and it drops itself to ~15fps if the device struggles.
+// with animations off — and it drops itself to ~15fps if the device struggles.
+// "Animations off" is the app's own switch (Settings -> Animations), which also
+// follows the phone's setting until the student chooses: a slow phone is exactly
+// where a student turns it off, and this canvas is the heaviest thing on screen.
 export function AmbientBackground({ intensity = 1 }: { intensity?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const motionOff = useMotionOff();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return; // e.g. the test environment
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduce = motionOff;
     const SCALE = 0.6; // render at 60% resolution; the soft light hides it
     const pointer = { x: 0.5, y: 0.3, active: false };
     let width = 0;
@@ -197,7 +202,7 @@ export function AmbientBackground({ intensity = 1 }: { intensity?: number }) {
       document.documentElement.removeEventListener('mouseleave', onLeave);
       window.removeEventListener('blur', onLeave);
     };
-  }, [intensity]);
+  }, [intensity, motionOff]); // turning animations on or off restarts it the right way
 
   return (
     <>

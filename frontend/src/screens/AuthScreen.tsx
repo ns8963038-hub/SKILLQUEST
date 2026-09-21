@@ -1,6 +1,7 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Brain, Cpu, Eye, EyeOff, Lock, Mail, Sparkles, Target, type LucideIcon } from 'lucide-react';
+import { caretPoint } from '../lib/caret';
 import { supabase } from '../lib/supabase';
 import { Constellation } from '../features/constellation/Constellation';
 import { SKILL_GRAPH } from '../features/constellation/skillGraph';
@@ -57,6 +58,28 @@ export function AuthScreen() {
   const [focus, setFocus] = useState<'email' | 'password' | null>(null);
   const [messageKind, setMessageKind] = useState<'info' | 'error'>('info');
 
+  // Where Nova looks while you type: the text cursor of the email field (it
+  // reads along), or of the password once you've chosen to show it (it peeks).
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const [watch, setWatch] = useState<{ x: number; y: number } | null>(null);
+  const measureWatch = useCallback(() => {
+    const field = focus === 'email' ? emailRef.current : focus === 'password' && showPassword ? passwordRef.current : null;
+    setWatch(field ? caretPoint(field) : null);
+  }, [focus, showPassword]);
+  // After every keystroke, once the new text is on screen.
+  useLayoutEffect(() => measureWatch(), [measureWatch, email, password]);
+  // The layout moves when the page scrolls, the window resizes, or a phone's
+  // keyboard opens.
+  useEffect(() => {
+    window.addEventListener('resize', measureWatch);
+    window.addEventListener('scroll', measureWatch, true);
+    return () => {
+      window.removeEventListener('resize', measureWatch);
+      window.removeEventListener('scroll', measureWatch, true);
+    };
+  }, [measureWatch]);
+
   // Hand off to Google; Supabase redirects back here with a session.
   async function signInWithGoogle() {
     setBusy(true);
@@ -104,16 +127,18 @@ export function AuthScreen() {
     'placeholder:text-content-muted transition-[border-color,box-shadow] duration-200 ' +
     'focus:border-ion/60 focus:shadow-[0_0_0_4px_rgba(127,168,255,0.14)] focus:outline-none focus-visible:outline-none';
 
-  // Nova reacts to the form: thinks while signing in, worries at an error, covers
-  // its eyes while you type a password — and peeks if you reveal it.
+  // Nova reacts to the form: thinks while signing in, worries at an error, reads
+  // along as you type your email, turns right round while you type a password —
+  // and turns half back to peek if you choose to show it. Poke it too often and
+  // it gets angry (that part lives in Nova itself).
   const novaMood: NovaMood = busy
     ? 'thinking'
     : message && messageKind === 'error'
       ? 'concerned'
       : focus === 'password'
         ? showPassword
-          ? 'peek'
-          : 'shy'
+          ? 'glance'
+          : 'turned'
         : message
           ? 'happy'
           : 'idle';
@@ -173,7 +198,7 @@ export function AuthScreen() {
           <GlassCard edge className="relative p-7 sm:p-9">
             {/* Nova perches on the card's top edge, watching you sign in. */}
             <div className="pointer-events-none absolute -top-10 right-7">
-              <Nova mood={novaMood} size={72} />
+              <Nova mood={novaMood} size={72} lookAt={watch} pokeable />
             </div>
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -193,6 +218,7 @@ export function AuthScreen() {
             <form onSubmit={onSubmit} className="mt-7 space-y-5">
               <Field id="email" label="Email" icon={Mail}>
                 <input
+                  ref={emailRef}
                   id="email"
                   type="email"
                   required
@@ -225,6 +251,7 @@ export function AuthScreen() {
                 }
               >
                 <input
+                  ref={passwordRef}
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
@@ -233,6 +260,7 @@ export function AuthScreen() {
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onSelect={measureWatch}
                   onFocus={() => setFocus('password')}
                   onBlur={() => setFocus(null)}
                   className={`${inputClass} pr-12`}
