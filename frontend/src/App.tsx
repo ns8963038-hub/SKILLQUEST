@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { api } from './lib/api';
+import { rememberAiWakeUrl, wakeAi } from './lib/aiWake';
 import { invalidate } from './lib/useApi';
 import { signOut } from './lib/session';
 import { AuthScreen } from './screens/AuthScreen';
@@ -29,6 +30,7 @@ interface Profile {
   isAdmin?: boolean;
   consentRequired?: boolean; // hasn't answered the current consent text yet
   currentConsentVersion?: string;
+  aiWakeUrl?: string; // the AI service's health check, poked from here to wake it
 }
 
 // Full-screen loading state while we check auth / fetch the profile. On the
@@ -121,7 +123,12 @@ function AppInner() {
     setProfileLoading(true);
     setProfileFailed(false);
     try {
-      setProfile(await api<Profile>('/api/me'));
+      const me = await api<Profile>('/api/me');
+      // Start waking the AI tutor now (free tier), long before onboarding or a
+      // re-plan needs it. Only the browser can wake it — see lib/aiWake.ts.
+      rememberAiWakeUrl(me.aiWakeUrl);
+      wakeAi();
+      setProfile(me);
     } catch {
       setProfileFailed(true);
     } finally {

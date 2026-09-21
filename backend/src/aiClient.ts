@@ -6,12 +6,25 @@ import { env } from './env';
 
 // Statuses that mean "the service isn't ready yet", not "your request is wrong".
 // On free hosting the AI service sleeps after 15 minutes and restarts on every
-// deploy; while it boots, the host answers 502/503/504. Retrying turns what the
-// student would see as a failed onboarding into a slightly slow one.
+// deploy; while it boots, the host answers 502/503/504.
 const RETRY_STATUS = new Set([502, 503, 504]);
-const RETRY_DELAYS_MS = [3_000, 8_000, 15_000];
+// ~45 s of waiting in all: enough for a service that the student's browser has
+// just woken (it boots in 30-40 s), short enough that a service which is NOT
+// waking gives the student a clear answer instead of a spinner that never ends.
+const RETRY_DELAYS_MS = [3_000, 6_000, 10_000, 12_000, 14_000];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// The AI service did not answer at all (asleep, restarting or down) — as opposed
+// to answering with an error. The API turns this into a 503 the frontend
+// recognises, so the student sees "your tutor is waking up" and an automatic
+// retry, never a bare "failed (500)".
+export class AiUnavailableError extends Error {
+  constructor(path: string, problem: string) {
+    super(`AI service ${path} is not responding (${problem})`);
+    this.name = 'AiUnavailableError';
+  }
+}
 
 // POST a JSON body to an AI-service path and return the parsed JSON response.
 // Retries a waking or restarting service; a real error (400, 401, 500) is
@@ -38,19 +51,23 @@ async function callAi<T>(path: string, body: unknown): Promise<T> {
       lastProblem = err instanceof Error ? err.message : String(err); // network error: retry
     }
   }
-  throw new Error(`AI service ${path} is not responding (${lastProblem})`);
+  throw new AiUnavailableError(path, lastProblem);
 }
 
-// On the free hosting tier the AI service sleeps when idle and takes 30-60 s to
-// wake. warmAiService() pokes it (fire-and-forget) when a student signs in, so
-// it is awake by the time they finish the onboarding quiz or open Settings.
-// Throttled: at most one poke every 5 minutes. Never throws.
-const WARM_EVERY_MS = 5 * 60_000;
-let lastWarm = 0;
-export function warmAiService(now = Date.now()): void {
-  if (now - lastWarm < WARM_EVERY_MS) return;
-  lastWarm = now;
-  fetch(`${env.AI_SERVICE_URL}/health`).catch(() => undefined);
+// WHO WAKES THE AI SERVICE
+//
+// A sleeping free-tier service is woken by traffic from the internet — but NOT
+// by a request from another service on the same host. Measured on 2026-09-21:
+// two onboardings sent the AI service eight requests from this API over a
+// minute and a half, and it never started (no log line at all); one request
+// from outside woke it within seconds. So the API can't wake it, however long
+// it waits. The student's BROWSER does it instead: /api/me hands the frontend
+// this public health URL, and the frontend pokes it the moment the student signs
+// in — a minute or more before onboarding or a re-plan needs the tutor.
+// (Only /health is ever called from the browser; every /ai/* route still
+// requires the internal key and is reached only through this API.)
+export function aiWakeUrl(): string {
+  return `${env.AI_SERVICE_URL.replace(/\/+$/, '')}/health`;
 }
 
 // One scheduled skill as returned by /ai/roadmap.

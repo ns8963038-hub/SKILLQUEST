@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { CalendarClock, Check, Lock, Sparkles, Target, User } from 'lucide-react';
 import { api } from '../lib/api';
+import { isAiWaking, retryWhileAiWakes } from '../lib/aiWake';
 import { invalidate, useApi } from '../lib/useApi';
 import { deviceWantsReducedMotion, useMotionPref } from '../lib/motionPref';
 import { cn } from '../lib/cn';
@@ -73,17 +74,19 @@ export function SettingsScreen() {
     setSaving(true);
     setNotice(null);
     try {
-      const res = await api<SaveResult>('/api/settings', {
-        method: 'PUT',
-        body: {
-          displayName: form.displayName?.trim() || null,
-          hoursPerWeek: form.hoursPerWeek,
-          goalText: form.goalText,
-          targetCompanies: form.targetCompanies,
-          leaderboardOptOut: form.leaderboardOptOut,
-          researchParticipation: form.researchParticipating,
-        },
-      });
+      const body = {
+        displayName: form.displayName?.trim() || null,
+        hoursPerWeek: form.hoursPerWeek,
+        goalText: form.goalText,
+        targetCompanies: form.targetCompanies,
+        leaderboardOptOut: form.leaderboardOptOut,
+        researchParticipation: form.researchParticipating,
+      };
+      // A re-plan asks the AI tutor, which may be waking up: retry while it does.
+      const res = await retryWhileAiWakes(
+        () => api<SaveResult>('/api/settings', { method: 'PUT', body }),
+        () => setNotice({ tone: 'mint', text: 'Your AI tutor is waking up to re-plan your roadmap — about half a minute…' }),
+      );
       setForm(res);
       setSaved(res);
       invalidate('/api/'); // roadmap, dashboard and placement may all have changed
@@ -93,8 +96,13 @@ export function SettingsScreen() {
           ? `Saved. Your roadmap was re-planned: ${res.plannedSkills} skills over ${res.weeks} weeks. Everything you've completed is kept.`
           : 'Saved.',
       });
-    } catch {
-      setNotice({ tone: 'rose', text: 'Could not save. Check your connection and try again.' });
+    } catch (err) {
+      setNotice({
+        tone: 'rose',
+        text: isAiWaking(err)
+          ? "The AI tutor didn't wake up in time, so nothing was changed. Please save again in a minute."
+          : 'Could not save. Check your connection and try again.',
+      });
     } finally {
       setSaving(false);
     }

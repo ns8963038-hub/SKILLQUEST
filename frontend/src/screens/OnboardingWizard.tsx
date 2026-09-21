@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
 import { ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
-import { api } from '../lib/api';
+import { ApiError, api } from '../lib/api';
+import { isAiWaking, retryWhileAiWakes, wakeAi } from '../lib/aiWake';
 import { cn } from '../lib/cn';
 import { QUIZ_QUESTIONS } from '../features/onboarding/quizQuestions';
 import { scoreQuiz, skillLevelFromScore } from '../features/onboarding/scoring';
@@ -77,6 +78,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [companies, setCompanies] = useState<string[]>([]);
   const [goalText, setGoalText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [waking, setWaking] = useState(false); // the AI tutor is asleep and being woken
   const [error, setError] = useState<string | null>(null);
 
   const answered = QUIZ_QUESTIONS.filter((q) => answers[q.id] !== undefined).length;
@@ -84,6 +86,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
   // Move to a step, remembering the direction for the slide animation.
   function go(next: number) {
+    wakeAi(); // keep the AI tutor awake while the student works through the steps
     setDirection(next > step ? 1 : -1);
     setStep(next);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -94,29 +97,40 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
     setCompanies((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
   }
 
-  // Final step: score the quiz, build the payload, and submit.
+  // Final step: score the quiz, build the payload, and submit. The API maps the
+  // goal and builds the roadmap with the AI tutor; if the tutor is still waking
+  // (503), we say so and try again rather than failing.
   async function finish() {
     setSubmitting(true);
+    setWaking(false);
     setError(null);
     try {
       const { attempts, testedOut, totalCorrect } = scoreQuiz(QUIZ_QUESTIONS, answers);
-      await api('/api/onboarding/complete', {
-        method: 'POST',
-        body: {
-          branch: branch || undefined,
-          year,
-          skillLevel: skillLevelFromScore(totalCorrect),
-          hoursPerWeek,
-          targetCompanies: companies,
-          goalText,
-          testedOut,
-          quizAttempts: attempts,
-        },
-      });
+      const body = {
+        branch: branch || undefined,
+        year,
+        skillLevel: skillLevelFromScore(totalCorrect),
+        hoursPerWeek,
+        targetCompanies: companies,
+        goalText,
+        testedOut,
+        quizAttempts: attempts,
+      };
+      await retryWhileAiWakes(
+        () => api('/api/onboarding/complete', { method: 'POST', body }),
+        () => setWaking(true),
+      );
       onComplete(); // parent re-fetches the profile -> dashboard
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not finish onboarding.');
+      setError(
+        isAiWaking(err)
+          ? "Your AI tutor didn't wake up in time. Your answers are still here — please press Build my quest again in a minute."
+          : err instanceof ApiError
+            ? `Could not save your answers (error ${err.status}). Please try again.`
+            : 'Could not reach SkillQuest. Check your connection and try again.',
+      );
       setSubmitting(false);
+      setWaking(false);
     }
   }
 
@@ -376,13 +390,13 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
         </div>
       </div>
 
-      <AnimatePresence>{submitting && <BuildingOverlay />}</AnimatePresence>
+      <AnimatePresence>{submitting && <BuildingOverlay waking={waking} />}</AnimatePresence>
     </div>
   );
 }
 
 // Shown while the backend maps the goal, orders the skill graph and saves the plan.
-function BuildingOverlay() {
+function BuildingOverlay({ waking }: { waking: boolean }) {
   const [stage, setStage] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setStage((n) => Math.min(n + 1, BUILD_STAGES.length - 1)), 700);
@@ -425,6 +439,13 @@ function BuildingOverlay() {
             </li>
           ))}
         </ul>
+        {/* Free hosting pauses the AI tutor when nobody is using it: say so plainly
+            instead of leaving the student staring at a spinner. */}
+        {waking && (
+          <p className="mt-5 rounded-xl border border-ion/25 bg-ion-tint/60 px-3.5 py-2.5 text-left text-sm text-content">
+            Your AI tutor is waking up — our free hosting pauses it when no one is using it. This takes about half a minute, and your answers are safe.
+          </p>
+        )}
       </div>
     </motion.div>
   );

@@ -1,13 +1,13 @@
-import express, { type Express, type ErrorRequestHandler } from 'express';
+import express, { type Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { ZodError } from 'zod';
 import { env } from './env';
 import { prisma } from './db';
 import { requireAuth } from './auth';
 import { apiRouter } from './routes';
 import { jobsRouter } from './routes/jobs';
 import { timingMiddleware } from './metrics/timing';
+import { errorHandler } from './errors';
 
 // Builds the Express app. Kept separate from index.ts so tests can create an
 // app instance without starting a listening server.
@@ -44,16 +44,8 @@ export function createApp(): Express {
   // Internal jobs (scheduler-triggered) authenticate with the internal key.
   app.use('/internal', jobsRouter);
 
-  // Central error handler. A bad request body (zod) becomes a clean 400; anything
-  // else is logged and returned as a generic 500 (never leak internals).
-  const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-    if (err instanceof ZodError) {
-      res.status(400).json({ error: 'invalid request', details: err.issues });
-      return;
-    }
-    console.error(err);
-    res.status(500).json({ error: 'internal error' });
-  };
+  // Central error handler (errors.ts): 400 for a bad body, 503 while the AI
+  // service is waking, a generic 500 for anything else.
   app.use(errorHandler);
 
   return app;

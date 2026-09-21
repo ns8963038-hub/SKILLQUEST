@@ -4,7 +4,7 @@ import { asyncHandler } from '../http';
 import { logEvent } from '../events';
 import { env } from '../env';
 import { CONSENT_VERSION } from '../research/consent';
-import { warmAiService } from '../aiClient';
+import { aiWakeUrl } from '../aiClient';
 
 export const meRouter = Router();
 
@@ -18,8 +18,6 @@ meRouter.get(
   asyncHandler(async (req, res) => {
     const userId = req.userId!; // guaranteed by requireAuth
     const email = req.userEmail ?? '';
-    // Wake the AI service now (free tier) so onboarding / re-planning won't wait.
-    warmAiService();
     const existed = await prisma.profile.findUnique({ where: { id: userId } });
 
     // Team members listed in ADMIN_EMAILS get the internal admin view. Admin is
@@ -41,6 +39,9 @@ meRouter.get(
       // decline) the CURRENT version of the research-participation text.
       consentRequired: profile.consentVersion !== CONSENT_VERSION,
       currentConsentVersion: CONSENT_VERSION,
+      // The browser pokes this to wake the AI service (free tier) well before
+      // onboarding or a re-plan needs it — see aiWakeUrl() for why the API can't.
+      aiWakeUrl: aiWakeUrl(),
     });
   }),
 );

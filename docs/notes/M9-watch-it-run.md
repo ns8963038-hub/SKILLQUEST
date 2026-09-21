@@ -132,10 +132,10 @@ A deliberate sweep for loose ends, not just for this feature.
   the admin flag is set by hand in the Supabase dashboard; it is set on sign-in
   from `ADMIN_EMAILS`. Both corrected — either would have been an awkward answer
   in the viva.
-- **Production dependency advisories cleared** in both packages: `qs` (a denial
-  of service reachable through Express's body parser, in a live API) and the
-  frontend's transitive `dompurify`. Both production trees now report zero
-  vulnerabilities.
+- **The API's dependency advisories cleared:** `qs`, a denial of service
+  reachable through Express's body parser in the live API. The backend's
+  production tree now reports zero vulnerabilities. (The frontend's two
+  remaining ones are explained under "Known and accepted" below.)
 - **`DEPLOY.md` still said 46 levels / 19 lessons** — it is a runbook someone
   follows today, so it now says 56 / 20 (the dated milestone notes keep their
   original numbers, because they are a record of that milestone).
@@ -166,6 +166,13 @@ A deliberate sweep for loose ends, not just for this feature.
   network blocks jsdelivr, the Play screen's editor will not load — worth
   knowing before a demo on college wifi. Self-hosting it is a small change if we
   want the demo to be network-proof.
+- **`npm audit` still reports two frontend advisories** (one moderate, one low):
+  DOMPurify 3.4.8 inside `monaco-editor`, fixable only by a breaking Monaco
+  upgrade. They need attacker-controlled HTML to reach Monaco's renderer, and in
+  our app the editor only ever shows the student's own code; the copy of Monaco
+  that actually runs comes from the CDN, not from this package. We did not force
+  an override, because that would silence the audit without changing anything
+  the browser runs.
 - Dev-only advisories remain in `vitest`/`vite` (they need a major upgrade, and
   they affect a locally running dev server, not anything deployed). Left pinned
   until after submission.
@@ -204,3 +211,51 @@ already asked their phone for reduced motion never see the animation at all.
 **Q: Does this slow the lesson down?**
 No. Every animation finishes inside ~300 ms (output ≤420 ms) while autoplay
 advances a line every 1100 ms, so stepping quickly never queues animations up.
+
+## 9. Incident: a new student couldn't finish onboarding (2026-09-21)
+
+A friend of the team tried the live site and got `Request to
+/api/onboarding/complete failed (500)` on the goal step, twice.
+
+**What the logs showed** (Render, both services, 05:30–06:30 UTC):
+
+| Time (UTC) | Service | What happened |
+|---|---|---|
+| 05:41 | API | Woken by the student's browser ("Running npm start") |
+| 05:52:29 | API | `AI service /ai/goal-map is not responding (status 502)` after four tries |
+| 05:53:11 | API | The same, on the student's second attempt |
+| 05:30 → 06:23 | AI | **No log lines at all** — it never started |
+| 06:23:30 | AI | Started by one request from outside; ready 10 s later |
+
+**Root cause.** On Render's free tier a sleeping service is woken by traffic
+from the internet, but **not by a request from another Render service**. The
+API retried for ~26 s, but no amount of waiting could have helped: its requests
+never started the AI service. The same fact meant the "warm the AI on sign-in"
+poke we had added earlier (sent by the API) had never worked either. Earlier
+live tests passed only because something external — our own checks, or the
+keep-awake workflow — had woken it first.
+
+**Fix, in three layers:**
+
+1. **The browser wakes it.** `/api/me` now returns the AI service's public
+   `/health` URL, and the frontend pokes it (no-cors, fire-and-forget) at sign-in
+   and at most once a minute during onboarding, so it is awake by the goal step
+   and a slow student doesn't find it asleep again.
+2. **The API says what happened.** When the AI service doesn't answer after
+   ~45 s, the API returns **503 `ai_unavailable`** instead of a 500. The AI is
+   always called before anything is written, so a retry is always safe.
+3. **The screen explains and retries.** On a 503 the building overlay says "Your
+   AI tutor is waking up … about half a minute, and your answers are safe", pokes
+   the tutor again from the browser and retries (three attempts). Only if all of
+   that fails does the student see a message — one that tells them what to do.
+   Settings re-plans get the same treatment.
+
+The server-side warm-up, proven useless, was removed rather than left in place
+looking like it did something.
+
+**Viva question: why does the browser call the AI service at all, when the TRD
+says it never calls `/ai/*`?** It still never calls `/ai/*`. It only sends a
+request with no data and no key to `/health` and never reads the answer — the
+one thing that wakes a sleeping free-tier service. Every AI computation still
+goes through the API with the internal key. This is a hosting workaround, and a
+paid instance (or one that never sleeps) would not need it.

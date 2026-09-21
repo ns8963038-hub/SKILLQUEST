@@ -20,6 +20,14 @@ latency was ~1.5 s. With the API *next to* the database they take a few ms.
 - Render free services **sleep after 15 minutes** without traffic; the next
   request waits **about a minute** while they wake. The app shows "Waking your
   tutor… can take up to a minute" meanwhile.
+- **A sleeping service is only woken by traffic from the internet — not by a
+  request from our other Render service.** So the API cannot wake the AI
+  service, however long it waits (measured 2026-09-21: eight requests from the
+  API over 90 s, and the AI service never started). The student's browser does
+  it instead: `/api/me` returns the AI service's public `/health` URL and the
+  frontend pokes it at sign-in and during onboarding (`frontend/src/lib/aiWake.ts`).
+  If the AI still isn't up, the API answers **503** and the app says "your
+  tutor is waking up" and retries by itself.
 - Render gives **750 free hours a month, shared by both services**. If they run
   out, **both are suspended until the next month**. So never keep them awake
   24/7 — use the on-demand "Keep awake" button only for sessions (§7).
@@ -249,7 +257,7 @@ If all seven pass, you're live.
 | Everything says "Could not load…", API returns 500 "auth not configured" | `SUPABASE_URL` missing on the API | Add it on Render |
 | Signed in but every request is 401 | Frontend and API use different Supabase projects | Make `VITE_SUPABASE_URL` and the API's `SUPABASE_URL` the same project |
 | `/health` shows `"db":"down"` | Wrong `DATABASE_URL`, or the Supabase project is paused | Check the URL and password; restore the project in Supabase |
-| Onboarding fails at "building your roadmap" | AI service still waking, or a wrong `AI_SERVICE_URL` / key | Open `<ai>/health`, wait until it answers, retry; check `AI_SERVICE_URL` on the API |
+| Onboarding says the tutor didn't wake up in time | AI service asleep and the browser's wake-up poke didn't reach it, or a wrong `AI_SERVICE_URL` / key | Open `<ai>/health` in a browser tab (that wakes it), wait until it answers, press Build my quest again; check `AI_SERVICE_URL` on the API. Render logs: the API shows `AI service … is not responding`, and the AI service shows **no lines at all** if it never started |
 | Students never receive the confirmation email | Default Supabase sender (team-only) | §4.2: turn confirmation off, or set up Gmail SMTP |
 | Everything suddenly down near month end | 750 free Render hours used up | Cancel any running "Keep awake" job; services return on the 1st of the month |
 | Code runs time out for everyone | Paiza busy or rate-limiting | Wait and retry; for large sessions plan a self-hosted runner |
