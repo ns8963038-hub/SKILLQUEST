@@ -16,6 +16,7 @@ vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
 // examples" (/run) returns the visible tests only; /submit refuses the untouched
 // starter code with a 422 and otherwise returns a pass.
 const STARTER = 'class Main {}';
+let finishesTopic = false; // when true, the pass hands over to a new topic whose lesson comes first
 const api = vi.fn((path: string, options?: { body?: { sourceCode?: string } }) => {
   if (path.endsWith('/run'))
     return Promise.resolve({
@@ -35,6 +36,7 @@ const api = vi.fn((path: string, options?: { body?: { sourceCode?: string } }) =
           passRatio: 1,
           xpAwarded: 50,
           cases: [{ hidden: false, passed: true, stdin: '', expectedOutput: 'x', actualOutput: 'x' }],
+          ...(finishesTopic ? { nextLevelId: 'methods-01', nextLessonSkillId: 'methods' } : {}),
         });
   return Promise.resolve({
     id: 'arrays-01',
@@ -58,6 +60,7 @@ const writeSolution = () =>
 
 describe('PlayScreen', () => {
   beforeEach(() => {
+    finishesTopic = false;
     api.mockClear();
     window.localStorage.clear();
   });
@@ -113,5 +116,18 @@ describe('PlayScreen', () => {
     render(<PlayScreen levelId="arrays-01" userId="student-2" onBack={() => {}} />);
     await screen.findByRole('heading', { name: /max in array/i });
     expect(screen.getByTestId('editor')).toHaveValue(STARTER);
+  });
+
+  it('after the last level of a topic, "Next topic" opens the next topic’s lesson, not its level', async () => {
+    finishesTopic = true;
+    const onNextTopic = vi.fn();
+    const onOpenLevel = vi.fn();
+    render(<PlayScreen levelId="arrays-01" userId="student-1" onBack={() => {}} onOpenLevel={onOpenLevel} onNextTopic={onNextTopic} />);
+    await screen.findByRole('heading', { name: /max in array/i });
+    writeSolution();
+    fireEvent.click(screen.getByRole('button', { name: /^submit$/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /next topic/i }));
+    expect(onNextTopic).toHaveBeenCalledWith('methods');
+    expect(onOpenLevel).not.toHaveBeenCalled();
   });
 });

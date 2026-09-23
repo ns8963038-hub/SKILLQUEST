@@ -74,12 +74,14 @@ export function PlayScreen({
   onBack,
   onOpenLevel,
   onOpenLesson,
+  onNextTopic,
 }: {
   levelId: string;
   userId: string; // whose drafts to load and save (they are kept per student)
   onBack: () => void;
   onOpenLevel?: (levelId: string) => void;
   onOpenLesson?: (skillId: string) => void; // replay this topic's lesson
+  onNextTopic?: (skillId: string) => void; // move on to a new topic's lesson (from the reward)
 }) {
   const [level, setLevel] = useState<LevelView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -433,7 +435,14 @@ export function PlayScreen({
             mastery={graded.mastery}
             onContinue={() => setShowReward(false)}
             onBackToMap={onBack}
-            onNextLevel={nextLevelId && onOpenLevel ? () => onOpenLevel(nextLevelId) : undefined}
+            onNextLevel={
+              graded.nextLessonSkillId && onNextTopic
+                ? () => onNextTopic(graded.nextLessonSkillId!) // a new topic: its lesson first
+                : nextLevelId && onOpenLevel
+                  ? () => onOpenLevel(nextLevelId)
+                  : undefined
+            }
+            nextIsNewTopic={Boolean(graded.nextLessonSkillId && onNextTopic)}
           />
         )}
       </AnimatePresence>

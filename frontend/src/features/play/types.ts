@@ -70,6 +70,9 @@ export interface SubmitResult {
   cases: SubmitCase[];
   mastery?: MasteryUpdate; // present once the backend returns the BKT update
   nextLevelId?: string | null; // where "Next level" goes after a pass
+  // Set when that level starts a NEW topic whose lesson hasn't been done: the
+  // reward then opens the lesson first ("Next topic").
+  nextLessonSkillId?: string | null;
 }
 
 // The response from POST /api/levels/:id/run ("Run examples"): the level's

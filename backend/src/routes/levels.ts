@@ -473,6 +473,19 @@ levelsRouter.post(
       afterProgress(),
     ]);
 
+    // If "Next level" moves on to a NEW topic whose lesson the student hasn't done
+    // (or skipped), the reward opens that lesson first — exactly as opening the
+    // topic from the map does. Before, "Next level" jumped straight into the next
+    // topic's first level, so a student met it without being taught it.
+    let nextLessonSkillId: string | null = null;
+    if (nextLevelId) {
+      const nextSkill = await skillOfLevel(nextLevelId);
+      if (nextSkill && nextSkill !== level.skillId) {
+        const state = (await lessonStateBySkill(userId, [nextSkill])).get(nextSkill) ?? 'none';
+        if (lessonComesFirst(state)) nextLessonSkillId = nextSkill;
+      }
+    }
+
     // Look up display info for any badges just earned (for the celebration).
     const newBadges = newBadgeIds.length
       ? await prisma.badge.findMany({
@@ -503,6 +516,7 @@ levelsRouter.post(
       currentStreak, // updated daily streak
       newBadges, // badges earned by this submission (for the celebration)
       nextLevelId, // where the reward's "Next level" button goes (null after a fail)
+      nextLessonSkillId, // set when that level starts a new topic whose lesson comes first
       cases,
       // How this attempt moved the tutor's estimate (shown in the reward).
       mastery: {

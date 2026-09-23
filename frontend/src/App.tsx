@@ -252,6 +252,10 @@ function AppInner() {
         // "Next level" replaces this one, so Back goes to the map, not the level before.
         onOpenLevel={(id) => go({ ...nav, playLevelId: id }, { replace: true })}
         onOpenLesson={(skillId) => openLesson(skillId, playReturn)}
+        // Finished a topic: the next one's lesson REPLACES this level in history.
+        onNextTopic={(skillId) =>
+          go({ ...nav, playLevelId: null, lessonSkillId: skillId, lessonReturn: playReturn }, { replace: true })
+        }
         onBack={() => back({ ...nav, playLevelId: null, view: playReturn })}
       />
     );

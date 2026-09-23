@@ -25,6 +25,7 @@ export function QuestReward({
   onContinue,
   onBackToMap,
   onNextLevel,
+  nextIsNewTopic = false,
 }: {
   xp: number;
   badges?: RewardBadge[];
@@ -32,6 +33,7 @@ export function QuestReward({
   onContinue: () => void;
   onBackToMap?: () => void;
   onNextLevel?: () => void; // present when there is a next level to play
+  nextIsNewTopic?: boolean; // the next step is a new topic's lesson
 }) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -219,7 +221,7 @@ export function QuestReward({
           // and the gold; the two quieter options share a row beneath it.
           <div className="mt-7 flex flex-col gap-3">
             <Button ref={continueRef} variant="gold" size="lg" className="w-full whitespace-nowrap" onClick={onNextLevel}>
-              Next level <ArrowRight size={17} aria-hidden />
+              {nextIsNewTopic ? 'Next topic' : 'Next level'} <ArrowRight size={17} aria-hidden />
             </Button>
             <div className="flex gap-3">
               <Button variant="ghost" className="flex-1 whitespace-nowrap" onClick={onContinue}>

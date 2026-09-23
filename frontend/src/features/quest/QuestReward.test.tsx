@@ -19,4 +19,9 @@ describe('QuestReward tutor panel', () => {
     expect(screen.getByText(/solving this one again doesn’t move the estimate/i)).toBeInTheDocument();
     expect(screen.queryByText(/raised its estimate/i)).not.toBeInTheDocument();
   });
+
+  it('says "Next topic" when the next step is a new topic’s lesson', () => {
+    render(<QuestReward xp={50} onContinue={() => {}} onNextLevel={() => {}} nextIsNewTopic />);
+    expect(screen.getByRole('button', { name: /next topic/i })).toBeInTheDocument();
+  });
 });

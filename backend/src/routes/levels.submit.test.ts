@@ -25,9 +25,9 @@ const db = vi.hoisted(() => ({
     // The skill's published levels (for the Code Master check): just this one.
     findMany: vi.fn(async () => [{ id: 'loops-01' }]),
     // Honours the one filter the routes use: `where: { isHidden: false }`.
-    findUnique: vi.fn(async (args: { include?: { testCases?: { where?: { isHidden?: boolean } } } }) => ({
-      id: 'loops-01',
-      skillId: 'loops',
+    findUnique: vi.fn(async (args: { where: { id: string }; include?: { testCases?: { where?: { isHidden?: boolean } } } }) => ({
+      id: args.where.id,
+      skillId: args.where.id.startsWith('methods') ? 'methods' : 'loops', // the next topic's level, or this one
       published: true,
       starterCode: STARTER,
       timeLimitMs: 5000,
@@ -76,7 +76,17 @@ vi.mock('../execution', () => ({ getExecutor: () => runner }));
 // Follow-up work after a submit, not under test here.
 vi.mock('../roadmap/advance', () => ({ advanceRoadmap: vi.fn() }));
 vi.mock('../placement/compute', () => ({ computePlacementForUser: vi.fn(async () => []) }));
-vi.mock('../progress/levels', () => ({ nextLevelAfter: vi.fn(async () => null), nextLevelInSkill: vi.fn() }));
+const next = vi.hoisted(() => ({ levelId: null as string | null }));
+vi.mock('../progress/levels', () => ({
+  nextLevelAfter: vi.fn(async () => next.levelId),
+  nextLevelInSkill: vi.fn(),
+  firstUnfinishedInSkill: vi.fn(),
+}));
+// Every topic's lesson is still to do.
+vi.mock('../lessons/progress', () => ({
+  lessonStateBySkill: vi.fn(async (_u: string, ids: string[]) => new Map(ids.map((id) => [id, 'new']))),
+  lessonComesFirst: (s: string) => s === 'new' || s === 'started',
+}));
 
 import { levelsRouter } from './levels';
 import { errorHandler } from '../errors';
@@ -110,6 +120,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   store.attempts = 0;
   store.hintsUsed = 0;
+  next.levelId = null;
   store.completed = false;
   store.mastery = null;
 });
@@ -223,5 +234,21 @@ describe('Code Master: a whole skill finished without hints', () => {
     runner.run.mockResolvedValueOnce(runResult(2, true));
     await request(app()).post('/api/levels/loops-01/submit').send({ sourceCode: SOLUTION });
     expect(awarded()).not.toContain('code_master');
+  });
+});
+
+describe('"Next level" into a new topic', () => {
+  it('points the reward at the new topic’s lesson when it hasn’t been done', async () => {
+    next.levelId = 'methods-01'; // finishing loops hands over to methods
+    runner.run.mockResolvedValueOnce(runResult(2, true));
+    const res = await request(app()).post('/api/levels/loops-01/submit').send({ sourceCode: SOLUTION });
+    expect(res.body).toMatchObject({ nextLevelId: 'methods-01', nextLessonSkillId: 'methods' });
+  });
+
+  it('stays null for the next level in the same topic', async () => {
+    next.levelId = 'loops-02';
+    runner.run.mockResolvedValueOnce(runResult(2, true));
+    const res = await request(app()).post('/api/levels/loops-01/submit').send({ sourceCode: SOLUTION });
+    expect(res.body).toMatchObject({ nextLevelId: 'loops-02', nextLessonSkillId: null });
   });
 });
