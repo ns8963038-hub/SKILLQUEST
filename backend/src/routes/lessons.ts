@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db';
 import { asyncHandler } from '../http';
+import { codeRunLimit } from '../rateLimits';
 import { logEvent } from '../events';
 import { getExecutor } from '../execution';
 import { bktUpdate, DEFAULT_BKT } from '../tutor/bkt';
@@ -205,6 +206,7 @@ const FillBody = z.object({
 // so a correct answer we simply didn't think of is still accepted.
 lessonsRouter.post(
   '/lessons/:skillId/fill',
+  codeRunLimit, // runs Java on the shared runner: 10 a minute per student
   asyncHandler(async (req, res) => {
     const userId = req.userId!;
     const skillId = req.params.skillId!;

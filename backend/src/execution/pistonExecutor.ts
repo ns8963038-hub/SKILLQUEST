@@ -1,4 +1,4 @@
-import type { ExecutionService, RunResult, TestCaseInput, Verdict } from './types';
+import { RunnerUnavailableError, type ExecutionService, type RunResult, type TestCaseInput, type Verdict } from './types';
 import { outputsMatch } from './compare';
 
 // Real Java execution via Piston (https://github.com/engineer-man/piston). The
@@ -80,7 +80,6 @@ export class PistonExecutor implements ExecutionService {
     const results: { passed: boolean; actualOutput: string }[] = [];
     let sawCompileError = false;
     let sawRuntimeError = false;
-    let sawError = false;
     const start = Date.now();
 
     // Run test cases sequentially — network latency (~1–3s/compile+run) keeps us
@@ -99,16 +98,17 @@ export class PistonExecutor implements ExecutionService {
           const passed = outputsMatch(r.stdout, t.expectedOutput);
           results.push({ passed, actualOutput: r.stdout });
         }
-      } catch {
-        sawError = true;
-        results.push({ passed: false, actualOutput: '(execution error)' });
+      } catch (err) {
+        // The runner failing is never the student's fault (see RunnerUnavailableError).
+        throw err instanceof RunnerUnavailableError
+          ? err
+          : new RunnerUnavailableError(err instanceof Error ? err.message : String(err));
       }
     }
 
     // Overall verdict, worst case first.
     let verdict: Verdict;
     if (sawCompileError) verdict = 'compile_error';
-    else if (sawError) verdict = 'timeout';
     else if (sawRuntimeError) verdict = 'runtime_error';
     else if (results.length > 0 && results.every((r) => r.passed)) verdict = 'accepted';
     else verdict = 'wrong_answer';

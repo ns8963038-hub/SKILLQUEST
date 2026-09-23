@@ -8,6 +8,7 @@ import { apiRouter } from './routes';
 import { jobsRouter } from './routes/jobs';
 import { timingMiddleware } from './metrics/timing';
 import { errorHandler } from './errors';
+import { apiLimit } from './rateLimits';
 
 // Builds the Express app. Kept separate from index.ts so tests can create an
 // app instance without starting a listening server.
@@ -39,7 +40,7 @@ export function createApp(): Express {
 
   // All /api routes require a valid Supabase token (requireAuth runs first).
   // timingMiddleware records each request's latency for the admin metrics panel.
-  app.use('/api', timingMiddleware, requireAuth, apiRouter);
+  app.use('/api', timingMiddleware, requireAuth, apiLimit, apiRouter);
 
   // Internal jobs (scheduler-triggered) authenticate with the internal key.
   app.use('/internal', jobsRouter);

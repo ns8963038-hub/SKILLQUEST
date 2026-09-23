@@ -3,6 +3,7 @@ import express from 'express';
 import request from 'supertest';
 import { AiUnavailableError, aiWakeUrl, mapGoal } from './aiClient';
 import { errorHandler } from './errors';
+import { RunnerUnavailableError } from './execution/types';
 
 describe('aiWakeUrl', () => {
   it('is the AI service health check, which the browser pokes to wake it', () => {
@@ -91,6 +92,14 @@ describe('errorHandler', () => {
     expect(res.status).toBe(503);
     expect(res.body.error).toBe('ai_unavailable');
     expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+
+  it('turns a failed code runner into a 503, so the student is told to retry — not that they failed', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const res = await request(appThrowing(new RunnerUnavailableError('Paiza create failed: 429'))).get('/boom');
+    expect(res.status).toBe(503);
+    expect(res.body.error).toBe('runner_unavailable');
     warn.mockRestore();
   });
 

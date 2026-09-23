@@ -42,6 +42,13 @@ const schema = z.object({
   // Paiza.IO base URL + key. Defaults to the free public API with the guest key.
   PAIZA_URL: z.string().default('https://api.paiza.io'),
   PAIZA_API_KEY: z.string().default('guest'),
+  // How many runs may be in flight on the runner at once, across ALL students
+  // (the shared guest key is the bottleneck), and how long a run may wait for a
+  // free slot before the student is told the runner is busy.
+  RUNNER_MAX_CONCURRENT: z.coerce.number().int().min(1).default(6),
+  // 45 s: measured on 2026-09-23, 30 students pressing Run in the same second
+  // all got through with the slowest at 28.8 s — 30 s would have been too tight.
+  RUNNER_MAX_WAIT_MS: z.coerce.number().int().min(1000).default(45_000),
   // Piston base URL (for a self-hosted instance).
   PISTON_URL: z.string().default('https://emkc.org/api/v2/piston'),
   // Judge0 base URL — a hosted instance (RapidAPI) or your self-hosted one.

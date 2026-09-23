@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Eye, Lightbulb, Play } from 'lucide-react';
 import { api } from '../../lib/api';
+import { runProblemMessage } from '../../lib/runProblems';
 import { cn } from '../../lib/cn';
 import { Nova } from '../../ui/Nova';
 import { NeuralThinking } from '../../ui/NeuralThinking';
@@ -21,7 +22,7 @@ export function FillStep({ skillId, step, onSolved }: { skillId: string; step: F
   const [result, setResult] = useState<FillResult | null>(null);
   const [misses, setMisses] = useState(0);
   const [explain, setExplain] = useState<string | null>(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null); // why a check couldn't run
   const inputRef = useRef<HTMLInputElement>(null);
   const solved = Boolean(result?.correct) || explain !== null;
 
@@ -32,7 +33,7 @@ export function FillStep({ skillId, step, onSolved }: { skillId: string; step: F
   async function check() {
     if (!answer.trim() || checking || solved) return;
     setChecking(true);
-    setError(false);
+    setError(null);
     const slowTimer = window.setTimeout(() => setSlow(true), 600);
     try {
       const r = await api<FillResult>(`/api/lessons/${skillId}/fill`, { method: 'POST', body: { stepId: step.id, answer } });
@@ -43,8 +44,8 @@ export function FillStep({ skillId, step, onSolved }: { skillId: string; step: F
       } else {
         setMisses((m) => m + 1);
       }
-    } catch {
-      setError(true);
+    } catch (err) {
+      setError(runProblemMessage(err));
     } finally {
       window.clearTimeout(slowTimer);
       setSlow(false);
@@ -60,7 +61,7 @@ export function FillStep({ skillId, step, onSolved }: { skillId: string; step: F
       setResult(null);
       onSolved();
     } catch {
-      setError(true);
+      setError('Couldn’t load the answer — check your connection and try again.');
     }
   }
 
@@ -157,7 +158,7 @@ export function FillStep({ skillId, step, onSolved }: { skillId: string; step: F
 
         {error && (
           <p role="alert" className="mt-3 text-sm text-danger">
-            Couldn’t check that — try again.
+            {error}
           </p>
         )}
         {!solved && misses >= 2 && (

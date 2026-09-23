@@ -29,3 +29,15 @@ export interface RunResult {
 export interface ExecutionService {
   run(sourceCode: string, tests: TestCaseInput[], timeLimitMs: number): Promise<RunResult>;
 }
+
+// The RUNNER failed — unreachable, rate-limited, or too busy to take the run —
+// as opposed to the student's program failing. Nothing about the student is
+// recorded for this: it is not an attempt, not a failed submission, and not
+// evidence about their mastery. The API answers 503 so the screen can say
+// "the runner is busy, try again" (App Flow §3).
+export class RunnerUnavailableError extends Error {
+  constructor(detail: string) {
+    super(`code runner unavailable: ${detail}`);
+    this.name = 'RunnerUnavailableError';
+  }
+}

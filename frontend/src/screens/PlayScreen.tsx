@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft, BookOpen, Play, RotateCcw, Zap } from 'lucide-react';
 import { api } from '../lib/api';
+import { runProblemMessage } from '../lib/runProblems';
 import { invalidate } from '../lib/useApi';
 import { cn } from '../lib/cn';
 import { ProblemPanel } from '../features/play/ProblemPanel';
@@ -129,8 +130,8 @@ export function PlayScreen({
       const update = res.mastery;
       if (update) setLevel((l) => (l ? { ...l, mastery: update.after } : l));
       if (res.total > 0 && res.passed === res.total) setShowReward(true);
-    } catch {
-      setRunError('Could not run your code — the runner may be busy. Your code is saved; try again.');
+    } catch (err) {
+      setRunError(runProblemMessage(err));
     } finally {
       runningRef.current = false;
       setRunning(false);

@@ -33,8 +33,13 @@ latency was ~1.5 s. With the API *next to* the database they take a few ms.
   24/7 — use the on-demand "Keep awake" button only for sessions (§7).
 - Supabase free projects **pause after 7 days** with no activity.
 - Paiza (the Java runner) is a shared public service with unpublished rate
-  limits: fine for a 5–10 student pilot working at their own pace. Load-test it
-  before a 20–30 student session.
+  limits. The API therefore sends it **at most 6 runs at a time across all
+  students** (a queue; a run waiting over 45 s is told "runner busy — try again",
+  which never counts as an attempt), and each student may run code 10 times a
+  minute. **Load-tested 2026-09-23** against the real guest key: 10 students
+  submitting at once (30 runs) → 10/10 accepted, median 8.0 s, slowest 10.6 s;
+  30 students pressing Run in the same second (90 runs) → 30/30 accepted, median
+  21 s, slowest 28.8 s, no refusals from Paiza.
 
 Keep a text file open while you work: you will copy several URLs and keys
 between dashboards. **Never commit that file, or any `.env` file.**
@@ -231,7 +236,7 @@ If all seven pass, you're live.
   `gh workflow run keep-warm.yml -f hours=3`. Only the hours it runs count
   (3 hours with the AI service ≈ 6 of the 750 free hours). Without it, the app
   still works — the first visitor after 15 quiet minutes just waits about a minute.
-- **Before a big session** (20–30 students submitting together), load-test Paiza.
+- **Before a big session**, re-run a quick load test if Paiza has been slow lately (see the numbers above); raise `RUNNER_MAX_CONCURRENT` only if Paiza shows no 429s.
 - **The database won't pause** while students use the app or keep-warm is on.
   Outside test weeks, the weekly scoring job keeps it alive.
 

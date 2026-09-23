@@ -76,3 +76,61 @@ describe('PaizaExecutor scheduling', () => {
     expect(r.results.map((x) => x.actualOutput)).toEqual(['1', '2', '3', '4']);
   });
 });
+
+// ---- The runner failing is not the student's fault ---------------------------
+
+import { RunnerUnavailableError } from './types';
+
+describe('PaizaExecutor when the runner itself fails', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const threeTests = [1, 2, 3].map((n) => ({ stdin: String(n), expectedOutput: String(n), isHidden: false }));
+
+  it('reports a refused request as runner-unavailable, not as the student’s runtime error', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) })));
+    await expect(new PaizaExecutor().run('code', oneTest, 5000)).rejects.toBeInstanceOf(RunnerUnavailableError);
+  });
+
+  it('reports a network failure part-way through the same way', async () => {
+    let creates = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string | URL) => {
+        if (String(url).includes('/runners/create')) {
+          creates += 1;
+          if (creates === 2) return Promise.reject(new TypeError('fetch failed'));
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ id: `id-${creates}` }) });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'completed', build_result: 'success', result: 'success', stdout: '1', exit_code: '0' }) });
+      }),
+    );
+    await expect(new PaizaExecutor().run('code', threeTests, 5000)).rejects.toBeInstanceOf(RunnerUnavailableError);
+  });
+
+  it('still grades the student’s own crash as a runtime error', async () => {
+    vi.stubGlobal('fetch', mockPaiza({ status: 'completed', build_result: 'success', result: 'failure', stdout: '', stderr: 'ArithmeticException', exit_code: '1' }));
+    const r = await new PaizaExecutor().run('code', oneTest, 5000);
+    expect(r.verdict).toBe('runtime_error');
+  });
+
+  it('caps runs in flight across ALL submissions, not just within one', async () => {
+    let inFlight = 0;
+    let peak = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string | URL) => {
+        if (String(url).includes('/runners/create')) {
+          inFlight += 1;
+          peak = Math.max(peak, inFlight);
+          return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ id: 'x' }) });
+        }
+        // get_details: the run finishes here, freeing its place.
+        inFlight -= 1;
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'completed', build_result: 'success', result: 'success', stdout: '1', exit_code: '0' }) });
+      }),
+    );
+    const runner = new PaizaExecutor('https://api.paiza.io', 'guest', 2, 60_000);
+    // Two students submitting three-test levels at the same moment.
+    await Promise.all([runner.run('a', threeTests, 5000), runner.run('b', threeTests, 5000)]);
+    expect(peak).toBeLessThanOrEqual(2);
+  }, 30_000);
+});

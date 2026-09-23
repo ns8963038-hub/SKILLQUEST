@@ -15,7 +15,7 @@ export function getExecutor(): ExecutionService {
   switch (env.EXECUTION_BACKEND) {
     case 'paiza':
       // Real Java via Paiza's free public runner — no key, no account.
-      instance = new PaizaExecutor(env.PAIZA_URL, env.PAIZA_API_KEY);
+      instance = new PaizaExecutor(env.PAIZA_URL, env.PAIZA_API_KEY, env.RUNNER_MAX_CONCURRENT, env.RUNNER_MAX_WAIT_MS);
       break;
     case 'piston':
       // Real Java via a (typically self-hosted) Piston instance.

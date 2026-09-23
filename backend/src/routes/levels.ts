@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db';
 import { asyncHandler } from '../http';
+import { codeRunLimit } from '../rateLimits';
 import { logEvent } from '../events';
 import { getExecutor } from '../execution';
 import { computeStreak } from '../gamification/streak';
@@ -170,6 +171,7 @@ const SubmitBody = z.object({
 // POST /api/levels/:id/submit — run the submission and, on a full pass, award XP.
 levelsRouter.post(
   '/levels/:id/submit',
+  codeRunLimit, // runs Java on the shared runner: 10 a minute per student
   asyncHandler(async (req, res) => {
     const userId = req.userId!;
     const levelId = req.params.id;

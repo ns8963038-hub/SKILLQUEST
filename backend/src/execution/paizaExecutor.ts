@@ -1,5 +1,6 @@
-import type { ExecutionService, RunResult, TestCaseInput, Verdict } from './types';
+import { RunnerUnavailableError, type ExecutionService, type RunResult, type TestCaseInput, type Verdict } from './types';
 import { outputsMatch } from './compare';
+import { RunnerSlots } from './runnerSlots';
 
 // Real Java execution via Paiza.IO's public runner API — FREE, no card, no
 // account (uses the built-in `guest` key). It accepts our `public class Main`
@@ -15,8 +16,8 @@ import { outputsMatch } from './compare';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// How many test cases run on Paiza at once (after the first). Kept small to stay
-// polite to the shared guest key; a 429 is retried with backoff in runOne.
+// How many of ONE submission's test cases run at once (after the first). The
+// shared slots below cap the total across all students.
 const CONCURRENCY = 3;
 
 interface PaizaDetails {
@@ -30,11 +31,17 @@ interface PaizaDetails {
 }
 
 export class PaizaExecutor implements ExecutionService {
+  // Every run on this runner, from every student, takes one of these slots.
+  private readonly slots: RunnerSlots;
+
   constructor(
     private readonly baseUrl: string = 'https://api.paiza.io',
     private readonly apiKey: string = 'guest',
+    maxConcurrent = 6,
+    private readonly maxWaitMs = 45_000,
   ) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
+    this.slots = new RunnerSlots(maxConcurrent);
   }
 
   // Run the program once against one stdin; resolve to stdout + any error.
@@ -56,7 +63,7 @@ export class PaizaExecutor implements ExecutionService {
       await sleep(1000 * attempt);
       createRes = await fetch(`${this.baseUrl}/runners/create`, { method: 'POST', body: createBody });
     }
-    if (!createRes.ok) throw new Error(`Paiza create failed: ${createRes.status}`);
+    if (!createRes.ok) throw new RunnerUnavailableError(`Paiza create failed: ${createRes.status}`);
     const { id } = (await createRes.json()) as { id: string };
 
     // 2) Poll until it finishes.
@@ -66,6 +73,8 @@ export class PaizaExecutor implements ExecutionService {
       const detRes = await fetch(
         `${this.baseUrl}/runners/get_details?id=${id}&api_key=${this.apiKey}`,
       );
+      if (detRes.status === 429) continue; // rate-limited while polling: just poll again
+      if (!detRes.ok) throw new RunnerUnavailableError(`Paiza get_details failed: ${detRes.status}`);
       const d = (await detRes.json()) as PaizaDetails;
       if (d.status === 'completed') {
         // Didn't compile.
@@ -81,7 +90,7 @@ export class PaizaExecutor implements ExecutionService {
         const runErr = badExit ? d.stderr || `exit code ${d.exit_code}` : null;
         return { stdout: d.stdout ?? '', compileErr: null, runErr, timedOut: false };
       }
-      if (Date.now() > deadline) throw new Error('Paiza timed out while polling');
+      if (Date.now() > deadline) throw new RunnerUnavailableError('Paiza timed out while polling');
     }
   }
 
@@ -91,11 +100,16 @@ export class PaizaExecutor implements ExecutionService {
     let sawCompileError = false;
     let sawTimeout = false;
     let sawRuntimeError = false;
+    // The first time the RUNNER fails (not the program): stop and report that.
+    let runnerFailure: RunnerUnavailableError | null = null;
 
     // Run test i and record its outcome in results[i].
     const runTest = async (i: number) => {
+      if (runnerFailure) return;
       const t = tests[i]!;
+      let release: (() => void) | null = null;
       try {
+        release = await this.slots.acquire(this.maxWaitMs);
         const r = await this.runOne(sourceCode, t.stdin, timeLimitMs);
         if (r.compileErr) {
           sawCompileError = true;
@@ -109,9 +123,15 @@ export class PaizaExecutor implements ExecutionService {
         } else {
           results[i] = { passed: outputsMatch(r.stdout, t.expectedOutput), actualOutput: r.stdout };
         }
-      } catch {
-        sawRuntimeError = true;
-        results[i] = { passed: false, actualOutput: '(execution error)' };
+      } catch (err) {
+        // A network error, a refused request or a full queue is the runner's
+        // failure, never the student's: don't grade it as a runtime error.
+        runnerFailure ??=
+          err instanceof RunnerUnavailableError
+            ? err
+            : new RunnerUnavailableError(err instanceof Error ? err.message : String(err));
+      } finally {
+        release?.();
       }
     };
 
@@ -119,6 +139,7 @@ export class PaizaExecutor implements ExecutionService {
       // 1) The first test alone. If the code doesn't compile, every test would
       //    fail the same way — report that at once instead of compiling N times.
       await runTest(0);
+      if (runnerFailure) throw runnerFailure;
       if (sawCompileError) {
         for (let i = 1; i < tests.length; i++) results[i] = { passed: false, actualOutput: results[0]!.actualOutput };
       } else {
@@ -126,9 +147,10 @@ export class PaizaExecutor implements ExecutionService {
         //    takes ~3-4 s, so sequential runs of 4-5 tests blew the 15 s budget).
         let next = 1;
         const worker = async () => {
-          while (next < tests.length) await runTest(next++);
+          while (next < tests.length && !runnerFailure) await runTest(next++);
         };
         await Promise.all(Array.from({ length: Math.min(CONCURRENCY, tests.length - 1) }, worker));
+        if (runnerFailure) throw runnerFailure;
       }
     }
 

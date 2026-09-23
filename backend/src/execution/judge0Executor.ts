@@ -1,4 +1,4 @@
-import type { ExecutionService, RunResult, TestCaseInput, Verdict } from './types';
+import { RunnerUnavailableError, type ExecutionService, type RunResult, type TestCaseInput, type Verdict } from './types';
 
 // Real Java execution via Judge0 (TRD 5). Works against ANY Judge0 CE instance —
 // hosted (RapidAPI) or self-hosted — by changing env only. The route code never
@@ -76,7 +76,18 @@ export class Judge0Executor implements ExecutionService {
     return this.languageId;
   }
 
+  // Any failure talking to Judge0 is the runner's, never the student's.
   async run(sourceCode: string, tests: TestCaseInput[], timeLimitMs: number): Promise<RunResult> {
+    try {
+      return await this.runBatch(sourceCode, tests, timeLimitMs);
+    } catch (err) {
+      throw err instanceof RunnerUnavailableError
+        ? err
+        : new RunnerUnavailableError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  private async runBatch(sourceCode: string, tests: TestCaseInput[], timeLimitMs: number): Promise<RunResult> {
     const languageId = await this.resolveLanguageId();
 
     // 1) Build one submission per test case and create them in a single batch.
