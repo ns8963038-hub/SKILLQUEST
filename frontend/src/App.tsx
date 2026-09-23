@@ -5,6 +5,7 @@ import { ApiError, api } from './lib/api';
 import { appProblem, type AppProblem } from './lib/loadProblems';
 import { rememberAiWakeUrl, wakeAi } from './lib/aiWake';
 import { invalidate } from './lib/useApi';
+import { useNavHistory } from './lib/navHistory';
 import { signOut } from './lib/session';
 import { AuthScreen } from './screens/AuthScreen';
 import { OnboardingWizard } from './screens/OnboardingWizard';
@@ -117,6 +118,18 @@ function ServerUnavailable({ problem, onRetry }: { problem: AppProblem; onRetry:
   );
 }
 
+// Where the signed-in app is: a main view, plus a full-screen level or lesson on
+// top of it (each remembering the view to return to).
+interface Nav {
+  view: NavView;
+  dsaCompany?: string; // company to preselect on DSA prep (when opened from Placement)
+  playLevelId: string | null; // when set, the play screen for this level is shown
+  playReturn: NavView;
+  lessonSkillId: string | null; // when set, this skill's lesson is shown (Learn mode, PRD F8)
+  lessonReturn: NavView;
+}
+const HOME: Nav = { view: 'dashboard', playLevelId: null, playReturn: 'dashboard', lessonSkillId: null, lessonReturn: 'dashboard' };
+
 // Decides which screen to show from auth + consent + onboarding state. No router:
 //   not signed in                 -> AuthScreen
 //   consent not answered (v1)     -> ConsentScreen (research consent comes FIRST)
@@ -129,16 +142,10 @@ function AppInner() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileProblem, setProfileProblem] = useState<AppProblem | null>(null); // why /api/me failed
-  // Which signed-in screen is showing.
-  const [view, setView] = useState<NavView>('dashboard');
-  // Company to preselect on the DSA prep screen (when opened from placement).
-  const [dsaCompany, setDsaCompany] = useState<string | undefined>(undefined);
-  // When set, the play screen for this level is shown; playReturn is where Back goes.
-  const [playLevelId, setPlayLevelId] = useState<string | null>(null);
-  const [playReturn, setPlayReturn] = useState<NavView>('dashboard');
-  // When set, the lesson for this skill is shown (Learn mode, PRD F8).
-  const [lessonSkillId, setLessonSkillId] = useState<string | null>(null);
-  const [lessonReturn, setLessonReturn] = useState<NavView>('dashboard');
+  // Which signed-in screen is showing — kept in the browser history, so the
+  // phone's Back button moves back through the app (lib/navHistory.ts).
+  const { nav, go, back } = useNavHistory<Nav>(HOME);
+  const { view, dsaCompany, playLevelId, playReturn, lessonSkillId, lessonReturn } = nav;
 
   // Fetch (creating on first login) the profile whenever we have a session.
   const loadProfile = useCallback(async () => {
@@ -171,8 +178,8 @@ function AppInner() {
   useEffect(() => {
     if (!profile) return;
     const wanted = new URLSearchParams(window.location.search).get('lesson');
-    if (wanted && /^[a-z-]{2,40}$/.test(wanted)) setLessonSkillId(wanted);
-  }, [profile]);
+    if (wanted && /^[a-z-]{2,40}$/.test(wanted)) go({ ...HOME, lessonSkillId: wanted });
+  }, [profile, go]);
 
   // After navigation: start at the top and move focus to the new page's heading, so
   // screen-reader users hear where they are (UI doc §9).
@@ -196,17 +203,12 @@ function AppInner() {
   if (profile.onboardingStep < 5) return <OnboardingWizard onComplete={() => void loadProfile()} />;
 
   // Open a level, remembering which screen to return to.
-  const openLevel = (levelId: string, from: NavView) => {
-    setPlayReturn(from);
-    setPlayLevelId(levelId);
-  };
+  const openLevel = (levelId: string, from: NavView) =>
+    go({ ...nav, lessonSkillId: null, playLevelId: levelId, playReturn: from });
 
   // Open a lesson, remembering which screen to return to.
-  const openLesson = (skillId: string, from: NavView) => {
-    setPlayLevelId(null);
-    setLessonReturn(from);
-    setLessonSkillId(skillId);
-  };
+  const openLesson = (skillId: string, from: NavView) =>
+    go({ ...nav, playLevelId: null, lessonSkillId: skillId, lessonReturn: from });
 
   // Open a SKILL: its lesson first if the student hasn't done (or skipped) it,
   // otherwise its next unfinished level — the server decides both. Falls back to
@@ -230,14 +232,11 @@ function AppInner() {
       <LessonScreen
         key={lessonSkillId}
         skillId={lessonSkillId}
-        onBack={() => {
-          setLessonSkillId(null);
-          setView(lessonReturn);
-        }}
-        onStartLevel={(levelId) => {
-          setLessonSkillId(null);
-          openLevel(levelId, lessonReturn);
-        }}
+        onBack={() => back({ ...nav, lessonSkillId: null, view: lessonReturn })}
+        // The lesson is done: the level REPLACES it, so Back goes to the map.
+        onStartLevel={(levelId) =>
+          go({ ...nav, lessonSkillId: null, playLevelId: levelId, playReturn: lessonReturn }, { replace: true })
+        }
       />
     );
   }
@@ -250,20 +249,16 @@ function AppInner() {
         key={playLevelId}
         levelId={playLevelId}
         userId={session.user.id}
-        onOpenLevel={(id) => setPlayLevelId(id)}
+        // "Next level" replaces this one, so Back goes to the map, not the level before.
+        onOpenLevel={(id) => go({ ...nav, playLevelId: id }, { replace: true })}
         onOpenLesson={(skillId) => openLesson(skillId, playReturn)}
-        onBack={() => {
-          setPlayLevelId(null);
-          setView(playReturn);
-        }}
+        onBack={() => back({ ...nav, playLevelId: null, view: playReturn })}
       />
     );
   }
 
-  const navigate = (next: NavView) => {
-    if (next === 'dsa') setDsaCompany(undefined);
-    setView(next);
-  };
+  const navigate = (next: NavView) =>
+    go({ ...nav, view: next, dsaCompany: next === 'dsa' ? undefined : dsaCompany });
 
   let screen: ReactNode;
   if (view === 'roadmap') {
@@ -272,10 +267,7 @@ function AppInner() {
     screen = (
       <PlacementScreen
         onOpenSkill={(id) => openSkill(id, 'placement')}
-        onOpenDsa={(companyId) => {
-          setDsaCompany(companyId);
-          setView('dsa');
-        }}
+        onOpenDsa={(companyId) => go({ ...nav, view: 'dsa', dsaCompany: companyId })}
       />
     );
   } else if (view === 'dsa') {
