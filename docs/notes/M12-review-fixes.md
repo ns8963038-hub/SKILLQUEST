@@ -62,6 +62,17 @@ real inputs: all junk → neutral plan; three very short real goals also → neu
 - **Admins:** by Supabase user id (`ADMIN_USER_IDS`), not email — email
   confirmation is off, so anyone could sign up with an unregistered team address.
 
+## Found during the final crosscheck (not in the review)
+
+- **Settings re-join gave no participant code** — a student who switched the
+  research back on in Settings would have been left out of every export. Fixed.
+- **"Next level" skipped the next topic's lesson** — after a topic's last level,
+  the reward jumped straight into the next topic's first level. It now says
+  "Next topic" and opens that topic's lesson first, as the map does.
+- The settings goal box had no length limit (the server allows 500), and two
+  lines of copy still overclaimed ("re-plans as you learn", "re-practice keeps
+  raising the mastery estimate"). Fixed.
+
 ## Verified
 
 Backend 178 tests, frontend 121, AI service 25 (+25 with the real model: all
