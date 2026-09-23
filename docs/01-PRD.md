@@ -71,6 +71,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - The roadmap engine applies **goal-specific skill weights**, then does a weighted topological sort (prerequisites always respected; the goal only orders choices among currently-unblocked nodes), drops zero-weight optional nodes, and packs the rest into weeks by hours/week. Full algorithm in TRD §6.2.
 - The goal must **demonstrably** change the plan — otherwise the personalization claim is dropped from this document.
 - Rendered as an interactive node tree on the dashboard: completed / current / locked states.
+- **Locks are enforced by the API, not just the screen.** Every level and lesson route first checks that the student's roadmap has reached the skill (current or completed; a skill off the plan opens once its prerequisites are done) and answers 403 otherwise (`backend/src/progress/access.ts`). The Placement screen's "Train this" only offers skills that pass the same check; locked gaps are listed under "Later on your roadmap".
 - **Acceptance:** (a) roadmap regenerates correctly when hours/week changes; (b) two students with identical quiz results and hours, differing only in goal category, receive measurably different node orderings — evidenced in the report.
 
 ### F3 — Code-to-Solve Game Engine (P0)

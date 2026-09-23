@@ -22,14 +22,14 @@ const store = vi.hoisted(() => ({
 const db = vi.hoisted(() => ({
   level: {
     // Honours the one filter the routes use: `where: { isHidden: false }`.
-    findUnique: vi.fn(async (args: { include: { testCases: { where?: { isHidden?: boolean } } } }) => ({
+    findUnique: vi.fn(async (args: { include?: { testCases?: { where?: { isHidden?: boolean } } } }) => ({
       id: 'loops-01',
       skillId: 'loops',
       published: true,
       starterCode: STARTER,
       timeLimitMs: 5000,
       xpReward: 50,
-      testCases: args.include.testCases.where?.isHidden === false ? [VISIBLE] : [VISIBLE, HIDDEN],
+      testCases: args.include?.testCases?.where?.isHidden === false ? [VISIBLE] : [VISIBLE, HIDDEN],
       skill: { title: 'Loops' },
     })),
   },
@@ -60,6 +60,9 @@ const db = vi.hoisted(() => ({
   },
   submission: { create: vi.fn() },
   event: { create: vi.fn() },
+  // The lock check (progress/access.ts): loops is this student's current skill.
+  roadmap: { findFirst: vi.fn(async () => ({ items: [{ skillId: 'loops', status: 'current' }] })) },
+  skillPrerequisite: { findMany: vi.fn(async () => []) },
   // The transaction runs its callback against the same fake.
   $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn(db)),
 }));

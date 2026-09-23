@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
-import { api } from './lib/api';
+import { ApiError, api } from './lib/api';
 import { rememberAiWakeUrl, wakeAi } from './lib/aiWake';
 import { invalidate } from './lib/useApi';
 import { signOut } from './lib/session';
@@ -188,14 +188,18 @@ function AppInner() {
 
   // Open a SKILL: its lesson first if the student hasn't done (or skipped) it,
   // otherwise its next unfinished level — the server decides both. Falls back to
-  // the first level if the request fails.
+  // the first level if the request fails — unless the skill is LOCKED (403): the
+  // screen that offered it was out of date, so refresh everything instead.
   const openSkill = (skillId: string, from: NavView) => {
     api<{ levelId: string | null; lessonFirst?: boolean }>(`/api/skills/${skillId}/next-level`)
       .then(({ levelId, lessonFirst }) => {
         if (lessonFirst) openLesson(skillId, from);
         else if (levelId) openLevel(levelId, from);
       })
-      .catch(() => openLevel(`${skillId}-01`, from));
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 403) invalidate('/api/');
+        else openLevel(`${skillId}-01`, from);
+      });
   };
 
   // A lesson takes over the whole screen; it hands over to the topic's level.

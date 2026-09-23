@@ -12,9 +12,16 @@ import { lessonComesFirst, lessonStateBySkill } from '../lessons/progress';
 import { advanceRoadmap } from '../roadmap/advance';
 import { computePlacementForUser } from '../placement/compute';
 import { nextLevelAfter, nextLevelInSkill } from '../progress/levels';
+import { guardSkill, skillItself, skillOfLevel } from '../progress/access';
 import { DEFAULT_BKT, bktUpdate, isMastered } from '../tutor/bkt';
 
 export const levelsRouter = Router();
+
+// Locks, enforced on the server (progress/access.ts): every route below that
+// names a level (:id) or a skill (:skillId) first checks that the student has
+// unlocked that skill, and answers 403 if not.
+levelsRouter.param('id', guardSkill(skillOfLevel));
+levelsRouter.param('skillId', guardSkill(skillItself));
 
 // GET /api/levels/:id — the play view of a level.
 // Deliberately strips the reference solution and all HIDDEN test-case data; only

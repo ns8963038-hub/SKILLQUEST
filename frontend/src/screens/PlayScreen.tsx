@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft, BookOpen, Play, RotateCcw, Send, Zap } from 'lucide-react';
 import { api } from '../lib/api';
+import { loadProblemMessage } from '../lib/loadProblems';
 import { runProblemMessage } from '../lib/runProblems';
 import { invalidate } from '../lib/useApi';
 import { cn } from '../lib/cn';
@@ -105,7 +106,7 @@ export function PlayScreen({
         }
         setCode(saved ?? lv.starterCode);
       })
-      .catch(() => setLoadError('This level isn’t ready yet.'));
+      .catch((err) => setLoadError(loadProblemMessage(err, 'level')));
   }, [levelId]);
 
   // Edit the code and keep a copy locally, so a refresh or dropped connection never

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ArrowRight, CheckCircle2, Code2, ExternalLink } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Code2, ExternalLink, Lock } from 'lucide-react';
 import { useApi } from '../lib/useApi';
 import { Button, Chip, ErrorState, GlassCard, PageHeader, Skeleton, rise, stagger } from '../ui/primitives';
 import { MasteryRing } from '../ui/MasteryRing';
@@ -13,7 +13,9 @@ interface PlacementRole {
   sourceUrl: string;
   collectedOn: string;
   score: number;
-  missingAvailableNow: { skillId: string; title: string }[];
+  // Gaps SkillQuest teaches. `open` is false while the roadmap hasn't reached the
+  // skill yet (the server refuses to open it until then).
+  missingAvailableNow: { skillId: string; title: string; open?: boolean }[];
   missingExternal: string[];
 }
 
@@ -92,6 +94,9 @@ function RoleCard({
 }) {
   const tone = role.score >= 70 ? 'mint' : role.score >= 50 ? 'ion' : 'gold';
   const allCovered = role.missingAvailableNow.length === 0 && role.missingExternal.length === 0;
+  // Older API responses carry no `open`: treat those as open, as before.
+  const trainNow = role.missingAvailableNow.filter((s) => s.open !== false);
+  const later = role.missingAvailableNow.filter((s) => s.open === false);
 
   return (
     <GlassCard edge={top} className="flex h-full flex-col p-6">
@@ -112,12 +117,12 @@ function RoleCard({
           </div>
         </div>
 
-        {/* Gaps SkillQuest teaches — one click to train. */}
-        {role.missingAvailableNow.length > 0 && (
+        {/* Gaps SkillQuest teaches and the student can open — one click to train. */}
+        {trainNow.length > 0 && (
           <div className="mt-6">
             <p className="eyebrow mb-2.5">Train these now</p>
             <div className="flex flex-wrap gap-2">
-              {role.missingAvailableNow.map((s) => (
+              {trainNow.map((s) => (
                 <button
                   key={s.skillId}
                   type="button"
@@ -127,6 +132,22 @@ function RoleCard({
                   {s.title}
                   <ArrowRight size={13} aria-hidden className="transition-transform group-hover:translate-x-0.5" />
                 </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Gaps SkillQuest teaches that the roadmap hasn't unlocked yet — shown, not clickable. */}
+        {later.length > 0 && (
+          <div className="mt-5">
+            <p className="eyebrow mb-2.5">Later on your roadmap</p>
+            <div className="flex flex-wrap gap-2">
+              {later.map((s) => (
+                <Chip key={s.skillId}>
+                  <Lock size={12} aria-hidden />
+                  {s.title}
+                  <span className="sr-only">(locked)</span>
+                </Chip>
               ))}
             </div>
           </div>

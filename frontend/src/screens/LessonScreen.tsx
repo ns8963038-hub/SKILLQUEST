@@ -15,6 +15,7 @@ import { TracePlayer } from '../features/learn/TracePlayer';
 import { PredictStep } from '../features/learn/PredictStep';
 import { FillStep } from '../features/learn/FillStep';
 import type { AnswerResult, ExplainStep, HookStep, LessonStep, LessonView } from '../features/learn/types';
+import { loadProblemMessage } from '../lib/loadProblems';
 
 // LEARN MODE (PRD F8) — the ~5-minute lesson that opens every topic, following
 // PRIMM: Predict → Run (watch it) → Investigate (key ideas) → Modify (try it) →
@@ -42,7 +43,7 @@ export function LessonScreen({
   onStartLevel: (levelId: string) => void;
 }) {
   const [lesson, setLesson] = useState<LessonView | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [index, setIndex] = useState(0); // steps.length = the final "Prove it" screen
   const [solved, setSolved] = useState<Record<string, boolean>>({});
   const [firstTries, setFirstTries] = useState<Record<string, boolean>>({});
@@ -59,7 +60,7 @@ export function LessonScreen({
         setMasteryNow(l.mastery);
         void api(`/api/lessons/${skillId}/start`, { method: 'POST' }).catch(() => undefined);
       })
-      .catch(() => setLoadError(true));
+      .catch((err) => setLoadError(loadProblemMessage(err, 'lesson')));
   }, [skillId]);
 
   const steps = lesson?.steps ?? [];
@@ -106,7 +107,9 @@ export function LessonScreen({
         <AmbientBackground intensity={0.5} />
         {loadError ? (
           <div className="text-center">
-            <p role="alert" className="font-display text-2xl font-semibold">This lesson isn’t ready yet.</p>
+            <p role="alert" className="font-display text-2xl font-semibold">
+              {loadError}
+            </p>
             <Button variant="ghost" className="mt-6" onClick={onBack}>
               <ArrowLeft size={16} aria-hidden /> Back
             </Button>

@@ -31,8 +31,9 @@ export async function firstUnfinishedInSkill(userId: string, skillId: string): P
 }
 
 // The level to open for a skill: the first unfinished one, or — once the skill is
-// finished — its first level again (re-practice keeps raising the mastery
-// estimate). Null only when the skill has no published levels at all.
+// finished — its first level again, for practice (a re-solve earns no XP and no
+// longer moves the mastery estimate: only a level's first submit does). Null
+// only when the skill has no published levels at all.
 export async function nextLevelInSkill(userId: string, skillId: string): Promise<string | null> {
   const levels = await skillLevels(skillId);
   if (levels.length === 0) return null;
