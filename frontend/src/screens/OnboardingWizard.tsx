@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, type Variants } from 'motion/react';
-import { ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, RotateCcw, Sparkles } from 'lucide-react';
 import { ApiError, api } from '../lib/api';
 import { isAiWaking, retryWhileAiWakes, wakeAi } from '../lib/aiWake';
 import { cn } from '../lib/cn';
-import { QUIZ_QUESTIONS } from '../features/onboarding/quizQuestions';
-import { scoreQuiz, skillLevelFromScore } from '../features/onboarding/scoring';
+import { SKILL_GRAPH } from '../features/constellation/skillGraph';
+import type { QuizQuestionView } from '../features/onboarding/types';
 import { AmbientBackground } from '../ui/AmbientBackground';
 import { BrandMark } from '../ui/BrandMark';
 import { Nova } from '../ui/Nova';
@@ -51,6 +51,9 @@ const inputClass =
   'w-full min-h-[48px] rounded-xl border border-line-strong bg-base/60 px-4 text-[15px] text-content placeholder:text-content-muted ' +
   'transition-[border-color,box-shadow] duration-200 focus:border-ion/60 focus:shadow-[0_0_0_4px_rgba(127,168,255,0.14)] focus:outline-none focus-visible:outline-none';
 
+// A skill's display name, for labelling quiz questions by topic.
+const topicTitle = (skillId: string) => SKILL_GRAPH.find((s) => s.id === skillId)?.title ?? skillId;
+
 // Steps slide in the direction of travel.
 const slide: Variants = {
   enter: (dir: number) => ({ opacity: 0, x: dir * 36 }),
@@ -73,6 +76,8 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [direction, setDirection] = useState(1);
   const [branch, setBranch] = useState('');
   const [year, setYear] = useState(3);
+  const [quiz, setQuiz] = useState<QuizQuestionView[] | null>(null); // null while loading
+  const [quizError, setQuizError] = useState(false);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [hoursPerWeek, setHoursPerWeek] = useState(5);
   const [companies, setCompanies] = useState<string[]>([]);
@@ -81,8 +86,17 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
   const [waking, setWaking] = useState(false); // the AI tutor is asleep and being woken
   const [error, setError] = useState<string | null>(null);
 
-  const answered = QUIZ_QUESTIONS.filter((q) => answers[q.id] !== undefined).length;
+  const answered = (quiz ?? []).filter((q) => answers[q.id] !== undefined).length;
   const effort = intensity(hoursPerWeek);
+
+  // Fetch the placement quiz (questions only; the server keeps the answers).
+  function loadQuiz() {
+    setQuizError(false);
+    api<{ questions: QuizQuestionView[] }>('/api/onboarding/quiz')
+      .then((r) => setQuiz(r.questions))
+      .catch(() => setQuizError(true));
+  }
+  useEffect(loadQuiz, []);
 
   // Move to a step, remembering the direction for the slide animation.
   function go(next: number) {
@@ -97,7 +111,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
     setCompanies((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
   }
 
-  // Final step: score the quiz, build the payload, and submit. The API maps the
+  // Final step: build the payload and submit. The API grades the quiz, maps the
   // goal and builds the roadmap with the AI tutor; if the tutor is still waking
   // (503), we say so and try again rather than failing.
   async function finish() {
@@ -105,16 +119,13 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
     setWaking(false);
     setError(null);
     try {
-      const { attempts, testedOut, totalCorrect } = scoreQuiz(QUIZ_QUESTIONS, answers);
       const body = {
         branch: branch || undefined,
         year,
-        skillLevel: skillLevelFromScore(totalCorrect),
         hoursPerWeek,
         targetCompanies: companies,
         goalText,
-        testedOut,
-        quizAttempts: attempts,
+        quizAnswers: answers, // question id -> the option picked; graded on the server
       };
       await retryWhileAiWakes(
         () => api('/api/onboarding/complete', { method: 'POST', body }),
@@ -194,6 +205,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                         id="branch"
                         className={inputClass}
                         value={branch}
+                        maxLength={80}
                         onChange={(e) => setBranch(e.target.value)}
                         placeholder="e.g. AI & DS"
                       />
@@ -226,43 +238,68 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     <div>
                       <h1 className="font-display text-3xl font-semibold tracking-tight">Calibration quiz</h1>
                       <p className="mt-2 text-sm text-content-muted">
-                        Answer what you can. Get every question in a topic right and the tutor skips it — no
-                        relearning what you already know.
+                        Each question shows a short program — pick what it prints. Answer what you can: get all three
+                        in a topic right and the tutor skips it, so you don’t relearn what you already know.
                       </p>
                     </div>
-                    <Chip tone="ion" className="shrink-0">
-                      {answered}/{QUIZ_QUESTIONS.length}
-                    </Chip>
+                    {quiz && (
+                      <Chip tone="ion" className="shrink-0">
+                        {answered}/{quiz.length}
+                      </Chip>
+                    )}
                   </div>
-                  <div className="mt-7 space-y-4">
-                    {QUIZ_QUESTIONS.map((q, qi) => (
-                      // fieldset/legend groups a question with its options for screen readers.
-                      <fieldset key={q.id} className="rounded-2xl border border-line bg-base/30 p-4 sm:p-5">
-                        <legend className="sr-only">{q.prompt}</legend>
-                        <p aria-hidden className="flex gap-3 text-[15px] font-medium text-content">
-                          <span className="pt-0.5 font-mono text-xs text-ion">{String(qi + 1).padStart(2, '0')}</span>
-                          {q.prompt}
-                        </p>
-                        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                          {q.options.map((opt, i) => (
-                            <label key={i} className={optionClass}>
-                              <input
-                                type="radio"
-                                name={q.id}
-                                className="sr-only"
-                                checked={answers[q.id] === i}
-                                onChange={() => setAnswers((a) => ({ ...a, [q.id]: i }))}
-                              />
-                              <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full border border-line-strong transition-colors group-has-[:checked]:border-ion">
-                                <span className="h-2 w-2 scale-0 rounded-full bg-ion transition-transform group-has-[:checked]:scale-100" />
-                              </span>
-                              {opt}
-                            </label>
-                          ))}
-                        </div>
-                      </fieldset>
-                    ))}
-                  </div>
+                  {quizError ? (
+                    <div role="alert" className="mt-7 rounded-2xl border border-danger/25 bg-danger-tint p-4 text-sm text-content">
+                      <p>The quiz didn’t load. Try again — or skip it, and your plan simply starts from the first topic.</p>
+                      <Button variant="ghost" size="sm" className="mt-3" onClick={loadQuiz}>
+                        <RotateCcw size={14} aria-hidden /> Try again
+                      </Button>
+                    </div>
+                  ) : !quiz ? (
+                    <p role="status" className="mt-7 flex items-center gap-3 text-sm text-content-muted">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-ion/20 border-t-ion" aria-hidden />
+                      Loading the quiz…
+                    </p>
+                  ) : (
+                    <div className="mt-7 space-y-4">
+                      {quiz.map((q, qi) => (
+                        // fieldset/legend groups a question with its options for screen readers.
+                        <fieldset key={q.id} className="rounded-2xl border border-line bg-base/30 p-4 sm:p-5">
+                          <legend className="sr-only">
+                            Question {qi + 1}, {topicTitle(q.topicSkillId)}: {q.prompt}
+                          </legend>
+                          <p aria-hidden className="flex items-baseline gap-3 text-[15px] font-medium text-content">
+                            <span className="font-mono text-xs text-ion">{String(qi + 1).padStart(2, '0')}</span>
+                            {q.prompt}
+                            <span className="ml-auto font-mono text-[11px] uppercase tracking-[0.14em] text-content-muted">
+                              {topicTitle(q.topicSkillId)}
+                            </span>
+                          </p>
+                          {/* The program: scrolls sideways on a phone rather than wrapping, so the indentation stays readable. */}
+                          <pre className="mt-3 overflow-x-auto rounded-xl border border-line bg-base/70 p-3.5 font-mono text-[13px] leading-relaxed text-content">
+                            <code>{q.code}</code>
+                          </pre>
+                          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                            {q.options.map((opt, i) => (
+                              <label key={i} className={optionClass}>
+                                <input
+                                  type="radio"
+                                  name={q.id}
+                                  className="sr-only"
+                                  checked={answers[q.id] === i}
+                                  onChange={() => setAnswers((a) => ({ ...a, [q.id]: i }))}
+                                />
+                                <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full border border-line-strong transition-colors group-has-[:checked]:border-ion">
+                                  <span className="h-2 w-2 scale-0 rounded-full bg-ion transition-transform group-has-[:checked]:scale-100" />
+                                </span>
+                                <span className="whitespace-pre font-mono text-[13px]">{opt}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </fieldset>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -346,6 +383,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     rows={4}
                     className={cn(inputClass, 'min-h-[128px] py-3 leading-relaxed')}
                     value={goalText}
+                    maxLength={500}
                     onChange={(e) => setGoalText(e.target.value)}
                     placeholder="e.g. I want to crack the Infosys interview and move to a product company later"
                   />

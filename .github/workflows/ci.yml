@@ -76,4 +76,5 @@ jobs:
           java-version: '21' # the programs themselves are compiled with --release 11
       - run: node content/verify-levels.mjs
       - run: node content/build-lessons.mjs # no --fill: fails if anything stored is out of date
+      - run: node content/verify-quiz.mjs # every quiz program prints exactly its marked answer
       - run: node content/check-order.mjs # no question may use a topic the student hasn't been taught

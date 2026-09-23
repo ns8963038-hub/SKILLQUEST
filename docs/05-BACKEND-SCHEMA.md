@@ -339,6 +339,8 @@ The version + window columns are what make a reported figure defensible: given a
 
 ### 3.13 `quiz_attempts` & `nudges` — evidence for claims we make
 
+The questions themselves live in `quiz_questions` (seeded from `content/quiz.json`): `id`, `version`, `topic_skill_id`, `ordinal`, `prompt`, `code`, `options text[]`, `correct_index`, `published`. RLS is on with no policies, so the answers can't be read through Supabase's REST API; the Web API grades the quiz and the browser only ever sends the options chosen. A question removed from the content is unpublished, not deleted, so old attempts stay traceable.
+
 ```sql
 create table quiz_attempts (
   id            bigint generated always as identity primary key,

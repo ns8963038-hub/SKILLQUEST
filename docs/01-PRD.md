@@ -63,6 +63,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - Onboarding wizard: branch, year, placement quiz (**12 questions — 3 per topic**; a topic is skipped only on 3/3, since one question is far too weak to skip a fundamental), hours available per week, target companies (multi-select), and **one free-text field**: "Describe your career goal in your own words."
 - The free-text goal is mapped to a goal category using sentence embeddings (NLP module #1), which then drives the roadmap's skill weights (F2).
 - Every quiz answer is persisted with its question version, so test-out decisions are reproducible and the quiz can be evaluated in the report.
+- **The quiz is graded on the server.** Each question shows a short program and asks what it prints (reading code, not recalling keywords); the wrong options are the usual mistakes. The browser receives the questions without their answers and sends back only the options picked; the API decides what is correct, which topics are tested out and the skill level. Every question's program is compiled and run in CI (`content/verify-quiz.mjs`), and must print exactly its marked answer.
 - **Acceptance:** two students with different quiz results and hours/week receive visibly different roadmaps.
 
 ### F2 — Personalized Roadmap (P0)

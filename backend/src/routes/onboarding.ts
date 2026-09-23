@@ -4,29 +4,38 @@ import { prisma } from '../db';
 import { asyncHandler } from '../http';
 import { logEvent } from '../events';
 import { generateRoadmap, mapGoal } from '../aiClient';
+import { gradeQuiz, publicQuestion, skillLevelFromScore } from '../onboarding/quiz';
 
 export const onboardingRouter = Router();
 
-// What the onboarding wizard submits when the student finishes.
+// The published quiz questions, in the order the quiz shows them.
+const loadQuiz = () =>
+  prisma.quizQuestion.findMany({ where: { published: true }, orderBy: { ordinal: 'asc' } });
+
+// GET /api/onboarding/quiz — the placement quiz, WITHOUT the answers: the
+// browser only ever learns which option the student picked, never which was right.
+onboardingRouter.get(
+  '/onboarding/quiz',
+  asyncHandler(async (_req, res) => {
+    const questions = await loadQuiz();
+    res.json({ questions: questions.map(publicQuestion) });
+  }),
+);
+
+// What the onboarding wizard submits when the student finishes. The quiz is
+// sent as the options chosen (question id -> option index); the server grades
+// it. Fields older clients sent (testedOut, quizAttempts, skillLevel) are
+// ignored: zod drops keys the schema doesn't name.
 const OnboardingBody = z.object({
-  branch: z.string().optional(),
+  branch: z.string().max(80).optional(),
   year: z.number().int().min(1).max(4).optional(),
-  skillLevel: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
   hoursPerWeek: z.number().int().min(1).max(40),
-  targetCompanies: z.array(z.string()).default([]),
-  goalText: z.string().default(''),
-  testedOut: z.array(z.string()).default([]), // skill ids passed out of via the quiz
-  quizAttempts: z
-    .array(
-      z.object({
-        questionId: z.string(),
-        questionVersion: z.number().int(),
-        topicSkillId: z.string(),
-        chosenOption: z.number().int(),
-        isCorrect: z.boolean(),
-      }),
-    )
-    .default([]),
+  targetCompanies: z.array(z.string().max(40)).max(20).default([]),
+  goalText: z.string().max(500).default(''),
+  quizAnswers: z
+    .record(z.string().max(40), z.number().int().min(0).max(9))
+    .refine((a) => Object.keys(a).length <= 50, 'too many answers')
+    .default({}),
 });
 
 // POST /api/onboarding/complete — the heart of onboarding.
@@ -40,6 +49,10 @@ onboardingRouter.post(
     const userId = req.userId!;
     const input = OnboardingBody.parse(req.body);
 
+    // 0) Grade the placement quiz against the answers held here.
+    const questions = await loadQuiz();
+    const quiz = gradeQuiz(questions, input.quizAnswers);
+
     // 1) Free-text goal -> goal category (or the neutral default if left blank).
     const goalCategory = input.goalText.trim()
       ? (await mapGoal(input.goalText)).goalCategory
@@ -49,7 +62,7 @@ onboardingRouter.post(
     const items = await generateRoadmap({
       goalCategory,
       hoursPerWeek: input.hoursPerWeek,
-      testedOut: input.testedOut,
+      testedOut: quiz.testedOut,
     });
 
     // Only persist target companies that actually exist (avoids a FK error if the
@@ -67,7 +80,7 @@ onboardingRouter.post(
         data: {
           branch: input.branch,
           year: input.year,
-          skillLevel: input.skillLevel,
+          skillLevel: skillLevelFromScore(quiz.totalCorrect, questions.length),
           hoursPerWeek: input.hoursPerWeek,
           goalText: input.goalText,
           goalCategory,
@@ -85,9 +98,9 @@ onboardingRouter.post(
       }
 
       // Store the quiz answers (evidence for the report + reproducible test-out).
-      if (input.quizAttempts.length) {
+      if (quiz.attempts.length) {
         await tx.quizAttempt.createMany({
-          data: input.quizAttempts.map((q) => ({ userId, ...q })),
+          data: quiz.attempts.map((q) => ({ userId, ...q })),
         });
       }
 
@@ -97,7 +110,7 @@ onboardingRouter.post(
         data: {
           userId,
           isActive: true,
-          params: { goalCategory, hoursPerWeek: input.hoursPerWeek, testedOut: input.testedOut },
+          params: { goalCategory, hoursPerWeek: input.hoursPerWeek, testedOut: quiz.testedOut },
         },
       });
       // Start the student on the very first skill; everything else is locked
@@ -116,6 +129,6 @@ onboardingRouter.post(
     await logEvent(userId, 'onboarding_step', { step: 5, goalCategory });
 
     const totalWeeks = items.length ? Math.max(...items.map((i) => i.weekNumber)) : 0;
-    res.json({ ok: true, goalCategory, skills: items.length, weeks: totalWeeks });
+    res.json({ ok: true, goalCategory, skills: items.length, weeks: totalWeeks, testedOut: quiz.testedOut });
   }),
 );

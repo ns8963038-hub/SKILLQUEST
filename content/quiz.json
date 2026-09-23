@@ -1,0 +1,131 @@
+{
+  "//": [
+    "The onboarding placement quiz (PRD F1): 12 questions, 3 per topic. Answering all 3 of a topic correctly tests the student out of that skill.",
+    "Every question shows a short program and asks what it prints, so it measures whether the student can READ code, not whether they remember a keyword. The wrong options are the usual mistakes (an off-by-one, text joined instead of added, a parameter treated as the caller's variable, two names for one object).",
+    "`wrap` says how the shown code becomes a program: 'main' = statements inside main, 'class' = members of class Main (main included), 'file' = the whole file.",
+    "Checked by content/verify-quiz.mjs (runs every program and requires exactly one option to match what Java prints) and content/check-order.mjs (a question may only use what its topic and that topic's prerequisites teach).",
+    "The answers live only here and in the database; the API never sends them to the browser, and it grades the quiz itself (backend/src/onboarding/quiz.ts)."
+  ],
+  "questions": [
+    {
+      "id": "jb-out-1",
+      "version": 1,
+      "topicSkillId": "java-basics",
+      "prompt": "What does this print?",
+      "wrap": "main",
+      "code": "int x = 4;\nint y = x;\nx = 10;\nSystem.out.println(y);",
+      "options": ["4", "10", "14", "0"],
+      "correctIndex": 0
+    },
+    {
+      "id": "jb-out-2",
+      "version": 1,
+      "topicSkillId": "java-basics",
+      "prompt": "What does this print?",
+      "wrap": "main",
+      "code": "int a = 2;\nint b = 3;\nSystem.out.println(a + b + \" apples\");",
+      "options": ["23 apples", "5 apples", "a + b apples", "2 + 3 apples"],
+      "correctIndex": 1
+    },
+    {
+      "id": "jb-out-3",
+      "version": 1,
+      "topicSkillId": "java-basics",
+      "prompt": "What does this print?",
+      "wrap": "main",
+      "code": "System.out.print(\"Hi\");\nSystem.out.print(\"There\");\nSystem.out.println(\"!\");",
+      "options": ["Hi There !", "Hi There!", "HiThere!", "!"],
+      "correctIndex": 2
+    },
+    {
+      "id": "lp-out-1",
+      "version": 1,
+      "topicSkillId": "loops",
+      "prompt": "What does this print?",
+      "wrap": "main",
+      "code": "int count = 0;\nfor (int i = 0; i <= 5; i++) {\n    count++;\n}\nSystem.out.println(count);",
+      "options": ["4", "5", "6", "0"],
+      "correctIndex": 2
+    },
+    {
+      "id": "lp-out-2",
+      "version": 1,
+      "topicSkillId": "loops",
+      "prompt": "What does this print?",
+      "wrap": "main",
+      "code": "int n = 1;\nwhile (n < 20) {\n    n = n * 2;\n}\nSystem.out.println(n);",
+      "options": ["16", "20", "64", "32"],
+      "correctIndex": 3
+    },
+    {
+      "id": "lp-out-3",
+      "version": 1,
+      "topicSkillId": "loops",
+      "prompt": "What does this print?",
+      "wrap": "main",
+      "code": "for (int i = 3; i > 0; i--) {\n    System.out.print(i + \" \");\n}",
+      "options": ["3 2 1", "3 2 1 0", "1 2 3", "2 1 0"],
+      "correctIndex": 0
+    },
+    {
+      "id": "mt-out-1",
+      "version": 1,
+      "topicSkillId": "methods",
+      "prompt": "What does this print?",
+      "wrap": "class",
+      "code": "static int add(int a, int b) {\n    return a + b;\n}\n\npublic static void main(String[] args) {\n    System.out.println(add(2, 3) * 2);\n}",
+      "options": ["8", "10", "5", "12"],
+      "correctIndex": 1
+    },
+    {
+      "id": "mt-out-2",
+      "version": 1,
+      "topicSkillId": "methods",
+      "prompt": "What does this print?",
+      "wrap": "class",
+      "code": "static int twice(int n) {\n    n = n * 2;\n    return n;\n}\n\npublic static void main(String[] args) {\n    int n = 5;\n    int m = twice(n);\n    System.out.println(n + \" \" + m);\n}",
+      "options": ["10 10", "5 5", "5 10", "10 5"],
+      "correctIndex": 2
+    },
+    {
+      "id": "mt-out-3",
+      "version": 1,
+      "topicSkillId": "methods",
+      "prompt": "What does this print?",
+      "wrap": "class",
+      "code": "static int g(int x) {\n    return x + 1;\n}\n\nstatic int f(int x) {\n    return g(x) * g(x);\n}\n\npublic static void main(String[] args) {\n    System.out.println(f(2));\n}",
+      "options": ["9", "6", "5", "4"],
+      "correctIndex": 0
+    },
+    {
+      "id": "oo-out-1",
+      "version": 1,
+      "topicSkillId": "oop-basics",
+      "prompt": "What does this print?",
+      "wrap": "file",
+      "code": "class Box {\n    int value;\n\n    Box(int v) {\n        value = v;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Box a = new Box(3);\n        Box b = new Box(7);\n        a.value = b.value + 1;\n        System.out.println(a.value + \" \" + b.value);\n    }\n}",
+      "options": ["8 8", "3 7", "4 7", "8 7"],
+      "correctIndex": 3
+    },
+    {
+      "id": "oo-out-2",
+      "version": 1,
+      "topicSkillId": "oop-basics",
+      "prompt": "What does this print?",
+      "wrap": "file",
+      "code": "class Wallet {\n    int money;\n}\n\npublic class Main {\n    static void spend(Wallet w) {\n        w.money = w.money - 20;\n    }\n\n    public static void main(String[] args) {\n        Wallet mine = new Wallet();\n        mine.money = 50;\n        spend(mine);\n        System.out.println(mine.money);\n    }\n}",
+      "options": ["50", "30", "20", "0"],
+      "correctIndex": 1
+    },
+    {
+      "id": "oo-out-3",
+      "version": 1,
+      "topicSkillId": "oop-basics",
+      "prompt": "What does this print?",
+      "wrap": "file",
+      "code": "class Student {\n    private String name;\n    private int marks;\n\n    Student(String name, int marks) {\n        this.name = name;\n        this.marks = marks;\n    }\n\n    String report() {\n        return name + \": \" + marks;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Student s = new Student(\"Ravi\", 72);\n        System.out.println(s.report());\n    }\n}",
+      "options": ["null: 0", "name: marks", "Ravi: 72", "Ravi72"],
+      "correctIndex": 2
+    }
+  ]
+}

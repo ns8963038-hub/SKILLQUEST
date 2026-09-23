@@ -14,6 +14,7 @@ the source** — edit here, then re-seed.
 | `levels/*.json` | One file per playable level: problem, starter code, hidden test cases |
 | `lessons/*.json` | One Learn-mode lesson per skill (PRIMM steps), played before its levels |
 | `questions/java-oop.json` | Java OOP theory question bank (73 items) used by lesson "concept" steps |
+| `quiz.json` | The onboarding placement quiz: 12 "what does this print?" questions, 3 per topic. Check with `node content/verify-quiz.mjs` (runs every program) before seeding |
 | `verify-levels.mjs` / `build-lessons.mjs` | Checkers — compile and RUN every program; fill in generated fields |
 | `tools/Tracer.java` | Records a program's execution (JDI) for the lessons' "Watch it run" step |
 

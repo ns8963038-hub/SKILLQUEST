@@ -143,6 +143,7 @@ model Skill {
   roadmapItems  RoadmapItem[]
   companySkills CompanySkill[]
   quizAttempts  QuizAttempt[]
+  quizQuestions QuizQuestion[]
   skillMastery  SkillMastery[]
   lesson        Lesson?
   userLessons   UserLesson[]
@@ -457,6 +458,25 @@ model PlacementScore {
 }
 
 // ---------- Evidence for the claims we make ----------
+
+// The onboarding placement quiz (PRD F1), seeded from content/quiz.json. Each
+// question shows a short program and asks what it prints. The API grades the
+// quiz itself, so `correctIndex` never leaves the server; a question dropped
+// from the content is unpublished, not deleted, so old attempts stay traceable.
+model QuizQuestion {
+  id           String   @id // 'lp-out-2'
+  version      Int      @default(1) // bump when the question changes; stored with every answer
+  topicSkillId String   @map("topic_skill_id")
+  ordinal      Int // the order the quiz shows it in
+  prompt       String
+  code         String // the program shown, as the student sees it
+  options      String[]
+  correctIndex Int      @map("correct_index")
+  published    Boolean  @default(true)
+  topicSkill   Skill    @relation(fields: [topicSkillId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_questions")
+}
 
 model QuizAttempt {
   id              Int      @id @default(autoincrement())

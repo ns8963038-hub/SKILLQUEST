@@ -14,6 +14,9 @@
 //            concept questions and their options)
 //   levels   the starter code, the reference solution (what the student must
 //            write), and code inside the statement and hints
+//   quiz     the program every placement-quiz question shows (content/quiz.json):
+//            a question for a topic may only use what that topic and its
+//            prerequisites teach, or it tests something else as well
 //
 // Why prerequisites and not simply "earlier in the list": the roadmap engine
 // orders topics by the student's goal, so a topic shown earlier in the course
@@ -175,6 +178,8 @@ export function findProblems() {
     const level = JSON.parse(readFileSync(join(ROOT, 'levels', f), 'utf8'));
     check('level', level.id, level.skillId, levelSources(level));
   }
+  const { questions } = JSON.parse(readFileSync(join(ROOT, 'quiz.json'), 'utf8'));
+  for (const q of questions) check('quiz', q.id, q.topicSkillId, [['program', q.code]]);
   // One row per place and construct.
   const seen = new Set();
   return problems.filter((p) => {
@@ -186,7 +191,7 @@ export function findProblems() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const problems = findProblems();
   if (problems.length === 0) {
-    console.log('Every lesson and level uses only what has been taught before it.');
+    console.log('Every lesson, level and quiz question uses only what has been taught before it.');
   } else {
     console.log(`${problems.length} place(s) use something the student hasn't been taught yet:\n`);
     console.table(problems);

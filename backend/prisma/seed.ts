@@ -132,9 +132,30 @@ const BadgeSchema = z.object({
 });
 type Badge = z.infer<typeof BadgeSchema>;
 
+// One placement-quiz question (quiz.json). The programs themselves are
+// compiled and run by content/verify-quiz.mjs; here only the shape is checked.
+const QuizQuestionSchema = z
+  .object({
+    id: z.string().min(1),
+    version: z.number().int().positive(),
+    topicSkillId: z.string(),
+    prompt: z.string().min(1),
+    code: z.string().min(1),
+    options: z.array(z.string()).length(4),
+    correctIndex: z.number().int().min(0).max(3),
+  })
+  .passthrough(); // `wrap` is for the checker only
+type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
+
 // Read a JSON file and return its parsed object.
 function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+// Load + validate quiz.json.
+function loadQuiz(): QuizQuestion[] {
+  const raw = readJson(join(CONTENT_DIR, 'quiz.json')) as { questions: unknown[] };
+  return raw.questions.map((q) => QuizQuestionSchema.parse(q));
 }
 
 // Load + validate badges.json.
@@ -264,12 +285,16 @@ async function seed(): Promise<void> {
   const lessons = loadLessons();
   const badges = loadBadges();
   const companies = loadCompanies();
+  const quiz = loadQuiz();
 
   // Validate BEFORE any write — nothing touches the DB unless everything is sound.
   assertValidGraph(skills);
   assertLevelsReferenceSkills(levels, skills);
-  // Every company skill must map to a real (tracked) skill.
+  // Every company skill (and every quiz topic) must map to a real skill.
   const skillIds = new Set(skills.map((s) => s.id));
+  for (const q of quiz) {
+    if (!skillIds.has(q.topicSkillId)) throw new Error(`Quiz question "${q.id}" references unknown skill "${q.topicSkillId}"`);
+  }
   for (const c of companies) {
     for (const r of c.roles) {
       for (const cs of r.skills) {
@@ -355,6 +380,27 @@ async function seed(): Promise<void> {
   }
   console.log(`  lessons ${lessons.length}/${lessons.length}`);
 
+  // Placement quiz: upsert each question; any question no longer in the content
+  // is unpublished (not deleted), so the answers already given to it stay
+  // traceable to what was asked.
+  for (const [ordinal, q] of quiz.entries()) {
+    const data = {
+      version: q.version,
+      topicSkillId: q.topicSkillId,
+      ordinal,
+      prompt: q.prompt,
+      code: q.code,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      published: true,
+    };
+    await unit(`quiz ${q.id}`, () => prisma.quizQuestion.upsert({ where: { id: q.id }, create: { id: q.id, ...data }, update: data }));
+  }
+  await unit('quiz (retired questions)', () =>
+    prisma.quizQuestion.updateMany({ where: { id: { notIn: quiz.map((q) => q.id) } }, data: { published: false } }),
+  );
+  console.log(`  quiz questions ${quiz.length}/${quiz.length}`);
+
   // Badge catalog (display data). Upsert by id.
   for (const b of badges) {
     const data = { title: b.title, description: b.description, icon: b.icon ?? null, criteria: b.criteria ?? null };
@@ -415,24 +461,34 @@ async function seed(): Promise<void> {
   console.log(`  companies ${companies.length} (${roleCount} roles)`);
 
   // Read it back: prove nothing that was cleared was left empty.
-  await unit('final check', () => verifySeed(edges.length, goalProfiles.length, levels.map((l) => l.id), lessons.length));
+  await unit('final check', () =>
+    verifySeed(edges.length, goalProfiles.length, levels.map((l) => l.id), lessons.length, quiz.length),
+  );
 
   // A short summary so a successful run is obvious.
   console.log(
-    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${lessons.length} lessons, ${badges.length} badges, ${companies.length} companies (${roleCount} roles). Verified.`,
+    `Seeded: ${skills.length} skills, ${goalProfiles.length} goal weights, ${levels.length} levels, ${lessons.length} lessons, ${quiz.length} quiz questions, ${badges.length} badges, ${companies.length} companies (${roleCount} roles). Verified.`,
   );
 }
 
 // The database must now hold everything the content describes. Checked after
 // every run, because an interrupted older run could have left a level with no
 // test cases or a role with no skills.
-async function verifySeed(edgeCount: number, goalCount: number, levelIds: string[], lessonCount: number): Promise<void> {
+async function verifySeed(
+  edgeCount: number,
+  goalCount: number,
+  levelIds: string[],
+  lessonCount: number,
+  quizCount: number,
+): Promise<void> {
   const problems: string[] = [];
-  const [edgesInDb, goalsInDb, lessonsInDb] = await Promise.all([
+  const [edgesInDb, goalsInDb, lessonsInDb, quizInDb] = await Promise.all([
     prisma.skillPrerequisite.count(),
     prisma.goalProfile.count(),
     prisma.lesson.count({ where: { published: true } }),
+    prisma.quizQuestion.count({ where: { published: true } }),
   ]);
+  if (quizInDb !== quizCount) problems.push(`quiz questions: ${quizInDb} published, ${quizCount} in content`);
   if (edgesInDb !== edgeCount) problems.push(`prerequisite links: ${edgesInDb} in the database, ${edgeCount} in content`);
   if (goalsInDb !== goalCount) problems.push(`goal weights: ${goalsInDb} in the database, ${goalCount} in content`);
   if (lessonsInDb < lessonCount) problems.push(`lessons: ${lessonsInDb} published, ${lessonCount} in content`);
