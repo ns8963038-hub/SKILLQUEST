@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Brain, Cpu, Eye, EyeOff, Lock, Mail, Sparkles, Target, type LucideIcon } from 'lucide-react';
 import { caretPoint } from '../lib/caret';
 import { supabase } from '../lib/supabase';
+import { isSharedComputer, setSharedComputer } from '../lib/authStorage';
 import { Constellation } from '../features/constellation/Constellation';
 import { SKILL_GRAPH } from '../features/constellation/skillGraph';
 import type { RoadmapNode } from '../features/roadmap/types';
@@ -54,6 +55,8 @@ export function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Lab PCs: keep the sign-in only for this tab (lib/authStorage.ts). Remembered per computer.
+  const [shared, setShared] = useState(isSharedComputer);
   // What Nova reacts to: which field has focus, and whether the message is an error.
   const [focus, setFocus] = useState<'email' | 'password' | null>(null);
   const [messageKind, setMessageKind] = useState<'info' | 'error'>('info');
@@ -84,6 +87,7 @@ export function AuthScreen() {
   async function signInWithGoogle() {
     setBusy(true);
     setMessage(null);
+    setSharedComputer(shared); // before the session is written
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
@@ -99,6 +103,7 @@ export function AuthScreen() {
     e.preventDefault();
     setBusy(true);
     setMessage(null);
+    setSharedComputer(shared); // decides where the session is kept, so set it before signing in
     try {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password });
@@ -268,6 +273,20 @@ export function AuthScreen() {
                   className={`${inputClass} pr-12`}
                 />
               </Field>
+
+              {/* A college lab PC: don't leave this student signed in for the next one. */}
+              <label className="flex cursor-pointer items-start gap-3 text-sm text-content-muted">
+                <input
+                  id="shared-computer"
+                  type="checkbox"
+                  checked={shared}
+                  onChange={(e) => setShared(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#7FA8FF]"
+                />
+                <span>
+                  <span className="text-content">This is a shared computer</span> — sign me out when I close this tab.
+                </span>
+              </label>
 
               {/* role=alert so screen readers announce messages immediately. */}
               {message && (
