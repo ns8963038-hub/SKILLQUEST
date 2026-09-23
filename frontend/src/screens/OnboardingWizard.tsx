@@ -133,6 +133,11 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       );
       onComplete(); // parent re-fetches the profile -> dashboard
     } catch (err) {
+      // Already onboarded (e.g. finished in another tab): just go to the dashboard.
+      if (err instanceof ApiError && err.status === 409) {
+        onComplete();
+        return;
+      }
       setError(
         isAiWaking(err)
           ? "Your AI tutor didn't wake up in time. Your answers are still here — please press Build my quest again in a minute."

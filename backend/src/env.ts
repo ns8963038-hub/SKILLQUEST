@@ -19,9 +19,12 @@ const schema = z.object({
   // (verified via JWKS), so this is no longer used for verification.
   SUPABASE_JWT_SECRET: z.string().optional(),
   INTERNAL_API_KEY: z.string().optional(),
-  // Comma-separated emails that get the internal admin view (risk tiers, UAT
-  // metrics, research exports). Matched case-insensitively on sign-in.
-  ADMIN_EMAILS: z
+  // Comma-separated Supabase user ids (UUIDs) that get the internal admin view
+  // (risk tiers, UAT metrics, research exports). By id, not email: email
+  // confirmation is off, so anyone can sign up with an address that is on the
+  // list but not yet registered — an id only exists once the real person has
+  // signed up. (Replaces ADMIN_EMAILS, which is no longer read.)
+  ADMIN_USER_IDS: z
     .string()
     .default('')
     .transform((s) =>

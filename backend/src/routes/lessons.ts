@@ -23,13 +23,13 @@ import {
   type PredictOption,
 } from '../lessons/content';
 import { nextLevelInSkill } from '../progress/levels';
-import { guardSkill, skillItself } from '../progress/access';
+import { guardSkill, existingSkill } from '../progress/access';
 
 export const lessonsRouter = Router();
 
 // Locks, enforced on the server (progress/access.ts): every lesson route checks
 // that the student has unlocked the skill, and answers 403 if not.
-lessonsRouter.param('skillId', guardSkill(skillItself));
+lessonsRouter.param('skillId', guardSkill(existingSkill));
 
 // Learn mode (PRD F8): one interactive lesson per skill, played before its
 // levels. Design and rationale: docs/notes/M7-learn-mode.md.

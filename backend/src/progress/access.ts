@@ -64,14 +64,19 @@ export async function skillIsOpen(userId: string, skillId: string): Promise<bool
 }
 
 // A router.param hook: before any route with that parameter runs, find the
-// skill it refers to and refuse it with SkillLockedError (-> 403) if locked.
-// `skillOf` maps the parameter to a skill id: a level id to its level's skill,
-// or a skill id to itself. An unknown id passes through, so the route answers 404.
+// skill it refers to. No such level or skill -> 404 (before any route can try to
+// write a row for it); locked -> SkillLockedError (-> 403). `skillOf` maps the
+// parameter to a skill id: a level id to its level's skill, or a skill id to
+// itself if that skill exists.
 export function guardSkill(skillOf: (value: string) => Promise<string | null>): RequestParamHandler {
-  return async (req, _res, next, value: string) => {
+  return async (req, res, next, value: string) => {
     try {
       const skillId = await skillOf(value);
-      if (skillId && !(await skillIsOpen(req.userId!, skillId))) throw new SkillLockedError(skillId);
+      if (!skillId) {
+        res.status(404).json({ error: 'not found' });
+        return;
+      }
+      if (!(await skillIsOpen(req.userId!, skillId))) throw new SkillLockedError(skillId);
       next();
     } catch (err) {
       next(err);
@@ -79,8 +84,11 @@ export function guardSkill(skillOf: (value: string) => Promise<string | null>): 
   };
 }
 
-// A skill id is its own skill.
-export const skillItself = async (skillId: string) => skillId;
+// A skill id is its own skill — if there is such a skill.
+export async function existingSkill(skillId: string): Promise<string | null> {
+  const skill = await prisma.skill.findUnique({ where: { id: skillId }, select: { id: true } });
+  return skill?.id ?? null;
+}
 
 // The skill a level belongs to (null if there is no such level).
 export async function skillOfLevel(levelId: string): Promise<string | null> {

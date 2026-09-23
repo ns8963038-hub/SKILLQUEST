@@ -20,7 +20,7 @@ const QUESTIONS = ['java-basics', 'java-basics', 'java-basics', 'loops', 'loops'
 const db = vi.hoisted(() => ({
   quizQuestion: { findMany: vi.fn() },
   company: { findMany: vi.fn(async () => []) },
-  profile: { update: vi.fn() },
+  profile: { update: vi.fn(), findUnique: vi.fn(async () => ({ onboardingStep: 1 })) },
   userTargetCompany: { deleteMany: vi.fn(), createMany: vi.fn() },
   quizAttempt: { createMany: vi.fn() },
   roadmap: { updateMany: vi.fn(), create: vi.fn(async () => ({ id: 1 })) },
@@ -99,6 +99,15 @@ describe('POST /api/onboarding/complete', () => {
       { userId: 'student-1', questionId: 'q3', questionVersion: 1, topicSkillId: 'loops', chosenOption: 0, isCorrect: false },
     ]);
     expect(db.profile.update.mock.calls[0]![0].data.skillLevel).toBe('beginner');
+  });
+
+  it('refuses to run a second time (409) and changes nothing', async () => {
+    db.profile.findUnique.mockResolvedValueOnce({ onboardingStep: 5 });
+    const res = await request(app()).post('/api/onboarding/complete').send({ ...base, quizAnswers: { q0: 0 } });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe('already_onboarded');
+    expect(ai.generateRoadmap).not.toHaveBeenCalled();
+    expect(db.$transaction).not.toHaveBeenCalled(); // no second roadmap, no duplicate quiz answers
   });
 
   it('rejects oversized input before doing anything', async () => {

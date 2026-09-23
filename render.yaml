@@ -37,7 +37,7 @@ services:
         sync: false
       - key: AI_SERVICE_URL # the AI service's URL, e.g. https://skillquest-ai.onrender.com
         sync: false
-      - key: ADMIN_EMAILS # comma-separated team emails (research console)
+      - key: ADMIN_USER_IDS # comma-separated team user ids (UUIDs) for the research console
         sync: false
       - key: INTERNAL_API_KEY # shared secret, copied from the AI service automatically
         fromService:

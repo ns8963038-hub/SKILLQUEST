@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeStreak } from './streak';
+import { computeStreak, streakAsOf } from './streak';
 import { badgesToAward } from './badges';
 
 // A fixed UTC day and helpers to build days relative to it.
@@ -72,5 +72,20 @@ describe('badgesToAward', () => {
       new Set(['first_quest', 'code_master', 'week_warrior']),
     );
     expect(out).toEqual([]);
+  });
+});
+
+describe('streakAsOf (what the dashboard and exports show)', () => {
+  const today = new Date('2026-09-23T10:00:00Z');
+  it('keeps a run that was active today or yesterday', () => {
+    expect(streakAsOf(6, new Date('2026-09-23T01:00:00Z'), today)).toBe(6);
+    expect(streakAsOf(6, new Date('2026-09-22T23:00:00Z'), today)).toBe(6); // today's solve would extend it
+  });
+  it('reads 0 once a day has been missed, instead of the stale stored number', () => {
+    expect(streakAsOf(6, new Date('2026-09-18T12:00:00Z'), today)).toBe(0); // gone 5 days
+    expect(streakAsOf(6, new Date('2026-09-21T12:00:00Z'), today)).toBe(0); // missed yesterday
+  });
+  it('is 0 for a student who has never been active', () => {
+    expect(streakAsOf(0, null, today)).toBe(0);
   });
 });

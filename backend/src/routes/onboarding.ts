@@ -49,6 +49,15 @@ onboardingRouter.post(
     const userId = req.userId!;
     const input = OnboardingBody.parse(req.body);
 
+    // Onboarding happens once. Running it again would build a fresh roadmap with
+    // only its first skill open (finished skills showing as locked) and store the
+    // quiz answers twice. Weekly hours and the goal are changed in Settings.
+    const profile = await prisma.profile.findUnique({ where: { id: userId }, select: { onboardingStep: true } });
+    if (profile && profile.onboardingStep >= 5) {
+      res.status(409).json({ error: 'already_onboarded' });
+      return;
+    }
+
     // 0) Grade the placement quiz against the answers held here.
     const questions = await loadQuiz();
     const quiz = gradeQuiz(questions, input.quizAnswers);

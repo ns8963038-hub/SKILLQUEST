@@ -63,7 +63,7 @@ describe('PlayScreen', () => {
   });
 
   it('loads the level, submits, and opens the treasure on a pass', async () => {
-    render(<PlayScreen levelId="arrays-01" onBack={() => {}} />);
+    render(<PlayScreen levelId="arrays-01" userId="student-1" onBack={() => {}} />);
 
     // The level loads and its title shows.
     expect(await screen.findByRole('heading', { name: /max in array/i })).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe('PlayScreen', () => {
   });
 
   it('runs the examples on their own route and says the run was not recorded', async () => {
-    render(<PlayScreen levelId="arrays-01" onBack={() => {}} />);
+    render(<PlayScreen levelId="arrays-01" userId="student-1" onBack={() => {}} />);
     await screen.findByRole('heading', { name: /max in array/i });
 
     fireEvent.click(screen.getByRole('button', { name: /run examples/i }));
@@ -88,7 +88,7 @@ describe('PlayScreen', () => {
   });
 
   it('Ctrl+Enter runs the examples, never a graded submit', async () => {
-    render(<PlayScreen levelId="arrays-01" onBack={() => {}} />);
+    render(<PlayScreen levelId="arrays-01" userId="student-1" onBack={() => {}} />);
     await screen.findByRole('heading', { name: /max in array/i });
 
     fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true });
@@ -97,10 +97,21 @@ describe('PlayScreen', () => {
   });
 
   it('asks for a solution when the untouched starter code is submitted', async () => {
-    render(<PlayScreen levelId="arrays-01" onBack={() => {}} />);
+    render(<PlayScreen levelId="arrays-01" userId="student-1" onBack={() => {}} />);
     await screen.findByRole('heading', { name: /max in array/i });
 
     fireEvent.click(screen.getByRole('button', { name: /^submit$/i }));
     expect(await screen.findByText(/still the starter code/i)).toBeInTheDocument();
+  });
+
+  it('restores the student’s own draft, never another student’s', async () => {
+    const { unmount } = render(<PlayScreen levelId="arrays-01" userId="student-1" onBack={() => {}} />);
+    await screen.findByRole('heading', { name: /max in array/i });
+    writeSolution();
+    unmount();
+
+    render(<PlayScreen levelId="arrays-01" userId="student-2" onBack={() => {}} />);
+    await screen.findByRole('heading', { name: /max in array/i });
+    expect(screen.getByTestId('editor')).toHaveValue(STARTER);
   });
 });

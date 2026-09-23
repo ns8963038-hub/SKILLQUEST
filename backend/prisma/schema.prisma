@@ -95,6 +95,7 @@ model Profile {
   consentGivenAt DateTime?  @map("consent_given_at")
   withdrawnAt    DateTime?  @map("withdrawn_at")
   leaderboardOptOut Boolean @default(false) @map("leaderboard_opt_out") // hidden from others' leaderboard
+  participantCode String?   @unique @map("participant_code") // P01…, assigned once at consent (never recomputed)
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 

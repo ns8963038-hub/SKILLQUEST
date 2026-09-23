@@ -7,6 +7,7 @@ import { loadProblemMessage } from '../lib/loadProblems';
 import { runProblemMessage } from '../lib/runProblems';
 import { invalidate } from '../lib/useApi';
 import { cn } from '../lib/cn';
+import { loadDraft, saveDraft } from '../lib/drafts';
 import { useMediaQuery } from '../lib/useMediaQuery';
 import { ProblemPanel } from '../features/play/ProblemPanel';
 import { ResultsPanel } from '../features/play/ResultsPanel';
@@ -24,8 +25,6 @@ const TABS: Tab[] = ['problem', 'code', 'results'];
 // Show the right shortcut for the student's keyboard.
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
-// Where unsaved code is kept, per level.
-const storageKey = (levelId: string) => `sq-code:${levelId}`;
 
 // Monaco colours matched to the Neural Night palette.
 const EDITOR_THEME = {
@@ -71,11 +70,13 @@ const EDITOR_THEME = {
 // reward's "Next level" button move straight on to the following level.
 export function PlayScreen({
   levelId,
+  userId,
   onBack,
   onOpenLevel,
   onOpenLesson,
 }: {
   levelId: string;
+  userId: string; // whose drafts to load and save (they are kept per student)
   onBack: () => void;
   onOpenLevel?: (levelId: string) => void;
   onOpenLesson?: (skillId: string) => void; // replay this topic's lesson
@@ -93,31 +94,21 @@ export function PlayScreen({
   const runningRef = useRef(false); // guards against double runs (button + shortcut)
   const isPhone = useMediaQuery('(max-width: 767px)'); // below Tailwind's md: the tabbed phone layout
 
-  // Load the level, restoring any code the student left unsubmitted.
+  // Load the level, restoring any code THIS student left unsubmitted.
   useEffect(() => {
     api<LevelView>(`/api/levels/${levelId}`)
       .then((lv) => {
         setLevel(lv);
-        let saved: string | null = null;
-        try {
-          saved = window.localStorage.getItem(storageKey(levelId));
-        } catch {
-          /* storage blocked — start from the starter code */
-        }
-        setCode(saved ?? lv.starterCode);
+        setCode(loadDraft(userId, levelId) ?? lv.starterCode);
       })
       .catch((err) => setLoadError(loadProblemMessage(err, 'level')));
-  }, [levelId]);
+  }, [levelId, userId]);
 
-  // Edit the code and keep a copy locally, so a refresh or dropped connection never
-  // loses work (UI doc §8).
+  // Edit the code and keep a copy locally (per student), so a refresh or dropped
+  // connection never loses work (UI doc §8).
   const updateCode = (value: string) => {
     setCode(value);
-    try {
-      window.localStorage.setItem(storageKey(levelId), value);
-    } catch {
-      /* storage blocked — the code still lives in memory */
-    }
+    saveDraft(userId, levelId, value);
   };
 
   // Run the code one of two ways and show the results.

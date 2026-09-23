@@ -12,7 +12,7 @@ import { lessonComesFirst, lessonStateBySkill } from '../lessons/progress';
 import { advanceRoadmap } from '../roadmap/advance';
 import { computePlacementForUser } from '../placement/compute';
 import { nextLevelAfter, nextLevelInSkill } from '../progress/levels';
-import { guardSkill, skillItself, skillOfLevel } from '../progress/access';
+import { guardSkill, existingSkill, skillOfLevel } from '../progress/access';
 import { DEFAULT_BKT, bktUpdate, isMastered } from '../tutor/bkt';
 
 export const levelsRouter = Router();
@@ -21,7 +21,7 @@ export const levelsRouter = Router();
 // names a level (:id) or a skill (:skillId) first checks that the student has
 // unlocked that skill, and answers 403 if not.
 levelsRouter.param('id', guardSkill(skillOfLevel));
-levelsRouter.param('skillId', guardSkill(skillItself));
+levelsRouter.param('skillId', guardSkill(existingSkill));
 
 // GET /api/levels/:id — the play view of a level.
 // Deliberately strips the reference solution and all HIDDEN test-case data; only
@@ -124,9 +124,17 @@ levelsRouter.post(
       });
       if (claimed.count !== 1) return null;
 
-      const profile = await tx.profile.findUniqueOrThrow({ where: { id: userId }, select: { totalXp: true } });
-      const { newXp, deducted } = applyHintCost(profile.totalXp);
-      await tx.profile.update({ where: { id: userId }, data: { totalXp: newXp } });
+      // Take the cost with an atomic decrement, never "read XP, write back a
+      // number": a level completion landing in between would be overwritten and
+      // its XP lost. The decrement also locks the row until this transaction
+      // ends, so flooring at zero afterwards is safe.
+      const after = await tx.profile.update({
+        where: { id: userId },
+        data: { totalXp: { decrement: HINT_COST } },
+        select: { totalXp: true },
+      });
+      const { newXp, deducted } = applyHintCost(after.totalXp + HINT_COST); // the balance before the decrement
+      if (newXp !== after.totalXp) await tx.profile.update({ where: { id: userId }, data: { totalXp: newXp } });
       await tx.event.create({
         data: { userId, type: 'hint_used', payload: { levelId, index: ul.hintsUsed, xpCost: deducted } },
       });

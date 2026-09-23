@@ -47,3 +47,16 @@ export function computeStreak(
     changed: true,
   };
 }
+
+/**
+ * The streak as it stands TODAY, for display and export. The stored streak only
+ * changes when the student submits, so on its own it goes stale: a student gone
+ * for five days would still read "6-day streak". A run is still alive if they
+ * were active today or yesterday (today's solve would extend it); after that it
+ * has been broken, so it reads 0.
+ */
+export function streakAsOf(currentStreak: number, lastActiveDate: Date | null, today: Date): number {
+  if (!lastActiveDate) return 0;
+  const gap = utcDayNumber(today) - utcDayNumber(lastActiveDate);
+  return gap <= 1 ? currentStreak : 0;
+}

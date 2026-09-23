@@ -1,8 +1,11 @@
 // Pseudonymisation for the admin view and research exports (Backend Schema §5.1):
-// participants appear as P01, P02… in sign-up order — never names, emails or USNs.
+// participants appear as P01, P02… — never names, emails or USNs. Each code is
+// assigned ONCE, when the student agrees to take part, and stored on their
+// profile (routes/consent.ts), so it never changes between exports.
 
-export function participantCode(index: number): string {
-  return `P${String(index + 1).padStart(2, '0')}`;
+// The code for the n-th participant (n from the database sequence, 1-based).
+export function participantCode(n: number): string {
+  return `P${String(n).padStart(2, '0')}`;
 }
 
 // Enough of an email for the team to recognise a tester, not enough to expose it.

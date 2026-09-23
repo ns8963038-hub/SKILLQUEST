@@ -18,6 +18,11 @@ const db = vi.hoisted(() => ({
     }),
   },
   skillPrerequisite: { findMany: vi.fn(async () => []) },
+  skill: {
+    findUnique: vi.fn(async ({ where }: { where: { id: string } }) =>
+      ['loops', 'arrays'].includes(where.id) ? { id: where.id } : null,
+    ),
+  },
   level: {
     findUnique: vi.fn(async ({ where }: { where: { id: string } }) =>
       where.id.startsWith('arrays-') ? { id: where.id, skillId: 'arrays', published: true } : null,
@@ -85,5 +90,19 @@ describe('a skill the roadmap has not unlocked', () => {
   it('an unknown level still answers 404, not 403', async () => {
     const res = await request(app()).get('/api/levels/nope-01');
     expect(res.status).toBe(404);
+  });
+});
+
+describe('a topic that does not exist', () => {
+  it.each([
+    ['get', '/api/lessons/nope'],
+    ['post', '/api/lessons/nope/start'],
+    ['post', '/api/lessons/nope/skip'],
+    ['get', '/api/skills/nope/next-level'],
+  ])('%s %s answers 404 (not a 500 from writing a row for it)', async (method, path) => {
+    const res = await (method === 'get' ? request(app()).get(path) : request(app()).post(path).send({}));
+    expect(res.status).toBe(404);
+    expect(db.userLesson.upsert).not.toHaveBeenCalled();
+    expect(db.event.create).not.toHaveBeenCalled();
   });
 });

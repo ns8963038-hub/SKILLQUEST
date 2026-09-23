@@ -27,8 +27,9 @@ describe('System Usability Scale', () => {
 
 describe('pseudonymisation', () => {
   it('codes participants P01, P02…', () => {
-    expect(participantCode(0)).toBe('P01');
-    expect(participantCode(11)).toBe('P12');
+    expect(participantCode(1)).toBe('P01'); // the n-th participant, from the database sequence
+    expect(participantCode(12)).toBe('P12');
+    expect(participantCode(100)).toBe('P100'); // padded, never cut short
   });
   it('masks emails', () => {
     expect(maskEmail('anjith@college.edu')).toBe('an•••@college.edu');

@@ -3,13 +3,14 @@ import { prisma } from '../db';
 import { asyncHandler } from '../http';
 import { latencySummary, percentile } from '../metrics/timing';
 import { summarizeSurveys } from '../research/sus';
-import { maskEmail, participantCode, toCsv } from '../research/pseudonym';
+import { maskEmail, toCsv } from '../research/pseudonym';
 import { runWeeklyScoring } from '../risk/scoring';
+import { streakAsOf } from '../gamification/streak';
 
 export const adminRouter = Router();
 
 // The internal admin view (PRD F5 acceptance: "risk tier visible on an internal
-// admin view"). Only profiles flagged is_admin — granted via ADMIN_EMAILS — pass.
+// admin view"). Only profiles flagged is_admin — granted via ADMIN_USER_IDS — pass.
 const requireAdmin: RequestHandler = (req, res, next) => {
   prisma.profile
     .findUnique({ where: { id: req.userId! }, select: { isAdmin: true } })
@@ -24,7 +25,7 @@ const requireAdmin: RequestHandler = (req, res, next) => {
 };
 adminRouter.use('/admin', requireAdmin);
 
-// Non-admin students in sign-up order — the basis for stable P01, P02… codes.
+// Non-admin students in sign-up order, with their stored participant codes.
 async function participants() {
   return prisma.profile.findMany({
     where: { isAdmin: false },
@@ -36,6 +37,8 @@ async function participants() {
       totalXp: true,
       currentStreak: true,
       bestStreak: true,
+      lastActiveDate: true,
+      participantCode: true,
       riskTier: true,
       consentGivenAt: true,
       withdrawnAt: true,
@@ -79,16 +82,16 @@ adminRouter.get(
 
     res.json({
       generatedAt: new Date(),
-      students: students.map((p, i) => {
+      students: students.map((p) => {
         const mine = nudges.filter((n) => n.userId === p.id);
         return {
-          participant: participantCode(i),
+          participant: p.participantCode ?? '—', // none until they agree to take part
           email: maskEmail(p.email),
           onboarded: p.onboardingStep >= 5,
           research: p.withdrawnAt ? 'withdrawn' : p.consentGivenAt ? 'consented' : 'not asked',
           totalXp: p.totalXp,
           levelsCompleted: completedBy.get(p.id) ?? 0,
-          currentStreak: p.currentStreak,
+          currentStreak: streakAsOf(p.currentStreak, p.lastActiveDate, new Date()),
           lastActive: lastActiveBy.get(p.id) ?? null,
           riskTier: p.riskTier,
           prediction: latestScore.get(p.id) ?? null,
@@ -160,8 +163,10 @@ adminRouter.get(
   asyncHandler(async (req, res) => {
     const kind = req.params.kind;
     const people = await participants();
-    const codeOf = new Map(people.map((p, i) => [p.id, participantCode(i)]));
-    const included = people.filter((p) => p.consentGivenAt && !p.withdrawnAt);
+    // Stored codes (assigned at consent), so the same student has the same code
+    // in every export, whatever happens to other accounts.
+    const codeOf = new Map(people.map((p) => [p.id, p.participantCode ?? '']));
+    const included = people.filter((p) => p.consentGivenAt && !p.withdrawnAt && p.participantCode);
     const ids = included.map((p) => p.id);
 
     let header: string[];
@@ -213,7 +218,16 @@ adminRouter.get(
       });
       const completedBy = new Map(completed.map((c) => [c.userId, c._count._all]));
       header = ['participant', 'total_xp', 'levels_completed', 'current_streak', 'best_streak', 'risk_tier'];
-      rows = included.map((p) => [codeOf.get(p.id) ?? '', p.totalXp, completedBy.get(p.id) ?? 0, p.currentStreak, p.bestStreak, p.riskTier]);
+      // The streak as of the export, not the stored value (which only changes on a submit).
+      const now = new Date();
+      rows = included.map((p) => [
+        codeOf.get(p.id) ?? '',
+        p.totalXp,
+        completedBy.get(p.id) ?? 0,
+        streakAsOf(p.currentStreak, p.lastActiveDate, now),
+        p.bestStreak,
+        p.riskTier,
+      ]);
     } else {
       res.status(404).json({ error: 'export must be survey, risk or progress' });
       return;

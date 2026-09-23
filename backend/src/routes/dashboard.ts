@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../db';
 import { asyncHandler } from '../http';
 import { nextLevelInSkill } from '../progress/levels';
+import { streakAsOf } from '../gamification/streak';
 
 export const dashboardRouter = Router();
 
@@ -82,7 +83,7 @@ dashboardRouter.get(
       level,
       xpIntoLevel,
       xpForNextLevel: LEVEL_SIZE,
-      currentStreak: profile.currentStreak,
+      currentStreak: streakAsOf(profile.currentStreak, profile.lastActiveDate, new Date()), // not the stale stored value
       bestStreak: profile.bestStreak,
       activeToday,
       badges,

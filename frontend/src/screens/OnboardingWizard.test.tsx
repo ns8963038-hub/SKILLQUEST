@@ -64,4 +64,20 @@ describe('OnboardingWizard quiz', () => {
     fireEvent.click(screen.getByRole('button', { name: /try again/i }));
     expect(await screen.findByText(/n = n \* 2;/)).toBeInTheDocument();
   });
+
+  it('goes straight to the dashboard if onboarding was already finished (409)', async () => {
+    const onComplete = vi.fn();
+    api.mockImplementation((path: string) =>
+      path === '/api/onboarding/quiz' ? Promise.resolve(QUIZ) : Promise.reject(new ApiError(path, 409)),
+    );
+    render(<OnboardingWizard onComplete={onComplete} />);
+    next();
+    await screen.findByText(/n = n \* 2;/);
+    next();
+    next();
+    next();
+    fireEvent.click(screen.getByRole('button', { name: /build my quest/i }));
+    await waitFor(() => expect(onComplete).toHaveBeenCalled());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
 });

@@ -20,9 +20,10 @@ meRouter.get(
     const email = req.userEmail ?? '';
     const existed = await prisma.profile.findUnique({ where: { id: userId } });
 
-    // Team members listed in ADMIN_EMAILS get the internal admin view. Admin is
-    // only ever granted here, never revoked automatically.
-    const makeAdmin = env.ADMIN_EMAILS.includes(email.toLowerCase());
+    // Team members listed in ADMIN_USER_IDS get the internal admin view — by user
+    // id, never by email (see env.ts). Admin is only ever granted here, never
+    // revoked automatically.
+    const makeAdmin = env.ADMIN_USER_IDS.includes(userId.toLowerCase());
 
     const profile = await prisma.profile.upsert({
       where: { id: userId },

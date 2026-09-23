@@ -227,6 +227,7 @@ function AppInner() {
       <PlayScreen
         key={playLevelId}
         levelId={playLevelId}
+        userId={session.user.id}
         onOpenLevel={(id) => setPlayLevelId(id)}
         onOpenLesson={(skillId) => openLesson(skillId, playReturn)}
         onBack={() => {

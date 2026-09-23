@@ -399,7 +399,7 @@ SkillQuest monitors behaviour, stores student-written code, and reports findings
 | Plain-language disclosure | One short screen: what we collect (activity, code, quiz answers), why (personalization + a research report), how long we keep it, who sees it |
 | Withdrawal | "Withdraw from research" in settings → sets `withdrawn_at`; data excluded from all analysis and exports |
 | Retention | State a period (e.g. deleted within 6 months of project submission); source code pruned per §3.8 |
-| Pseudonymized exports | Research exports/report figures use `participant_01…N`, never names, emails or USNs |
+| Pseudonymized exports | Research exports/report figures use participant codes `P01…`, never names, emails or USNs. Each code is stored on the profile (`participant_code`, unique), assigned once from a database sequence when the student agrees to take part, so it never changes between exports — deleting an account or making a teammate admin no longer renumbers anyone. Team (admin) accounts get no code. |
 | Institutional approval | Confirm with the project guide whether department/ethics sign-off is needed before UAT — ask in week 1, not week 12 |
 
 Deferred as out of scope: automated opt-out UI beyond the withdraw toggle, generalized deletion workflows, and audit-trail tables.
