@@ -11,7 +11,7 @@ import { cn } from '../../lib/cn';
 // code, thinking (beside a tiny neural net) while tests run, beaming on a pass,
 // worried on a fail. aria-live="polite" so a screen reader announces the outcome
 // ("3 of 4 tests passed") without the student hunting for it. It always says which
-// kind of run it is showing: the examples (not recorded) or a submission.
+// kind of run it is showing: the examples (never an attempt) or a submission.
 export function ResultsPanel({
   result,
   running,
@@ -47,7 +47,7 @@ export function ResultsPanel({
           <div>
             <p className="eyebrow">Console</p>
             <p className="mt-1.5 text-sm text-content-muted">
-              Run the examples as often as you like — nothing is recorded. Submit runs the hidden tests too, and your
+              Run the examples as often as you like — they never count as an attempt. Submit runs the hidden tests too, and your
               first submit on a level is what the tutor learns from.
             </p>
           </div>
@@ -95,7 +95,7 @@ function RunningState({ mode }: { mode: 'examples' | 'submit' }) {
 }
 
 // Big pass-ratio ring, a plain-language verdict, and Nova's reaction. Failure is
-// framed as progress. An examples run says plainly that it wasn't recorded.
+// framed as progress. An examples run says plainly that it wasn't an attempt.
 function Summary({ result }: { result: SubmitResult | ExampleRunResult }) {
   const allPass = result.total > 0 && result.passed === result.total;
   const examples = 'mode' in result && result.mode === 'examples';
@@ -122,8 +122,8 @@ function Summary({ result }: { result: SubmitResult | ExampleRunResult }) {
         <p className="text-sm text-content-muted">
           {examples
             ? allPass
-              ? 'The examples pass. This run wasn’t recorded — submit when you’re ready; the hidden tests run then.'
-              : 'Check the failing example below. Nothing is recorded until you submit.'
+              ? 'The examples pass. This run wasn’t an attempt — submit when you’re ready; the hidden tests run then.'
+              : 'Check the failing example below. It doesn’t count as an attempt until you submit.'
             : allPass
               ? 'The vault seal is broken.'
               : 'Close. Check the failing case below, fix it, and submit again.'}

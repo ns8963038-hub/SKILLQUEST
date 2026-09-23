@@ -76,10 +76,12 @@ export interface SubmitResult {
 }
 
 // The response from POST /api/levels/:id/run ("Run examples"): the level's
-// VISIBLE tests only. The server records nothing for it — no attempt, no XP, no
-// mastery update, no streak.
+// VISIBLE tests only. Never an attempt — no XP, no mastery update, no
+// submission. If the student has written code (not the untouched starter), it
+// counts as practice: today joins their streak.
 export interface ExampleRunResult {
   mode: 'examples';
+  countedAsPractice?: boolean; // kept the streak (absent from older responses)
   verdict: string;
   passed: number;
   total: number;

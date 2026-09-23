@@ -63,7 +63,7 @@ flowchart TD
     D[Dashboard or Roadmap] --> I[Level intro modal\ntitle, XP reward, concept tag]
     I --> G[S6 Game screen]
     G --> W[Student writes Java in Monaco]
-    W --> EX[Run examples\nvisible tests only, recorded nowhere]
+    W --> EX[Run examples\nvisible tests only, never an attempt]
     EX --> W
     W --> RUN[Submit\nevery test, hidden included]
     RUN -- untouched starter code --> REF[Refused: write a solution first\nnothing recorded]

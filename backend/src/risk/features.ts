@@ -1,8 +1,8 @@
 import { prisma } from '../db';
 
 // Compute the disengagement-risk feature row for one student (TRD 6.3.7).
-// Feature set fs-v4: "activity" is practice only (graded submissions and lesson
-// answers), and every feature — scores included — is computed strictly inside
+// Feature set fs-v4: "activity" is practice only (graded submissions, examples
+// runs of code the student wrote, and lesson answers), and every feature — scores included — is computed strictly inside
 // the observation window; a student who has never practised counts as away
 // since they started, not for the whole window (fs-v3 lacked that last part). The live scorer uses days_since_last_activity (the
 // rule, ai-service/app/risk.py); the full row is stored for the report.
@@ -41,12 +41,14 @@ export interface RiskFeatures {
   current_streak: number;
 }
 
-// What counts as "the student practised": graded level submissions and lesson
-// answers (multiple choice and fill-in). Logins, page views, reveals, settings
+// What counts as "the student practised": graded level submissions, examples
+// runs of code they have written (`level_run`; the untouched starter code is
+// not logged), and lesson answers (multiple choice and fill-in). Logins, page
+// views, reveals, settings
 // changes and — importantly — seeing or clicking a nudge do NOT count. If they
 // did, merely opening the app would look like coming back, and any "students
 // returned after the nudge" figure would be produced by the measurement itself.
-export const ACTIVE_EVENT_TYPES = ['level_submit', 'lesson_answer', 'lesson_fill'] as const;
+export const ACTIVE_EVENT_TYPES = ['level_submit', 'level_run', 'lesson_answer', 'lesson_fill'] as const;
 
 // One graded attempt at a level, for the in-window score features.
 export interface GradedAttempt {

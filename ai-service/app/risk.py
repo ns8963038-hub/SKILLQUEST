@@ -54,7 +54,8 @@ RULE_THRESHOLDS = "thr-rule-7d-14d"
 #   fs-v3  practice = level submissions and lesson answers only; scores inside
 #          the 28-day window
 #   fs-v4  + a student who has never practised counts as away since they
-#          started (onboarding), not as away for the whole window
+#          started (onboarding), not as away for the whole window; and an
+#          examples run of code they have written counts as practice
 FEATURE_SET = "fs-v4"
 
 

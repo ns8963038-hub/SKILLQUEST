@@ -84,7 +84,7 @@ describe('PlayScreen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /run examples/i }));
     expect(await screen.findByText(/0 of 1 examples passed/i)).toBeInTheDocument();
-    expect(screen.getByText(/nothing is recorded until you submit/i)).toBeInTheDocument();
+    expect(screen.getByText(/doesn’t count as an attempt until you submit/i)).toBeInTheDocument();
     expect(api).toHaveBeenCalledWith('/api/levels/arrays-01/run', expect.anything());
     expect(api).not.toHaveBeenCalledWith('/api/levels/arrays-01/submit', expect.anything());
     expect(screen.queryByText(/treasure unlocked/i)).not.toBeInTheDocument();

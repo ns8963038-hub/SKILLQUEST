@@ -337,9 +337,9 @@ function revealHint(levelId: string) {
 // ---- POST /api/levels/:id/run ("Run examples") -------------------------------
 const squash = (s: string) => s.replace(/\s+/g, '');
 
-// The visible examples only, recorded nowhere. The untouched starter code
-// "fails" all but the first example (so the failure state can be shown); any
-// real edit passes.
+// The visible examples only; never an attempt, but written code keeps the streak
+// (as on the real server). The untouched starter code "fails" all but the first
+// example (so the failure state can be shown); any real edit passes.
 function runExamples(levelId: string, sourceCode: string) {
   const lvl = levelData(levelId);
   const edited = squash(sourceCode) !== squash(lvl.starterCode);
@@ -348,7 +348,19 @@ function runExamples(levelId: string, sourceCode: string) {
     return { hidden: false, passed, stdin: t.stdin, expectedOutput: t.expectedOutput, actualOutput: passed ? t.expectedOutput : '0' };
   });
   const passed = cases.filter((c) => c.passed).length;
-  return { mode: 'examples', verdict: passed === cases.length ? 'accepted' : 'wrong_answer', passed, total: cases.length, cases };
+  if (edited && !state.activeToday) {
+    state.activeToday = true;
+    state.currentStreak += 1;
+    state.bestStreak = Math.max(state.bestStreak, state.currentStreak);
+  }
+  return {
+    mode: 'examples',
+    countedAsPractice: edited,
+    verdict: passed === cases.length ? 'accepted' : 'wrong_answer',
+    passed,
+    total: cases.length,
+    cases,
+  };
 }
 
 // ---- POST /api/levels/:id/submit --------------------------------------------

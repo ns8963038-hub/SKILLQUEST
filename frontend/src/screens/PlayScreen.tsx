@@ -17,7 +17,7 @@ import { AmbientBackground } from '../ui/AmbientBackground';
 import { Button, Chip, Skeleton } from '../ui/primitives';
 
 type Tab = 'problem' | 'code' | 'results';
-// The two ways to run code: the visible examples (recorded nowhere, run as often
+// The two ways to run code: the visible examples (never an attempt; run as often
 // as you like) or a graded submission (every test, hidden ones included).
 type RunMode = 'examples' | 'submit';
 const TABS: Tab[] = ['problem', 'code', 'results'];
@@ -114,7 +114,8 @@ export function PlayScreen({
   };
 
   // Run the code one of two ways and show the results.
-  //   examples: the visible tests only; nothing is recorded, nothing refreshes.
+  //   examples: the visible tests only; never an attempt (it can keep the streak,
+  //             so the dashboard's streak is refreshed).
   //   submit:   every test; refresh XP/mastery everywhere and open the vault on
   //             a full pass.
   async function runCode(mode: RunMode) {
@@ -131,6 +132,7 @@ export function PlayScreen({
           body: { sourceCode: code },
         });
         setResult(res);
+        if (res.countedAsPractice) invalidate('/api/dashboard'); // the streak may have moved
         return;
       }
       const res = await api<SubmitResult>(`/api/levels/${levelId}/submit`, {
@@ -217,12 +219,12 @@ export function PlayScreen({
   // leaving the narrow mission bar room for the level's title.
   const runButtons = (
     <>
-      {/* Run examples: the visible tests, as often as you like, recorded nowhere. */}
+      {/* Run examples: the visible tests, as often as you like, never an attempt. */}
       <Button
         variant="ghost"
         onClick={() => void runCode('examples')}
         disabled={running !== null}
-        title="Run the visible examples — nothing is recorded"
+        title="Run the visible examples — never counts as an attempt"
         aria-keyshortcuts={IS_MAC ? 'Meta+Enter' : 'Control+Enter'}
         className={isPhone ? 'flex-1' : undefined}
       >

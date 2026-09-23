@@ -33,7 +33,7 @@ describe('confidence-booster choice', () => {
   });
 });
 
-// ---- Feature set fs-v3: practice only, everything inside the window ----------
+// ---- Feature set fs-v4: practice only, everything inside the window ----------
 
 import { ACTIVE_EVENT_TYPES, featuresFromPractice, type GradedAttempt } from './features';
 
@@ -41,8 +41,8 @@ const END = new Date('2026-10-29T00:00:00Z');
 const daysAgo = (n: number) => new Date(END.getTime() - n * 86_400_000);
 
 describe('what counts as practice', () => {
-  it('is graded submissions and lesson answers only', () => {
-    expect([...ACTIVE_EVENT_TYPES].sort()).toEqual(['lesson_answer', 'lesson_fill', 'level_submit']);
+  it('is graded submits, examples runs of written code, and lesson answers only', () => {
+    expect([...ACTIVE_EVENT_TYPES].sort()).toEqual(['lesson_answer', 'lesson_fill', 'level_run', 'level_submit']);
   });
 
   it('never includes seeing or clicking a nudge, opening a page or logging in', () => {

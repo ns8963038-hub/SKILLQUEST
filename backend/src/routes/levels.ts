@@ -5,7 +5,7 @@ import { asyncHandler } from '../http';
 import { codeRunLimit, exampleRunLimit } from '../rateLimits';
 import { logEvent } from '../events';
 import { getExecutor } from '../execution';
-import { computeStreak } from '../gamification/streak';
+import { markActiveToday } from '../gamification/activity';
 import { badgesToAward, earnsPlacementReady } from '../gamification/badges';
 import { HINT_COST, applyHintCost } from '../gamification/hints';
 import { lessonComesFirst, lessonStateBySkill } from '../lessons/progress';
@@ -191,15 +191,19 @@ const SubmitBody = z.object({
 const normalizeCode = (code: string) => code.replace(/\s+/g, '');
 
 // POST /api/levels/:id/run — "Run examples": the VISIBLE tests only, so a
-// student can check their work while writing it. Records nothing at all: not an
-// attempt, not a submission, not evidence for the mastery estimate, not
-// activity for the streak. Students used to press the graded button to test a
-// half-written draft, so their first recorded attempt was usually a failure
-// that said nothing about what they knew.
+// student can check their work while writing it. Never an attempt, never a
+// submission, never evidence for the mastery estimate — students used to press
+// the graded button to test a half-written draft, so their first recorded
+// attempt was usually a failure that said nothing about what they knew.
+// It IS practice, though: an examples run of code the student has actually
+// written keeps their streak and counts as activity for the risk rule (an hour
+// of debugging shouldn't look like being away). The untouched starter code
+// counts for nothing, so pressing the button alone can't keep a streak alive.
 levelsRouter.post(
   '/levels/:id/run',
   exampleRunLimit, // debugging runs: 20 a minute per student
   asyncHandler(async (req, res) => {
+    const userId = req.userId!;
     const levelId = req.params.id;
     const { sourceCode } = SubmitBody.parse(req.body);
     const level = await prisma.level.findUnique({
@@ -216,8 +220,19 @@ levelsRouter.post(
       level.timeLimitMs,
     );
     const passed = run.results.filter((r) => r.passed).length;
+
+    // Practice, if they've written something: streak + a `level_run` event (which
+    // the risk rule counts as activity). Only after the code actually ran — a
+    // runner failure (503) records nothing, as for Submit.
+    const countedAsPractice = normalizeCode(sourceCode) !== normalizeCode(level.starterCode);
+    if (countedAsPractice) {
+      await markActiveToday(userId);
+      await logEvent(userId, 'level_run', { levelId, passed, total: level.testCases.length });
+    }
+
     res.json({
       mode: 'examples',
+      countedAsPractice, // kept the streak / counted as activity (never as an attempt)
       verdict: run.verdict,
       passed,
       total: level.testCases.length,
@@ -330,26 +345,7 @@ levelsRouter.post(
       }
 
       // --- Streak: every submit counts as activity today (PRD F4).
-      const p = await tx.profile.findUnique({
-        where: { id: userId },
-        select: { currentStreak: true, bestStreak: true, lastActiveDate: true },
-      });
-      const streak = computeStreak(
-        p?.lastActiveDate ?? null,
-        new Date(),
-        p?.currentStreak ?? 0,
-        p?.bestStreak ?? 0,
-      );
-      if (streak.changed) {
-        await tx.profile.update({
-          where: { id: userId },
-          data: {
-            currentStreak: streak.currentStreak,
-            bestStreak: streak.bestStreak,
-            lastActiveDate: streak.lastActiveDate,
-          },
-        });
-      }
+      const streak = await markActiveToday(userId, tx);
       currentStreak = streak.currentStreak;
 
       // --- Badges: award any newly-earned ones (idempotent).

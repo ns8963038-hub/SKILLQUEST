@@ -6,7 +6,8 @@ import request from 'supertest';
 // "database" is a small in-memory fake of the rows these routes touch, so the
 // tests can check what a request RECORDS, not just what it answers:
 //   - a runner failure leaves no trace (503, nothing written);
-//   - "Run examples" runs the visible tests only and writes nothing;
+//   - "Run examples" runs the visible tests only, is never an attempt, and
+//     counts as practice (streak + activity) only for code the student wrote;
 //   - the untouched starter code is refused before it runs;
 //   - only a level's FIRST graded submit moves the mastery estimate.
 const STARTER = 'class Main {\n  // your code here\n}';
@@ -147,16 +148,43 @@ describe('POST /api/levels/:id/submit when the runner fails', () => {
 });
 
 describe('POST /api/levels/:id/run ("Run examples")', () => {
-  it('runs the visible tests only and records nothing', async () => {
+  it('runs the visible tests only; never an attempt, but written code counts as practice', async () => {
     runner.run.mockResolvedValueOnce(runResult(1, true));
     const res = await request(app()).post('/api/levels/loops-01/run').send({ sourceCode: SOLUTION });
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ mode: 'examples', passed: 1, total: 1 });
+    expect(res.body).toMatchObject({ mode: 'examples', passed: 1, total: 1, countedAsPractice: true });
     // The runner was given the visible case only — hidden tests are for Submit.
     const [, tests] = runner.run.mock.calls[0]!;
     expect(tests).toEqual([{ stdin: '3', expectedOutput: '6', isHidden: false }]);
     expect(res.body.cases[0]).toMatchObject({ stdin: '3', expectedOutput: '6', passed: true });
+    // Not an attempt: no transaction, submission, user-level row or mastery update…
+    expect(db.$transaction).not.toHaveBeenCalled();
+    expect(db.submission.create).not.toHaveBeenCalled();
+    expect(db.userLevel.upsert).not.toHaveBeenCalled();
+    expect(db.skillMastery.upsert).not.toHaveBeenCalled();
+    // …but practice: the streak counts today, and a level_run event for the risk rule.
+    expect(db.profile.update).toHaveBeenCalledOnce();
+    expect(db.event.create).toHaveBeenCalledWith({
+      data: { userId: expect.any(String), type: 'level_run', payload: { levelId: 'loops-01', passed: 1, total: 1 } },
+    });
+  });
+
+  it('counts for nothing at all when it is still the starter code', async () => {
+    runner.run.mockResolvedValueOnce(runResult(1, false));
+    const res = await request(app()).post('/api/levels/loops-01/run').send({ sourceCode: STARTER });
+    expect(res.body).toMatchObject({ mode: 'examples', countedAsPractice: false });
     expectNothingRecorded();
+    expect(db.profile.update).not.toHaveBeenCalled(); // no streak from pressing the button
+  });
+
+  it('records nothing when the runner fails', async () => {
+    runner.run.mockRejectedValueOnce(new RunnerUnavailableError('Paiza create failed: 429'));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const res = await request(app()).post('/api/levels/loops-01/run').send({ sourceCode: SOLUTION });
+    warn.mockRestore();
+    expect(res.status).toBe(503);
+    expectNothingRecorded();
+    expect(db.profile.update).not.toHaveBeenCalled();
   });
 });
 
