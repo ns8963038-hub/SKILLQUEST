@@ -134,3 +134,33 @@ describe('PaizaExecutor when the runner itself fails', () => {
     expect(peak).toBeLessThanOrEqual(2);
   }, 30_000);
 });
+
+describe('PaizaExecutor when Paiza keeps throttling the polls', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('gives up at the deadline and frees its slot, instead of polling forever', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string | URL) =>
+        String(url).includes('/runners/create')
+          ? Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ id: 'x' }) })
+          : Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({}) }), // every poll throttled
+      ),
+    );
+    const executor = new PaizaExecutor('https://paiza.test', 'key', 1); // ONE slot: a stuck run would block the next
+    const first = executor.run('code', oneTest, 5000);
+    const outcome = expect(first).rejects.toThrow(/timed out while polling/);
+    await vi.advanceTimersByTimeAsync(20_000); // past the 17 s polling deadline (5 s limit + 12 s)
+    await outcome;
+
+    // The slot was released: the next run gets it and completes.
+    vi.stubGlobal('fetch', mockPaiza({ status: 'completed', build_result: 'success', result: 'success', stdout: '9', exit_code: '0' }));
+    const second = executor.run('code', oneTest, 5000);
+    await vi.advanceTimersByTimeAsync(2_000);
+    await expect(second).resolves.toMatchObject({ verdict: 'accepted' });
+  });
+});

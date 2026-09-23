@@ -70,10 +70,15 @@ export class PaizaExecutor implements ExecutionService {
     const deadline = Date.now() + Math.max(15000, timeLimitMs + 12000);
     for (;;) {
       await sleep(700);
+      // The deadline is checked FIRST, on every round. It used to be checked only
+      // at the bottom of the loop, which the 429 `continue` below skipped: while
+      // Paiza kept throttling, a run never ended and never gave its queue slot
+      // back — six of those and every code run in the app failed as "busy".
+      if (Date.now() > deadline) throw new RunnerUnavailableError('Paiza timed out while polling');
       const detRes = await fetch(
         `${this.baseUrl}/runners/get_details?id=${id}&api_key=${this.apiKey}`,
       );
-      if (detRes.status === 429) continue; // rate-limited while polling: just poll again
+      if (detRes.status === 429) continue; // rate-limited while polling: poll again (until the deadline)
       if (!detRes.ok) throw new RunnerUnavailableError(`Paiza get_details failed: ${detRes.status}`);
       const d = (await detRes.json()) as PaizaDetails;
       if (d.status === 'completed') {
@@ -90,7 +95,6 @@ export class PaizaExecutor implements ExecutionService {
         const runErr = badExit ? d.stderr || `exit code ${d.exit_code}` : null;
         return { stdout: d.stdout ?? '', compileErr: null, runErr, timedOut: false };
       }
-      if (Date.now() > deadline) throw new RunnerUnavailableError('Paiza timed out while polling');
     }
   }
 
