@@ -8,6 +8,27 @@
 
 ---
 
+## 0. As built (2026-09-23) — where the code differs from this document
+
+This document is the plan. Where the built system differs, the table below is
+the truth, and the sections further down are kept as the original design
+record. Examiners compare documents with code, so every difference is listed.
+
+| Area | This document says | As built | Why |
+|---|---|---|---|
+| Code execution (§5) | Judge0 CE (RapidAPI, then self-hosted) | **Paiza.IO**'s public runner (`backend/src/execution/paizaExecutor.ts`). Judge0 and Piston adapters are kept behind the same `ExecutionService` interface (`EXECUTION_BACKEND`). | Self-hosting Judge0 needs a privileged x86 machine the team couldn't keep online; Paiza needs none. Student code is sent to a third party, so the consent text says so (v2). |
+| Runner limits (§8) | 10 submissions/min/user | **Done:** 10 graded runs/min and 20 example runs/min per student, 300 API calls/min; at most 6 runs at once across all students, queued up to 45 s (load-tested: 30 students at once, all passed, slowest 28.8 s — DEPLOY.md). A runner failure is a 503 that records nothing. | |
+| Embeddings (§2) | `all-MiniLM-L6-v2` | **`BAAI/bge-small-en-v1.5`** via fastembed, plus an "unrelated text" check so gibberish gets the neutral plan (`ai-service/app/goal_map.py`). | Chosen when the goal mapper was built (M1): fastembed's small 384-dimension English model, same memory budget. No side-by-side comparison with all-MiniLM was run; this document just wasn't updated. The quality test (`tests/test_goal_map_quality.py`) is the evidence for the model actually used. |
+| Risk model (§6.3) | Random Forest shipped as a joblib artifact | **The days-since-last-practice rule is live** (7 days watch, 14 days at risk). The logistic regression is kept as the report's experiment (`RISK_SCORER=lr`); the Random Forest lost to both. | Neither trained model beat the rule (LR: +0.0038 PR-AUC, 95% CI [−0.0008, +0.0092]). Deploying the model that didn't win would be the wrong call. |
+| Frontend state (§2) | React Query + Context | A small shared request cache (`frontend/src/lib/useApi.ts`) + Context. | Enough for this size; one fewer dependency. |
+| Routing | Page routes (App Flow §1) | **No router.** One screen-state object mirrored into browser history, so Back works (`lib/navHistory.ts`); the URL doesn't change and refresh starts at the dashboard. | Deferred until after UAT; the back button was the part students would hit. |
+| Database roles (§4.2) | Separate least-privilege roles for the API and AI service | **Not done.** Both services connect as Supabase's `postgres` role. Row-level security is on for every table with no policies, so the public anon key reads nothing; but a leaked service credential would have full access. | Deferred. Keep `DATABASE_URL` secret; rotating the database password revokes it. |
+| Weekly scoring (§10.3) | An advisory lock around the job | **No lock.** Each student is scored separately (one failure doesn't stop the rest) and scores are unique per (student, window, model), so a repeat run can't duplicate a score. Two runs at the very same moment could send one student two nudges. | Low risk: run it from one place (the scheduled job). |
+| Admin access (§4) | Admin flag from `ADMIN_EMAILS` | From **`ADMIN_USER_IDS`** (Supabase user ids). | Email confirmation is off, so anyone could sign up with a listed address the team hadn't registered yet. |
+| Locks | Locked levels redirect (App Flow §9) | Enforced **by the API**: every level and lesson route answers 403 for a skill the roadmap hasn't reached (`backend/src/progress/access.ts`). | |
+
+---
+
 ## 1. System Architecture
 
 ```mermaid

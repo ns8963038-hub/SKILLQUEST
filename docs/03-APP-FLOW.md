@@ -10,6 +10,12 @@
 
 ## 1. Screen Inventory (routes)
 
+> **As built (2026-09-23):** these routes were not built — there is no router.
+> The app shows one screen at a time from its own state, mirrored into browser
+> history so the Back button moves back through the app (TRD §0). The URL
+> doesn't change and a refresh starts at the dashboard. The screens themselves
+> all exist. A full router is on the after-UAT list.
+
 | # | Route | Screen | Auth | Priority |
 |---|---|---|---|---|
 | S1 | `/` | Landing page | Public | P0 |
@@ -128,5 +134,5 @@ flowchart TD
 
 - Unauthenticated hit on any auth route → `/auth?next=<route>`.
 - Authenticated but `onboarding_step < 5` → force-redirect to `/onboarding`, resuming at that step (progress saved server-side after each step). Never gate on profile existence.
-- `/play/:levelId` for a locked level → redirect to roadmap with a "finish the previous quest" toast (prevents URL-sharing skips).
+- `/play/:levelId` for a locked level → redirect to roadmap with a "finish the previous quest" toast (prevents URL-sharing skips). *As built:* the API refuses a locked skill's levels and lessons with 403, and the play and lesson screens say "This level is locked — it opens when your roadmap reaches its topic".
 - Admin routes: `isAdmin` check server-side on every API call, not just hidden nav.

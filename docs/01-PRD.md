@@ -39,7 +39,7 @@ These are deliberately excluded to keep the project deliverable in one semester.
 - ❌ **Multiple skill tracks** (web dev, ML, etc.) — Java + DSA only. The data model must *support* more tracks; we just don't author their content.
 - ❌ **Free-form conversational AI chatbot for onboarding** — structured form + one free-text goal field instead.
 - ❌ **Resume bullet generator** — stretch goal only if everything else ships.
-- ❌ **LSTM sequence model for dropout** — Random Forest is the deliverable; LSTM is a stretch/comparison experiment for the report.
+- ❌ **LSTM sequence model for dropout** — not attempted. (As built: the live scorer is the days-since-last-practice rule; the Random Forest and logistic regression were the experiments, and neither beat it — see F5.)
 - ❌ **Mobile app** — responsive web only.
 - ❌ **Peer features** (chat, forums, team quests).
 
@@ -76,7 +76,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 
 ### F3 — Code-to-Solve Game Engine (P0)
 - Monaco editor in the browser; each level = problem statement + starter code + hidden test cases.
-- Code execution via **Judge0** (hosted API or self-hosted) — never executed on our own backend.
+- Code execution on an outside runner — never on our own backend. Planned as Judge0; **as built, Paiza.IO's public runner** (Judge0 and Piston adapters kept behind the same interface; TRD §0). Student code goes to a third party, and the consent text says so.
 - Per-level: pass/fail per test case, XP award on full pass, hint system (hint costs a small XP amount — gamified help).
 - **Two ways to run code.** *Run examples* runs the visible tests only and records nothing (no attempt, no XP, no mastery change, no streak), so students can debug freely. *Submit* runs every test, hidden ones included, and is what counts; submitting the untouched starter code is refused. **Only a level's first Submit updates the BKT mastery estimate** (the first-attempt rule of knowledge tracing): later submits still complete the level, earn XP and keep the streak, but cannot move mastery. Before this, one solved level submitted three times read as "mastered" (0.20 → 0.60 → 0.89 → 0.98).
 - **Content commitment: 40–50 levels** across the Java + DSA track (this is a team-wide authoring task, not just engineering). **Delivered: 57 levels across 20 skills**, every expected output machine-verified (`content/verify-levels.mjs`), and no level asks for a topic the student hasn't been taught yet (`content/check-order.mjs`, see F8).
@@ -132,7 +132,7 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 
 ## 7. Constraints & Assumptions
 
-- **Budget ≈ ₹0**: free tiers only — Vercel, Render, Supabase (Postgres + Auth), Judge0 free tier (rate-limited; self-host if limits bite).
+- **Budget ≈ ₹0**: free tiers only — Vercel, Render, Supabase (Postgres + Auth), and a free code runner (planned: Judge0; as built: Paiza.IO — the Judge0 risks below are the original plan's).
 - **Team of 3**, ~14 working weeks, alongside regular coursework.
 - Content authoring (problems + test cases) is on the critical path and is scheduled like an engineering task.
 - OULAD is publicly available for academic use. **Its transfer to our population is an assumption, not a finding** — UK adult distance-learning vs Indian undergraduate coding practice. Documented as a limitation in the report, never asserted as validation.
