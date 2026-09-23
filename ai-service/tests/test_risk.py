@@ -2,50 +2,86 @@ import json
 
 import pytest
 
-from app.risk import FEATURE_ORDER, MODEL_PATH, load_model, score, tier_from_probability
-
-# A disengaged student and an engaged one, as the app would compute them.
-IDLE = {
-    "active_days_in_window": 0,
-    "mean_session_gap_days": 28,
-    "days_since_last_activity": 25,
-    "completion_ratio": 0.0,
-    "avg_score": 0.0,
-    "activity_trend": 0,
-    "current_streak": 0,
-}
-ENGAGED = {
-    "active_days_in_window": 20,
-    "mean_session_gap_days": 1.2,
-    "days_since_last_activity": 0,
-    "completion_ratio": 0.9,
-    "avg_score": 0.85,
-    "activity_trend": 4,
-    "current_streak": 6,
-}
+from app.risk import (
+    ATRISK_DAYS,
+    FEATURE_ORDER,
+    MODEL_PATH,
+    WATCH_DAYS,
+    load_model,
+    score,
+    score_model,
+    tier_from_days,
+    tier_from_probability,
+)
 
 
-def test_tiers_map_from_probability():
-    assert tier_from_probability(0.10) == "healthy"
-    assert tier_from_probability(0.50) == "watch"
-    assert tier_from_probability(0.90) == "atrisk"
-    # Custom thresholds (as the trained model supplies).
-    assert tier_from_probability(0.5, watch=0.4, atrisk=0.6) == "watch"
+def row(days_since: float, **rest) -> dict:
+    """A feature row that differs only where a test says so."""
+    base = {
+        "active_days_in_window": 0,
+        "mean_session_gap_days": 28,
+        "days_since_last_activity": days_since,
+        "completion_ratio": 0.0,
+        "avg_score": 0.0,
+        "activity_trend": 0,
+        "current_streak": 0,
+    }
+    return {**base, **rest}
 
 
-def test_deployed_model_matches_the_feature_contract():
+# ---- The live rule ------------------------------------------------------------
+
+
+def test_the_live_scorer_is_the_rule_by_default(monkeypatch):
+    monkeypatch.delenv("RISK_SCORER", raising=False)
+    r = score(row(3))
+    assert r["modelVersion"] == "rule-days-since-v1"
+    assert r["thresholdVersion"] == "thr-rule-7d-14d"
+
+
+def test_tiers_are_one_week_watch_and_two_weeks_at_risk():
+    assert tier_from_days(0) == "healthy"
+    assert tier_from_days(WATCH_DAYS - 1) == "healthy"
+    assert tier_from_days(WATCH_DAYS) == "watch"
+    assert tier_from_days(ATRISK_DAYS - 1) == "watch"
+    assert tier_from_days(ATRISK_DAYS) == "atrisk"
+
+
+def test_longer_absence_always_means_higher_risk():
+    # The sanity checks the regression failed: absence must raise risk, and good
+    # old scores must not hide a student who has gone quiet.
+    active_today = score(row(0, avg_score=0.3, completion_ratio=0.3))
+    gone_two_weeks = score(row(14, avg_score=0.95, completion_ratio=1.0))
+    gone_sixty_days = score(row(60, avg_score=0.95, completion_ratio=1.0))
+    assert gone_two_weeks["probability"] > active_today["probability"]
+    assert gone_sixty_days["probability"] >= gone_two_weeks["probability"]
+    assert gone_two_weeks["tier"] == "atrisk" and gone_sixty_days["tier"] == "atrisk"
+    assert active_today["tier"] == "healthy"
+
+
+def test_score_is_the_absence_over_the_21_day_horizon_clamped():
+    assert score(row(0))["probability"] == 0.0
+    assert score(row(10.5))["probability"] == pytest.approx(0.5)
+    assert score(row(90))["probability"] == 1.0
+    assert score(row(-3))["probability"] == 0.0  # a bad input never goes negative
+
+
+# ---- The regression, kept as the report's experiment --------------------------
+
+
+def test_the_regression_runs_only_when_asked_for(monkeypatch):
+    monkeypatch.setenv("RISK_SCORER", "lr")
+    assert score(row(25))["modelVersion"] == load_model()["modelVersion"]
+    monkeypatch.setenv("RISK_SCORER", "rule")
+    assert score(row(25))["modelVersion"] == "rule-days-since-v1"
+
+
+def test_the_exported_model_still_matches_the_feature_contract():
     model = load_model()
-    assert model is not None, "risk_model.json should be committed (run ml/run_experiment.py)"
+    assert model is not None, "risk_model.json should stay committed (the report's experiment)"
     assert model["features"] == FEATURE_ORDER
     assert len(model["coef"]) == len(model["mean"]) == len(model["scale"]) == len(FEATURE_ORDER)
     assert model["thresholds"]["watch"] <= model["thresholds"]["atrisk"]
-
-
-def test_trained_model_ranks_an_idle_student_above_an_engaged_one():
-    idle, engaged = score(IDLE), score(ENGAGED)
-    assert idle["probability"] > engaged["probability"]
-    assert engaged["tier"] == "healthy"
-    assert idle["modelVersion"] == load_model()["modelVersion"]
 
 
 def test_logistic_scoring_is_the_standardised_dot_product():
@@ -63,18 +99,18 @@ def test_logistic_scoring_is_the_standardised_dot_product():
         "thresholdVersion": "t",
     }
     # x = 10 -> standardised 0 -> sigmoid(0) = 0.5 -> "watch".
-    r = score({**IDLE, "active_days_in_window": 10}, model=toy)
+    r = score_model(row(0, active_days_in_window=10), toy)
     assert r["probability"] == pytest.approx(0.5)
     assert r["tier"] == "watch"
+    assert tier_from_probability(0.7, watch=0.4, atrisk=0.6) == "atrisk"
 
 
-def test_baseline_used_when_no_model(monkeypatch):
+def test_falls_back_to_the_rule_if_the_regression_file_is_missing(monkeypatch):
     load_model.cache_clear()
     monkeypatch.setattr("app.risk.MODEL_PATH", MODEL_PATH.with_name("missing.json"))
+    monkeypatch.setenv("RISK_SCORER", "lr")
     try:
-        r = score({"days_since_last_activity": 21})
-        assert r["probability"] == 1.0 and r["tier"] == "atrisk"
-        assert r["modelVersion"].startswith("baseline")
+        assert score(row(21))["modelVersion"] == "rule-days-since-v1"
     finally:
         load_model.cache_clear()
 

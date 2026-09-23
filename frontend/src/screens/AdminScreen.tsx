@@ -79,8 +79,12 @@ export function AdminScreen() {
     setScoring(true);
     setNotice(null);
     try {
-      const res = await api<{ scored: number; nudged: number }>('/api/admin/run-scoring', { method: 'POST' });
-      setNotice(`Scored ${res.scored} students · ${res.nudged} new nudges.`);
+      const res = await api<{ scored: number; nudged: number; failed?: number }>('/api/admin/run-scoring', { method: 'POST' });
+      // Students with under 28 days since onboarding aren't scored yet (too new to judge).
+      setNotice(
+        `Scored ${res.scored} students · ${res.nudged} new nudges` +
+          (res.failed ? ` · ${res.failed} couldn't be scored (see the API log) — run it again.` : '.'),
+      );
       invalidate('/api/admin');
       metrics.reload();
       overview.reload();
