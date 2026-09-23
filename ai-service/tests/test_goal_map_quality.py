@@ -41,3 +41,18 @@ def test_goal_is_mapped_sensibly(text: str, expected: str) -> None:
     # service cases: it produces a balanced plan rather than a wrong one.
     allowed = {expected, "general_placement"} if expected == "service_placement" else {expected}
     assert result.category in allowed, f"{text!r} -> {result.category} ({result.confidence:.2f})"
+
+
+# Text that says nothing about a career must get the neutral plan, not a guess.
+# (Before the "unrelated text" check, "banana" mapped to higher_studies.)
+JUNK = ["asdfgh qwerty zxcv", "lorem ipsum dolor sit amet", "banana", "I like cricket and biryani", "????", "hello",
+        "kjhdsf kjsdhf 2342", "my cat is orange", "test", "abc", "nothing", "idk", "good morning", "I love movies",
+        "xyz 123", "football"]
+
+
+@pytest.mark.parametrize("text", JUNK)
+def test_gibberish_gets_the_neutral_plan(text: str) -> None:
+    from app.embeddings import embed
+    from app.goal_map import DEFAULT_CATEGORY, map_goal
+
+    assert map_goal(text, embed).category == DEFAULT_CATEGORY

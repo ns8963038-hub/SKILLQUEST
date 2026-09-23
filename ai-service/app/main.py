@@ -44,7 +44,16 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="SkillQuest AI Service", version="0.1.0", lifespan=lifespan)
+# No public /docs, /redoc or /openapi.json: the service is internal (only the
+# Web API calls it), so there is no reason to publish a map of its routes.
+app = FastAPI(
+    title="SkillQuest AI Service",
+    version="0.1.0",
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 
 
 @app.get("/health")

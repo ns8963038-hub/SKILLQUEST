@@ -8,6 +8,15 @@ pick the category whose description is most similar (cosine). If nothing is
 similar enough, fall back to the neutral default — better a balanced plan than a
 confidently wrong one.
 
+"Similar enough" is two checks. The small embedding model (bge-small) scores
+almost ANY text 0.4-0.55 against every description, so an absolute floor alone
+let gibberish through ("banana" -> higher_studies at 0.47). So the text is also
+compared with a description of UNRELATED text (NULL_DESCRIPTION), and the best
+career category must beat it by NULL_MARGIN. Measured on 17 real goals and 16
+junk inputs (2026-09-23): every junk input falls back to the default; three very
+terse real goals ("java", "dsa", "I want a job") do too, which only gives them
+the neutral plan — the safe direction.
+
 The matching logic here is pure and testable with injected vectors; the actual
 embedding model lives in embeddings.py so this file needs no heavy dependency.
 """
@@ -51,6 +60,14 @@ DEFAULT_CATEGORY = "general_placement"
 # Below this cosine similarity we don't trust the match and use the default.
 DEFAULT_THRESHOLD = 0.35
 
+# What text that says nothing about a career looks like. The best category must
+# be at least NULL_MARGIN more similar to the goal than this is.
+NULL_DESCRIPTION = (
+    "Random words, greetings, names, food, sports, films, pets or typing that says "
+    "nothing about studies, jobs, placements, programming or a career."
+)
+NULL_MARGIN = 0.07
+
 # An embedder takes a list of strings and returns one vector per string.
 Embedder = Callable[[Sequence[str]], list[Sequence[float]]]
 
@@ -77,25 +94,29 @@ def map_goal(
     text: str,
     embed: Embedder,
     threshold: float = DEFAULT_THRESHOLD,
+    null_margin: float = NULL_MARGIN,
 ) -> GoalMapResult:
     """Map free text to a goal category (see module docstring)."""
     # Empty / whitespace input can't be matched — return the neutral default.
     if not text or not text.strip():
         return GoalMapResult(DEFAULT_CATEGORY, 0.0)
 
-    # Embed the text and every category description in one call (order preserved).
-    vectors = embed([text, *CATEGORY_DESCRIPTIONS.values()])
+    # Embed the text, every category description and the "unrelated text"
+    # description in one call (order preserved).
+    vectors = embed([text, *CATEGORY_DESCRIPTIONS.values(), NULL_DESCRIPTION])
     text_vec = vectors[0]
+    null_similarity = _cosine(text_vec, vectors[-1])
 
     # Find the most similar category description.
     best_category = DEFAULT_CATEGORY
     best_similarity = -1.0
-    for category, desc_vec in zip(CATEGORIES, vectors[1:]):
+    for category, desc_vec in zip(CATEGORIES, vectors[1:-1]):
         similarity = _cosine(text_vec, desc_vec)
         if similarity > best_similarity:
             best_similarity, best_category = similarity, category
 
     # Not confident enough -> neutral default, but report the similarity we saw.
-    if best_similarity < threshold:
+    # Either too dissimilar outright, or no closer to a career than random text is.
+    if best_similarity < threshold or best_similarity - null_similarity < null_margin:
         return GoalMapResult(DEFAULT_CATEGORY, best_similarity)
     return GoalMapResult(best_category, best_similarity)

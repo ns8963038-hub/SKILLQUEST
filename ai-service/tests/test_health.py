@@ -25,6 +25,21 @@ def test_internal_route_requires_valid_key():
     assert ok.json()["pong"] is True
 
 
+def test_route_map_is_not_published():
+    # An internal service has no reason to publish /docs or its OpenAPI schema.
+    for path in ("/docs", "/redoc", "/openapi.json"):
+        assert client.get(path).status_code == 404
+
+
+def test_keys_are_compared_safely():
+    from app.security import keys_match
+
+    assert keys_match("secret", "secret")
+    assert not keys_match("secreT", "secret")
+    assert not keys_match("secret", "")  # an unset key never matches
+    assert not keys_match(None, "secret")
+
+
 def test_dsn_strips_prisma_only_parameters():
     """The backend and this service share one DATABASE_URL, written for Prisma.
     psycopg rejects Prisma's own parameters, so they must be stripped."""
