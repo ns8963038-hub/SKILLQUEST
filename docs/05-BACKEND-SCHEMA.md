@@ -396,7 +396,7 @@ SkillQuest monitors behaviour, stores student-written code, and reports findings
 | Requirement | Implementation |
 |---|---|
 | Informed consent | Consent screen before onboarding; store `consent_version` + `consent_given_at` on `profiles` |
-| Plain-language disclosure | One short screen: what we collect (activity, code, quiz answers), why (personalization + a research report), how long we keep it, who sees it |
+| Plain-language disclosure | One short screen: what we collect (activity, code, quiz answers), why (personalization + a research report), how long we keep it, who sees it, and **where code runs: every run is sent to Paiza.IO, a third-party service**, regardless of research consent (text version `v2-2026-09`; changing the text bumps the version and everyone is asked again) |
 | Withdrawal | "Withdraw from research" in settings → sets `withdrawn_at`; data excluded from all analysis and exports |
 | Retention | State a period (e.g. deleted within 6 months of project submission); source code pruned per §3.8 |
 | Pseudonymized exports | Research exports/report figures use participant codes `P01…`, never names, emails or USNs. Each code is stored on the profile (`participant_code`, unique), assigned once from a database sequence when the student agrees to take part, so it never changes between exports — deleting an account or making a teammate admin no longer renumbers anyone. Team (admin) accounts get no code. |

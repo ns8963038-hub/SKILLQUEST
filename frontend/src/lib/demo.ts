@@ -819,7 +819,7 @@ export async function demoApi<T>(
       onboardingStep: 5,
       isAdmin: true, // the demo shows the research console too
       consentRequired: state.consentPending,
-      currentConsentVersion: 'v1-2026-09',
+      currentConsentVersion: 'v2-2026-09',
     });
   if (path === '/api/dashboard') return as<T>(dashboard());
   if (path === '/api/roadmap')

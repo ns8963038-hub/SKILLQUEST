@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Clock, Database, Eye, HandHeart, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { Clock, Cpu, Database, Eye, HandHeart, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { api } from '../lib/api';
 import { AmbientBackground } from '../ui/AmbientBackground';
 import { Nova } from '../ui/Nova';
@@ -23,6 +23,12 @@ const POINTS: { icon: LucideIcon; title: string; body: string }[] = [
     icon: ShieldCheck,
     title: 'Who sees it',
     body: 'Only the project team and our guide. In the report you appear as a code like P07 — never your name, email or USN.',
+  },
+  {
+    // Not a research matter: every run of your code goes here, whatever you choose below.
+    icon: Cpu,
+    title: 'Where your code runs',
+    body: 'To run your Java, SkillQuest sends the code (and the test inputs) to Paiza.IO, an outside code-running service. It gets the code only — not your name or email — and its own privacy policy applies. This happens whether or not you take part in the research, so keep personal details out of your code.',
   },
   {
     icon: Clock,
