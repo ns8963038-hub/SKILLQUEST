@@ -14,6 +14,7 @@ const VISIBLE = { stdin: '3', expectedOutput: '6', isHidden: false, ordinal: 1 }
 const HIDDEN = { stdin: '4', expectedOutput: '10', isHidden: true, ordinal: 2 };
 
 const store = vi.hoisted(() => ({
+  hintsUsed: 0, // hints the student took on this (the skill's only) level
   attempts: 0, // user_levels.attempts for the one level
   completed: false, // user_levels.status === 'completed'
   mastery: null as null | { pMastery: number }, // skill_mastery row
@@ -21,6 +22,8 @@ const store = vi.hoisted(() => ({
 
 const db = vi.hoisted(() => ({
   level: {
+    // The skill's published levels (for the Code Master check): just this one.
+    findMany: vi.fn(async () => [{ id: 'loops-01' }]),
     // Honours the one filter the routes use: `where: { isHidden: false }`.
     findUnique: vi.fn(async (args: { include?: { testCases?: { where?: { isHidden?: boolean } } } }) => ({
       id: 'loops-01',
@@ -45,6 +48,7 @@ const db = vi.hoisted(() => ({
       return { count: 1 };
     }),
     count: vi.fn(async () => 1),
+    findMany: vi.fn(async () => [{ status: store.completed ? 'completed' : 'unlocked', hintsUsed: store.hintsUsed }]),
   },
   profile: {
     update: vi.fn(),
@@ -105,6 +109,7 @@ const SOLUTION = 'class Main { public static void main(String[] a) { /* solved *
 beforeEach(() => {
   vi.clearAllMocks();
   store.attempts = 0;
+  store.hintsUsed = 0;
   store.completed = false;
   store.mastery = null;
 });
@@ -201,5 +206,22 @@ describe('POST /api/levels/:id/submit: only the first graded submit is evidence'
     expect(pass.body.mastery).toMatchObject({ counted: false });
     expect(pass.body.mastery.after).toBeCloseTo(afterFail);
     expect(db.skillMastery.upsert).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Code Master: a whole skill finished without hints', () => {
+  const awarded = () => db.userBadge.createMany.mock.calls.flatMap(([args]) => args.data.map((d: { badgeId: string }) => d.badgeId));
+
+  it('is awarded when the completion finishes the skill and no hint was used', async () => {
+    runner.run.mockResolvedValueOnce(runResult(2, true));
+    await request(app()).post('/api/levels/loops-01/submit').send({ sourceCode: SOLUTION });
+    expect(awarded()).toContain('code_master');
+  });
+
+  it('is not awarded if a hint was used on the skill', async () => {
+    store.hintsUsed = 1;
+    runner.run.mockResolvedValueOnce(runResult(2, true));
+    await request(app()).post('/api/levels/loops-01/submit').send({ sourceCode: SOLUTION });
+    expect(awarded()).not.toContain('code_master');
   });
 });

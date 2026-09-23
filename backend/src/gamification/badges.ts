@@ -7,7 +7,9 @@
 export interface BadgeContext {
   justCompletedLevel: boolean; // did they complete a level for the first time just now?
   totalCompletedLevels: number; // their total completed levels (after this one)
-  hintsUsedThisLevel: number; // hints used on the level they just completed
+  // This completion finished a whole skill (every published level), and no hint
+  // was used on any of that skill's levels.
+  completedSkillWithoutHints: boolean;
   currentStreak: number; // their current daily streak
 }
 
@@ -24,8 +26,9 @@ export function badgesToAward(ctx: BadgeContext, alreadyEarned: Set<string>): st
 
   // First Quest — completing your very first level.
   consider('first_quest', ctx.justCompletedLevel && ctx.totalCompletedLevels >= 1);
-  // Code Master — completing a level without using any hints.
-  consider('code_master', ctx.justCompletedLevel && ctx.hintsUsedThisLevel === 0);
+  // Code Master — finishing a whole skill without any hints (PRD F4). One level
+  // without hints was too easy: nearly everyone earned it with First Quest.
+  consider('code_master', ctx.justCompletedLevel && ctx.completedSkillWithoutHints);
   // Week Warrior — reaching a 7-day activity streak.
   consider('week_warrior', ctx.currentStreak >= 7);
 

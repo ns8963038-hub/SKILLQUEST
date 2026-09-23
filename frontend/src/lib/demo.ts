@@ -101,7 +101,7 @@ recomputeStatuses();
 
 const BADGES: Record<string, { title: string; description: string }> = {
   first_quest: { title: 'First Quest', description: 'Solved your first level.' },
-  code_master: { title: 'Code Master', description: 'Solved a level without any hints.' },
+  code_master: { title: 'Code Master', description: 'Finished a whole topic without any hints.' },
   week_warrior: { title: 'Week Warrior', description: 'Kept a 7-day streak.' },
   placement_ready: { title: 'Placement Ready', description: 'Reached 75% coverage for a target company.' },
 };

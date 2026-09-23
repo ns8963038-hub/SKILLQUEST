@@ -40,27 +40,26 @@ describe('computeStreak', () => {
 });
 
 describe('badgesToAward', () => {
-  it('awards First Quest and Code Master on a clean first completion', () => {
+  it('awards First Quest on a first completion — but not Code Master for one level', () => {
     const out = badgesToAward(
-      { justCompletedLevel: true, totalCompletedLevels: 1, hintsUsedThisLevel: 0, currentStreak: 1 },
+      { justCompletedLevel: true, totalCompletedLevels: 1, completedSkillWithoutHints: false, currentStreak: 1 },
       new Set(),
     );
     expect(out).toContain('first_quest');
-    expect(out).toContain('code_master');
+    expect(out).not.toContain('code_master');
   });
 
-  it('does not award Code Master if a hint was used', () => {
+  it('awards Code Master for finishing a whole skill with no hints', () => {
     const out = badgesToAward(
-      { justCompletedLevel: true, totalCompletedLevels: 2, hintsUsedThisLevel: 1, currentStreak: 1 },
+      { justCompletedLevel: true, totalCompletedLevels: 3, completedSkillWithoutHints: true, currentStreak: 1 },
       new Set(['first_quest']),
     );
-    expect(out).not.toContain('code_master');
-    expect(out).not.toContain('first_quest'); // already earned
+    expect(out).toEqual(['code_master']); // First Quest already earned
   });
 
   it('awards Week Warrior at a 7-day streak', () => {
     const out = badgesToAward(
-      { justCompletedLevel: false, totalCompletedLevels: 3, hintsUsedThisLevel: 0, currentStreak: 7 },
+      { justCompletedLevel: false, totalCompletedLevels: 3, completedSkillWithoutHints: false, currentStreak: 7 },
       new Set(),
     );
     expect(out).toEqual(['week_warrior']);
@@ -68,7 +67,7 @@ describe('badgesToAward', () => {
 
   it('never re-awards a badge already earned', () => {
     const out = badgesToAward(
-      { justCompletedLevel: true, totalCompletedLevels: 1, hintsUsedThisLevel: 0, currentStreak: 7 },
+      { justCompletedLevel: true, totalCompletedLevels: 1, completedSkillWithoutHints: true, currentStreak: 7 },
       new Set(['first_quest', 'code_master', 'week_warrior']),
     );
     expect(out).toEqual([]);

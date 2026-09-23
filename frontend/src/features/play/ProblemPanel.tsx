@@ -124,7 +124,7 @@ export function ProblemPanel({
                 )}
               </button>
               {hintsShown === 0 && !level.completed && (
-                <span className="text-xs text-content-muted">Solve with no hints to earn Code Master.</span>
+                <span className="text-xs text-content-muted">Finish this topic with no hints to earn Code Master.</span>
               )}
             </div>
           )}

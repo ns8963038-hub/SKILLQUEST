@@ -3,7 +3,7 @@
   "badges": [
     { "id": "first_quest", "title": "First Quest", "description": "Completed your very first level.", "icon": "🏅", "criteria": "Complete any level." },
     { "id": "week_warrior", "title": "Week Warrior", "description": "Kept a 7-day activity streak.", "icon": "🔥", "criteria": "Reach a 7-day streak." },
-    { "id": "code_master", "title": "Code Master", "description": "Solved a level without any hints.", "icon": "🧠", "criteria": "Complete a level with 0 hints used." },
+    { "id": "code_master", "title": "Code Master", "description": "Finished a whole topic without any hints.", "icon": "🧠", "criteria": "Complete every level of a skill with 0 hints used on any of them." },
     { "id": "placement_ready", "title": "Placement Ready", "description": "Reached 75% coverage for a target company.", "icon": "💼", "criteria": "Hit 75% role skill coverage." }
   ]
 }

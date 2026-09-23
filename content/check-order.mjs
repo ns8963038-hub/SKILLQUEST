@@ -14,6 +14,9 @@
 //            concept questions and their options)
 //   levels   the starter code, the reference solution (what the student must
 //            write), and code inside the statement and hints
+//   prose    the plain text of every statement, hint and lesson step, for Java
+//            names that can only mean a construct (PROSE_NAMES) — a hint that
+//            says "use a StringBuilder" suggests a topic just as surely as code
 //   quiz     the program every placement-quiz question shows (content/quiz.json):
 //            a question for a topic may only use what that topic and its
 //            prerequisites teach, or it tests something else as well
@@ -120,6 +123,28 @@ export const CONSTRUCTS = [
   ['generic classes or methods', null, (c) => /\bclass\s+\w+\s*<|\bstatic\s+<\w/.test(c)],
 ];
 
+// Java names that can only mean one construct, even in plain prose ("build the
+// line with a StringBuilder"). Code in backticks is checked by CONSTRUCTS above;
+// this catches a hint or explanation that SUGGESTS a construct in words. Only
+// unambiguous names — no English words like "try" or "list".
+export const PROSE_NAMES = [
+  ['String methods / StringBuilder', 'strings', /\b(StringBuilder|charAt|substring|indexOf|toUpperCase|toLowerCase|equalsIgnoreCase|toCharArray|startsWith|endsWith|compareTo)\b/],
+  ['an array', 'arrays', /\bArrays\.(sort|fill|toString|asList)\b/],
+  ['collections (List / Map / Set / Deque)', 'collections', /\b(ArrayList|HashMap|HashSet|LinkedList|ArrayDeque|TreeMap|TreeSet|PriorityQueue|LinkedHashMap)\b/],
+  ['inheritance / interface', 'oop-advanced', /(@Override|\bextends\b|\bimplements\b)/],
+  // Naming the exception a crash throws ("ArrayIndexOutOfBoundsException") is
+  // fine — the arrays lesson teaches that crash. Handling it is the later topic.
+  ['try / catch / throw', 'exceptions', /\b(try-catch|try\/catch|catch block|throws clause)\b/],
+  ['lambdas / streams', null, /(\.stream\(\)|\blambda\b)/],
+];
+
+// The plain prose of a text: with fenced blocks and `inline code` removed (those
+// are code, checked separately).
+function proseOf(text) {
+  if (typeof text !== 'string') return '';
+  return text.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`\n]+`/g, ' ');
+}
+
 // Code written inside prose: fenced blocks and `inline code`.
 function codeInText(text) {
   if (typeof text !== 'string') return [];
@@ -145,6 +170,24 @@ function lessonSources(lesson) {
   return out;
 }
 
+// Every piece of prose a student reads, labelled with where it lives.
+function lessonProse(lesson) {
+  const out = [];
+  for (const s of lesson.steps) {
+    const at = `${s.id} (${s.type})`;
+    for (const field of ['body', 'prompt', 'hint', 'explain', 'question', 'title']) out.push([`${at} ${field} (prose)`, proseOf(s[field])]);
+    for (const p of s.points ?? []) out.push([`${at} key idea (prose)`, proseOf(p)]);
+    for (const o of s.options ?? []) out.push([`${at} option (prose)`, proseOf(typeof o === 'string' ? o : o.text)]);
+  }
+  return out;
+}
+
+function levelProse(level) {
+  const out = [['statement (prose)', proseOf(level.statementMd)]];
+  (level.hints ?? []).forEach((h, i) => out.push([`hint ${i + 1} (prose)`, proseOf(h)]));
+  return out;
+}
+
 function levelSources(level) {
   const out = [];
   if (level.starterCode) out.push(['starter code', level.starterCode]);
@@ -156,6 +199,21 @@ function levelSources(level) {
 
 export function findProblems() {
   const problems = [];
+  // Prose: a name that belongs to a skill the student can't have reached yet.
+  const checkProse = (kind, name, skillId, texts) => {
+    const allowed = taughtBy(skillId);
+    for (const [where, text] of texts) {
+      for (const [construct, owner, pattern] of PROSE_NAMES) {
+        const hit = text.match(pattern);
+        if (!hit) continue;
+        if (owner === null) problems.push({ kind, name, where, construct: `${construct} ("${hit[0]}")`, taughtIn: 'not in this course' });
+        else if (!allowed.has(owner)) {
+          const later = byId.get(owner).displayOrder > byId.get(skillId).displayOrder;
+          problems.push({ kind, name, where, construct: `${construct} ("${hit[0]}")`, taughtIn: `${owner} (#${byId.get(owner).displayOrder}${later ? ', later' : ', not a prerequisite'})` });
+        }
+      }
+    }
+  };
   const check = (kind, name, skillId, sources) => {
     const allowed = taughtBy(skillId);
     for (const [where, code] of sources) {
@@ -173,10 +231,12 @@ export function findProblems() {
   for (const f of readdirSync(join(ROOT, 'lessons')).filter((f) => f.endsWith('.json')).sort()) {
     const lesson = JSON.parse(readFileSync(join(ROOT, 'lessons', f), 'utf8'));
     check('lesson', lesson.skillId, lesson.skillId, lessonSources(lesson));
+    checkProse('lesson', lesson.skillId, lesson.skillId, lessonProse(lesson));
   }
   for (const f of readdirSync(join(ROOT, 'levels')).filter((f) => f.endsWith('.json')).sort()) {
     const level = JSON.parse(readFileSync(join(ROOT, 'levels', f), 'utf8'));
     check('level', level.id, level.skillId, levelSources(level));
+    checkProse('level', level.id, level.skillId, levelProse(level));
   }
   const { questions } = JSON.parse(readFileSync(join(ROOT, 'quiz.json'), 'utf8'));
   for (const q of questions) check('quiz', q.id, q.topicSkillId, [['program', q.code]]);

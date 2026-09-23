@@ -354,11 +354,25 @@ levelsRouter.post(
       const totalCompleted = justCompleted
         ? await tx.userLevel.count({ where: { userId, status: 'completed' } })
         : 0;
+      // Code Master: did this completion finish the whole skill with no hint on
+      // any of its levels? Only worth asking on a new completion, badge not held.
+      let completedSkillWithoutHints = false;
+      if (justCompleted && !earned.has('code_master')) {
+        const skillLevelIds = (
+          await tx.level.findMany({ where: { skillId: level.skillId, published: true }, select: { id: true } })
+        ).map((l) => l.id);
+        const mine = await tx.userLevel.findMany({
+          where: { userId, levelId: { in: skillLevelIds } },
+          select: { status: true, hintsUsed: true },
+        });
+        completedSkillWithoutHints =
+          mine.length === skillLevelIds.length && mine.every((u) => u.status === 'completed' && u.hintsUsed === 0);
+      }
       newBadgeIds = badgesToAward(
         {
           justCompletedLevel: justCompleted,
           totalCompletedLevels: totalCompleted,
-          hintsUsedThisLevel: ul.hintsUsed,
+          completedSkillWithoutHints,
           currentStreak: streak.currentStreak,
         },
         earned,
