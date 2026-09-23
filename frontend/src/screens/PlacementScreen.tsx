@@ -19,8 +19,8 @@ interface PlacementRole {
   missingExternal: string[];
 }
 
-// Placement readiness (F6). Deliberately framed as COVERAGE of published role
-// requirements, NOT a hiring prediction — the PRD bans phrasing like "You're 62%
+// Placement readiness (F6). Deliberately framed as COVERAGE of role requirement
+// lists the team curated from public job information, NOT a hiring prediction — the PRD bans phrasing like "You're 62%
 // ready for Infosys". Gaps SkillQuest teaches get a one-click "train" action; gaps
 // it doesn't teach are shown as information only.
 export function PlacementScreen({
@@ -44,7 +44,8 @@ export function PlacementScreen({
         }
         description={
           <>
-            Tracked-skill coverage: based on published requirements currently represented in SkillQuest.{' '}
+            Tracked-skill coverage: based on requirement lists our team put together from public job information,
+            counting the skills SkillQuest teaches.{' '}
             <strong className="font-medium text-content">Not a hiring prediction</strong> — a map of what to
             learn next. Reach 75% for any target company to earn the Placement Ready badge.
           </>
@@ -79,6 +80,12 @@ export function PlacementScreen({
       )}
     </div>
   );
+}
+
+// "Aug 2026" from the collection date (an ISO string from the API).
+function collected(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 }
 
 function RoleCard({
@@ -176,14 +183,20 @@ function RoleCard({
         <Button variant="subtle" size="sm" onClick={() => onOpenDsa(role.companyId)}>
           <Code2 size={15} aria-hidden /> Practise {role.companyName}’s DSA questions
         </Button>
-        <a
-          href={role.sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-content-muted transition-colors hover:text-content"
-        >
-          Source <ExternalLink size={12} aria-hidden />
-        </a>
+        {/* The link is the company's careers page: where the team looked, not an
+            official skill list. Said plainly, with when it was collected. */}
+        <p className="text-xs text-content-muted">
+          Team-curated ·{' '}
+          <a
+            href={role.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 underline decoration-line-strong underline-offset-2 transition-colors hover:text-content"
+          >
+            {role.companyName} careers <ExternalLink size={12} aria-hidden />
+          </a>{' '}
+          · {collected(role.collectedOn)}
+        </p>
       </div>
     </GlassCard>
   );

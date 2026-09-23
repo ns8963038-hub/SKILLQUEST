@@ -57,7 +57,7 @@ export function DashboardScreen({
   onGiveFeedback?: () => void;
 }) {
   const dash = useApi<DashboardData>('/api/dashboard');
-  const roadmap = useApi<{ nodes?: RoadmapNode[] }>('/api/roadmap');
+  const roadmap = useApi<{ nodes?: RoadmapNode[]; testedOut?: string[] }>('/api/roadmap');
   // Nova thinks while the briefing "loads", talks while it types, then idles.
   const [novaMood, setNovaMood] = useState<NovaMood>('thinking');
 
@@ -68,7 +68,8 @@ export function DashboardScreen({
   const quest = data.currentQuest;
   const planNodes = roadmap.data?.nodes;
   const nodes = Array.isArray(planNodes) && planNodes.length > 0 ? planNodes : null;
-  const plan = nodes ? summarizePlan(nodes) : null;
+  const testedOut = roadmap.data?.testedOut;
+  const plan = nodes ? summarizePlan(nodes, testedOut) : null;
   const briefing = buildBriefing(data, plan);
   const levelProgress = data.xpForNextLevel > 0 ? data.xpIntoLevel / data.xpForNextLevel : 0;
 
@@ -188,6 +189,7 @@ export function DashboardScreen({
             {nodes ? (
               <Constellation
                 nodes={nodes}
+                testedOut={testedOut}
                 compact
                 onSelectSkill={(id) => (onOpenSkill ? onOpenSkill(id) : onContinue(`${id}-01`))}
               />
@@ -302,7 +304,7 @@ export function DashboardScreen({
           tone="ion"
           eyebrow="Placement readiness"
           title="See your coverage for Infosys, TCS & more"
-          body="Tracked-skill coverage of each company’s published requirements — and the exact skills to close the gap."
+          body="How much of each company’s requirement list (curated by our team from public job information) you cover — and the exact skills to close the gap."
           onClick={onViewPlacement}
         />
         <ActionCard

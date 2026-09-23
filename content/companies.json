@@ -1,5 +1,5 @@
 {
-  "//": "Company role profiles for placement readiness (F6). Each role lists the TRACKED skills it needs (mapped to our skill ids, weighted) plus externalRequirements SkillQuest doesn't teach (SQL, OS...). Weights + jdPhrase come from public JDs; sourceUrl + collectedOn make each score citable. ALL skillIds must exist in skills.json.",
+  "//": "Company role profiles for placement readiness (F6). Each role lists the TRACKED skills it needs (mapped to our skill ids, weighted) plus externalRequirements SkillQuest doesn't teach (SQL, OS...). Curated by the team from public job information: weights + jdPhrase are the team's reading of it. sourceUrl is the company careers page where the team looked (NOT an official skill list); with collectedOn it records where and when. The UI labels these lists \"Team-curated\". ALL skillIds must exist in skills.json.",
   "//scoring": "Coverage = weighted % of a role's tracked skills the student has completed. externalRequirements are shown as gaps but excluded from the % (it's 'tracked-skill coverage').",
   "companies": [
     {

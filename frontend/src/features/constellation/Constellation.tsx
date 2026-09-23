@@ -17,7 +17,7 @@ import { MASTERY_THRESHOLD } from '../tutor/bkt';
 // =============================================================================
 
 type StarKind = 'done' | 'frontier' | 'open' | 'locked';
-type StarStatus = SkillStatus | 'tested-out';
+type StarStatus = SkillStatus | 'tested-out' | 'optional';
 
 interface Star extends PositionedSkill {
   kind: StarKind;
@@ -32,6 +32,7 @@ const STATUS_TEXT: Record<StarStatus, string> = {
   available: 'Unlocked',
   locked: 'Locked — finish its prerequisites first',
   'tested-out': 'Tested out in the placement quiz',
+  optional: 'Not in your plan — optional for your goal',
 };
 
 // Drawing-only fallback when the API hasn't sent a mastery estimate. It shapes the
@@ -52,12 +53,17 @@ const W = 1000; // viewBox width
 const COLUMNS = Math.max(...computeDepths(SKILL_GRAPH).values()) + 1;
 const MIN_WIDTH_PX = { compact: Math.max(640, COLUMNS * 64), full: Math.max(880, COLUMNS * 84) };
 
-// Merge the static skill graph with the student's plan. Graph skills missing from
-// the plan were tested out during onboarding, so they're drawn as known.
-export function buildStars(nodes: RoadmapNode[], height: number): Star[] {
+// Merge the static skill graph with the student's plan. A graph skill missing
+// from the plan was either tested out in the quiz (drawn as known) or dropped
+// because the student's goal doesn't need it (drawn dim, labelled optional).
+// `testedOut` is the list the API sends; without it (the sign-in preview), every
+// missing skill is taken to be tested out.
+export function buildStars(nodes: RoadmapNode[], height: number, testedOut?: string[]): Star[] {
   const plan = new Map(nodes.map((n) => [n.skillId, n]));
+  const known = testedOut ? new Set(testedOut) : null;
   return layoutGraph(SKILL_GRAPH, W, height).map((s): Star => {
     const node = plan.get(s.id);
+    if (!node && known && !known.has(s.id)) return { ...s, kind: 'locked', status: 'optional', mastery: 0, masteryKnown: false };
     if (!node) return { ...s, kind: 'done', status: 'tested-out', mastery: 1, masteryKnown: false };
     const kind: StarKind =
       node.status === 'completed'
@@ -107,11 +113,13 @@ function tooltipPosition(s: Star, height: number): CSSProperties {
 
 export function Constellation({
   nodes,
+  testedOut,
   compact = false,
   onSelectSkill,
   className,
 }: {
   nodes: RoadmapNode[];
+  testedOut?: string[]; // skills the placement quiz showed they know (from GET /api/roadmap)
   compact?: boolean; // dashboard preview: shorter, fewer labels
   onSelectSkill?: (skillId: string) => void;
   className?: string;
@@ -121,7 +129,7 @@ export function Constellation({
   const reduce = useReducedMotion();
   const [active, setActive] = useState<string | null>(null);
 
-  const stars = useMemo(() => buildStars(nodes, H), [nodes, H]);
+  const stars = useMemo(() => buildStars(nodes, H, testedOut), [nodes, H, testedOut]);
   const byId = useMemo(() => new Map(stars.map((s) => [s.id, s])), [stars]);
 
   // One smooth S-curve per prerequisite link. Links between mastered skills are

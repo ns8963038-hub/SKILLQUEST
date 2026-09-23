@@ -822,7 +822,11 @@ export async function demoApi<T>(
       currentConsentVersion: 'v1-2026-09',
     });
   if (path === '/api/dashboard') return as<T>(dashboard());
-  if (path === '/api/roadmap') return as<T>({ nodes: roadmapNodes() });
+  if (path === '/api/roadmap')
+    return as<T>({
+      nodes: roadmapNodes(),
+      testedOut: SKILL_GRAPH.filter((s) => state.skills[s.id]?.status === 'tested-out').map((s) => s.id),
+    });
   if (path === '/api/placement') return as<T>({ roles: placementRoles() });
   if (path === '/api/onboarding/complete' && method === 'POST') return as<T>({ ok: true });
   if (path === '/api/consent' && method === 'POST') {

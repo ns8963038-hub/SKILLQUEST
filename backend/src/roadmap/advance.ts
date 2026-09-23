@@ -1,4 +1,5 @@
 import { prisma } from '../db';
+import { completedSkillIds } from '../progress/skills';
 
 // Advance a student's roadmap after they finish something: recompute each node's
 // status so completed skills show 'completed', the first unfinished one is
@@ -6,7 +7,7 @@ import { prisma } from '../db';
 // 'locked'. Idempotent — safe to call after every completion.
 //
 // A skill counts as completed when the student has completed ALL of its
-// published levels (most skills have one, `<skillId>-01`).
+// published levels — the one definition in progress/skills.ts.
 export async function advanceRoadmap(userId: string): Promise<void> {
   const roadmap = await prisma.roadmap.findFirst({
     where: { userId, isActive: true },
@@ -14,18 +15,12 @@ export async function advanceRoadmap(userId: string): Promise<void> {
   });
   if (!roadmap || roadmap.items.length === 0) return;
 
-  // Published levels for the roadmap's skills, grouped by skill.
+  // Published levels for the roadmap's skills.
   const skillIds = roadmap.items.map((i) => i.skillId);
   const levels = await prisma.level.findMany({
     where: { skillId: { in: skillIds }, published: true },
     select: { id: true, skillId: true },
   });
-  const levelsBySkill = new Map<string, string[]>();
-  for (const l of levels) {
-    const arr = levelsBySkill.get(l.skillId) ?? [];
-    arr.push(l.id);
-    levelsBySkill.set(l.skillId, arr);
-  }
 
   // Which of those levels the student has completed.
   const completedRows = await prisma.userLevel.findMany({
@@ -35,10 +30,8 @@ export async function advanceRoadmap(userId: string): Promise<void> {
   const completedLevels = new Set(completedRows.map((u) => u.levelId));
 
   // A skill is complete only if it has published levels and all are done.
-  const skillComplete = (skillId: string): boolean => {
-    const ids = levelsBySkill.get(skillId) ?? [];
-    return ids.length > 0 && ids.every((id) => completedLevels.has(id));
-  };
+  const complete = completedSkillIds(levels, completedLevels);
+  const skillComplete = (skillId: string): boolean => complete.has(skillId);
 
   // Recompute statuses in order; the first not-complete node becomes 'current'.
   let currentAssigned = false;

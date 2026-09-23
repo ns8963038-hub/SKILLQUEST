@@ -1,5 +1,6 @@
 import type { RequestParamHandler } from 'express';
 import { prisma } from '../db';
+import { isKnown, skillProgress } from './skills';
 
 // Which skills a student may open — enforced HERE, on the server.
 //
@@ -13,9 +14,9 @@ import { prisma } from '../db';
 // A skill is OPEN when:
 //   - it is on the student's active roadmap and is 'current' or 'completed'; or
 //   - it is NOT on the roadmap (tested out in the placement quiz, or not needed
-//     for their goal) and every one of its prerequisites is done — completed on
-//     the roadmap, or itself not on it. (The app counts a skill missing from the
-//     plan as known, so this matches what the student is shown.)
+//     for their goal) and every one of its prerequisites is done: completed on
+//     the roadmap, or KNOWN (tested out, or every level completed — the one
+//     definition in progress/skills.ts).
 // A student without a roadmap (onboarding not finished) has nothing open.
 
 export class SkillLockedError extends Error {
@@ -29,20 +30,17 @@ export class SkillLockedError extends Error {
 // edges — and return a function that answers for any skill. (The Placement
 // screen asks about several skills at once; the routes ask about one.)
 export async function openSkillChecker(userId: string): Promise<(skillId: string) => boolean> {
-  const [roadmap, edges] = await Promise.all([
+  const [roadmap, edges, progress] = await Promise.all([
     prisma.roadmap.findFirst({
       where: { userId, isActive: true },
       select: { items: { select: { skillId: true, status: true } } },
     }),
     prisma.skillPrerequisite.findMany({ select: { skillId: true, prereqId: true } }),
+    skillProgress(userId),
   ]);
   if (!roadmap) return () => false;
   const status = new Map(roadmap.items.map((i) => [i.skillId, i.status]));
-  // Done = completed on the roadmap, or not on it at all (tested out / not needed).
-  const done = (skillId: string) => {
-    const s = status.get(skillId);
-    return s === undefined || s === 'completed';
-  };
+  const done = (skillId: string) => status.get(skillId) === 'completed' || isKnown(progress, skillId);
 
   return (skillId) => {
     const own = status.get(skillId);
@@ -52,7 +50,16 @@ export async function openSkillChecker(userId: string): Promise<(skillId: string
   };
 }
 
+// One skill. The common case — a skill on the roadmap — needs one query; only a
+// skill off the plan needs the full rule.
 export async function skillIsOpen(userId: string, skillId: string): Promise<boolean> {
+  const roadmap = await prisma.roadmap.findFirst({
+    where: { userId, isActive: true },
+    select: { items: { where: { skillId }, select: { status: true } } },
+  });
+  if (!roadmap) return false;
+  const own = roadmap.items[0];
+  if (own) return own.status !== 'locked';
   return (await openSkillChecker(userId))(skillId);
 }
 

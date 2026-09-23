@@ -1,5 +1,6 @@
 import { prisma } from '../db';
 import { scoreRole } from './scoring';
+import { skillProgress } from '../progress/skills';
 
 // One role's placement result, ready for the UI.
 export interface PlacementRole {
@@ -17,12 +18,11 @@ export interface PlacementRole {
 // companies if they picked none). Recomputed fresh on each call, so it always
 // reflects the latest completed levels.
 export async function computePlacementForUser(userId: string): Promise<PlacementRole[]> {
-  // A skill is "covered" once the student completes any level in it.
-  const completed = await prisma.userLevel.findMany({
-    where: { userId, status: 'completed' },
-    select: { level: { select: { skillId: true } } },
-  });
-  const completedSkills = new Set(completed.map((u) => u.level.skillId));
+  // A skill is "covered" when the student KNOWS it (progress/skills.ts): every
+  // level completed — the same rule as the roadmap's "completed" — or tested out
+  // in the placement quiz.
+  const progress = await skillProgress(userId);
+  const knownSkills = new Set([...progress.completed, ...progress.testedOut]);
 
   // Score the student's chosen companies, or all of them if none chosen.
   const targets = await prisma.userTargetCompany.findMany({
@@ -42,7 +42,7 @@ export async function computePlacementForUser(userId: string): Promise<Placement
   return profiles
     .map((p) => {
       const result = scoreRole(
-        completedSkills,
+        knownSkills,
         p.skills.map((s) => ({ skillId: s.skillId, weight: s.weight, jdPhrase: s.jdPhrase })),
       );
       const titleOf = new Map(p.skills.map((s) => [s.skillId, s.skill.title]));

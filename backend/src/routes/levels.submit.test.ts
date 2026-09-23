@@ -61,7 +61,7 @@ const db = vi.hoisted(() => ({
   submission: { create: vi.fn() },
   event: { create: vi.fn() },
   // The lock check (progress/access.ts): loops is this student's current skill.
-  roadmap: { findFirst: vi.fn(async () => ({ items: [{ skillId: 'loops', status: 'current' }] })) },
+  roadmap: { findFirst: vi.fn(async () => ({ items: [{ skillId: 'loops', status: 'current' }] })) }, // the only skill asked about
   skillPrerequisite: { findMany: vi.fn(async () => []) },
   // The transaction runs its callback against the same fake.
   $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn(db)),

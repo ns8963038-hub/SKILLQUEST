@@ -6,7 +6,17 @@ import request from 'supertest';
 // current and arrays locked; every route that serves or records anything about
 // arrays must answer 403 — and must not run code, charge a hint or write a row.
 const db = vi.hoisted(() => ({
-  roadmap: { findFirst: vi.fn(async () => ({ items: [{ skillId: 'loops', status: 'current' }, { skillId: 'arrays', status: 'locked' }] })) },
+  // Honours the per-skill filter the lock check uses.
+  roadmap: {
+    findFirst: vi.fn(async (args: { select: { items?: { where?: { skillId: string } } } }) => {
+      const items = [
+        { skillId: 'loops', status: 'current' },
+        { skillId: 'arrays', status: 'locked' },
+      ];
+      const only = args.select.items?.where?.skillId;
+      return { items: only ? items.filter((i) => i.skillId === only) : items };
+    }),
+  },
   skillPrerequisite: { findMany: vi.fn(async () => []) },
   level: {
     findUnique: vi.fn(async ({ where }: { where: { id: string } }) =>

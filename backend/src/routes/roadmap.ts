@@ -4,6 +4,7 @@ import { asyncHandler } from '../http';
 import { logEvent } from '../events';
 import { levelProgressBySkill } from '../progress/levels';
 import { lessonStateBySkill } from '../lessons/progress';
+import { testedOutFrom } from '../progress/skills';
 
 export const roadmapRouter = Router();
 
@@ -29,7 +30,7 @@ roadmapRouter.get(
 
     if (!roadmap) {
       // No roadmap yet (onboarding not finished) — return an empty plan.
-      res.json({ nodes: [] });
+      res.json({ nodes: [], testedOut: [] });
       return;
     }
 
@@ -63,6 +64,9 @@ roadmapRouter.get(
     }));
 
     await logEvent(userId, 'roadmap_view');
-    res.json({ nodes });
+    // Skills the placement quiz showed they know. Stated explicitly: a skill can
+    // also be missing from the plan because their goal doesn't need it, and the
+    // screens must not call that "tested out".
+    res.json({ nodes, testedOut: testedOutFrom(roadmap.params) });
   }),
 );

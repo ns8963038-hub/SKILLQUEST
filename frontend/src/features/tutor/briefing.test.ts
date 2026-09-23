@@ -41,6 +41,18 @@ describe('summarizePlan', () => {
   });
 });
 
+describe('summarizePlan with the API’s tested-out list', () => {
+  it('counts only real test-outs as done, and leaves skills the goal dropped out of the total', () => {
+    // Plan: 3 skills (1 completed). Tested out: 1. The other 16 graph skills were
+    // dropped for this goal — they are neither done nor still to do.
+    const nodes = [node('loops', 'completed'), node('methods', 'current', 0.4), node('arrays', 'locked')];
+    const plan = summarizePlan(nodes, ['java-basics']);
+    expect(plan.testedOut).toBe(1);
+    expect(plan.completed).toBe(2);
+    expect(plan.total).toBe(4);
+  });
+});
+
 describe('buildBriefing', () => {
   it('quotes the tutor’s estimate and the solves still needed', () => {
     const plan = {

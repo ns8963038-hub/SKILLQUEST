@@ -19,7 +19,7 @@ Engineering students in tier 2–3 Indian colleges face three compounding proble
 2. **Passive learning → dropout** — self-paced video courses have very high abandonment rates; watching is not doing.
 3. **No placement visibility** — students discover their skill gaps only during placement season, when it is too late to fix them.
 
-SkillQuest addresses all three: it learns the student's goal at onboarding, teaches through interactive coding challenges instead of videos, flags disengagement early so it can intervene, and continuously shows how much of a company's published role requirements the student currently covers.
+SkillQuest addresses all three: it learns the student's goal at onboarding, teaches through interactive coding challenges instead of videos, flags disengagement early so it can intervene, and continuously shows how much of a company's role requirements (as curated by the team from public job information) the student currently covers.
 
 ## 2. Goals
 
@@ -98,9 +98,9 @@ Priority key: **P0** = must ship (project fails without it) · **P1** = should s
 - **Not claimed:** that the intervention reduces dropout. 20–30 students with no control group cannot support that, and the report says so explicitly.
 
 ### F6 — Placement Readiness Tracker (P0)
-- Company role profiles (Infosys, TCS, Wipro, Accenture, Cognizant) curated from **public job descriptions, each recorded with source URL, role title, location, collection date and profile version** — so every number in the report is traceable to a citable source and a date.
-- Score = **weighted coverage** of a role's required skills by the student's completed skills (deterministic arithmetic; embeddings assist the JD-phrase → skill mapping at ingestion, not at scoring time — TRD §6.4).
-- **Displayed as:** `Placement Readiness — 62% tracked-skill coverage`, with the standing subtitle *"Based on published requirements currently represented in SkillQuest. Not a hiring prediction."* The phrasing "You're 62% ready for Infosys" is **banned** from UI, report and viva — it implies a hiring probability we cannot support.
+- Company role profiles (Infosys, TCS, Wipro, Accenture, Cognizant) **curated by the team** from public job information, each recorded with source URL, role title, location, collection date and profile version, so every number in the report can be traced to where the team looked and when. The source URL is the company's careers page, **not an official skill list**, and the UI says "Team-curated" beside it.
+- Score = **weighted coverage** of a role's required skills by the skills the student **knows**: every level completed (the same rule as the roadmap's "completed") or tested out in the placement quiz (`backend/src/progress/skills.ts`) (deterministic arithmetic; embeddings assist the JD-phrase → skill mapping at ingestion, not at scoring time — TRD §6.4).
+- **Displayed as:** `Placement Readiness — 62% tracked-skill coverage`, with the standing subtitle *"Based on requirement lists our team put together from public job information, counting the skills SkillQuest teaches. Not a hiring prediction."* The phrasing "You're 62% ready for Infosys" is **banned** from UI, report and viva — it implies a hiring probability we cannot support.
 - **Gaps are shown in full, and classified:**
   - `Available now` — SkillQuest teaches it; renders a **"Train this →"** action deep-linking to the roadmap node.
   - `External / future track` — a genuine role requirement (e.g. SQL, OS fundamentals) that SkillQuest does not teach yet; shown as **information only, with no action button**.

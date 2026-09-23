@@ -4,22 +4,27 @@ import { solvesToMastery } from './bkt';
 
 // What the dashboard knows about the student's plan, summarised once.
 export interface PlanSummary {
-  total: number; // every skill in the graph
+  total: number; // the skills that count for this student: their plan plus what they tested out of
   completed: number; // skills finished (every level passed) + skills tested out in the quiz
   testedOut: number; // skills the placement quiz showed they already know
   frontier: RoadmapNode | null; // the skill they're working on now
   frontierMastery: number | null; // its BKT estimate, when the API provides one
 }
 
-// Summarise a roadmap. Skills in the graph but absent from the plan were tested
-// out during onboarding, so they count as known.
-export function summarizePlan(nodes: RoadmapNode[]): PlanSummary {
+// Summarise a roadmap. `testedOut` is the list GET /api/roadmap sends: skills the
+// quiz showed they know count as done. A skill left out because the student's
+// goal doesn't need it counts for nothing — neither done nor still to do.
+// (Without the list, e.g. in the offline demo, every skill missing from the plan
+// is taken to be tested out, as before.)
+export function summarizePlan(nodes: RoadmapNode[], testedOutList?: string[]): PlanSummary {
   const inPlan = new Set(nodes.map((n) => n.skillId));
-  const testedOut = SKILL_GRAPH.filter((s) => !inPlan.has(s.id)).length;
+  const testedOut = testedOutList
+    ? testedOutList.filter((id) => !inPlan.has(id)).length
+    : SKILL_GRAPH.filter((s) => !inPlan.has(s.id)).length;
   const finished = nodes.filter((n) => n.status === 'completed').length;
   const frontier = nodes.find((n) => n.status === 'current') ?? null;
   return {
-    total: SKILL_GRAPH.length,
+    total: testedOutList ? nodes.length + testedOut : SKILL_GRAPH.length,
     completed: finished + testedOut,
     testedOut,
     frontier,

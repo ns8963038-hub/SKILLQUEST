@@ -13,10 +13,11 @@ import { Chip, ErrorState, GlassCard, PageHeader, Skeleton, rise, stagger } from
 // screen-reader-friendly companion to the star map. Selecting a skill opens its
 // next unfinished level.
 export function RoadmapScreen({ onOpenSkill }: { onOpenSkill: (skillId: string) => void }) {
-  const { data, error, reload } = useApi<{ nodes: RoadmapNode[] }>('/api/roadmap');
+  const { data, error, reload } = useApi<{ nodes: RoadmapNode[]; testedOut?: string[] }>('/api/roadmap');
   const nodes = data?.nodes ?? null;
+  const testedOut = data?.testedOut;
 
-  const plan = useMemo(() => (nodes && nodes.length > 0 ? summarizePlan(nodes) : null), [nodes]);
+  const plan = useMemo(() => (nodes && nodes.length > 0 ? summarizePlan(nodes, testedOut) : null), [nodes, testedOut]);
 
   // Group the plan by week, in order.
   const weeks = useMemo(() => {
@@ -70,7 +71,7 @@ export function RoadmapScreen({ onOpenSkill }: { onOpenSkill: (skillId: string) 
           <motion.div variants={rise}>
             <GlassCard edge className="overflow-hidden p-4 sm:p-6">
               <div className="dot-grid rounded-2xl">
-                <Constellation nodes={nodes} onSelectSkill={onOpenSkill} />
+                <Constellation nodes={nodes} testedOut={testedOut} onSelectSkill={onOpenSkill} />
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 px-1">
                 <ConstellationLegend />
