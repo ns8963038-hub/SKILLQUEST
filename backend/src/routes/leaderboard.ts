@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../db';
 import { asyncHandler } from '../http';
 import { rankLeaderboard, xpFromEvents } from '../gamification/leaderboard';
+import { checkDisplayName } from '../gamification/displayName';
 
 export const leaderboardRouter = Router();
 
@@ -41,7 +42,9 @@ leaderboardRouter.get(
 
     const entries = players.map((p) => ({
       userId: p.id,
-      name: p.fullName,
+      // A name saved before names were checked, and that fails the check now,
+      // shows as the anonymous handle instead.
+      name: p.fullName && checkDisplayName(p.fullName).ok ? p.fullName : null,
       xp: xp.get(p.id) ?? 0,
       optOut: p.leaderboardOptOut,
     }));

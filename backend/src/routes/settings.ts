@@ -7,6 +7,7 @@ import { generateRoadmap, mapGoal } from '../aiClient';
 import { advanceRoadmap } from '../roadmap/advance';
 import { CONSENT_VERSION } from '../research/consent';
 import { assignParticipantCode } from '../research/participants';
+import { checkDisplayName } from '../gamification/displayName';
 
 export const settingsRouter = Router();
 
@@ -51,7 +52,7 @@ settingsRouter.get(
 );
 
 const SettingsBody = z.object({
-  displayName: z.string().trim().max(40).nullable().optional(), // shown on the leaderboard
+  displayName: z.string().trim().max(60).nullable().optional(), // shown on the leaderboard; checked below
   hoursPerWeek: z.number().int().min(1).max(40).optional(),
   goalText: z.string().max(500).optional(),
   targetCompanies: z.array(z.string()).optional(),
@@ -67,6 +68,17 @@ settingsRouter.put(
   asyncHandler(async (req, res) => {
     const userId = req.userId!;
     const input = SettingsBody.parse(req.body);
+
+    // The leaderboard name is seen by the whole batch: refuse abuse, odd
+    // characters and names that pass as the team (gamification/displayName.ts).
+    if (input.displayName) {
+      const check = checkDisplayName(input.displayName);
+      if (!check.ok) {
+        res.status(400).json({ error: 'display_name', message: check.reason });
+        return;
+      }
+      input.displayName = check.name;
+    }
 
     const profile = await prisma.profile.findUniqueOrThrow({
       where: { id: userId },

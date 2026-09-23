@@ -52,3 +52,17 @@ describe('PUT /api/settings research participation', () => {
     expect(participants.assignParticipantCode).not.toHaveBeenCalled();
   });
 });
+
+describe('PUT /api/settings display name', () => {
+  it('refuses a name the whole batch shouldn’t see, and saves nothing', async () => {
+    const res = await request(app()).put('/api/settings').send({ displayName: 'Big Sh1t' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('display_name');
+    expect(db.profile.update).not.toHaveBeenCalled();
+  });
+
+  it('saves an ordinary name, tidied', async () => {
+    await request(app()).put('/api/settings').send({ displayName: '  Asha   R ' });
+    expect(db.profile.update.mock.calls[0]![0].data.fullName).toBe('Asha R');
+  });
+});

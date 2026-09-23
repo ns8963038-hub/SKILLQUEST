@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { CalendarClock, Check, Lock, Sparkles, Target, User } from 'lucide-react';
-import { api } from '../lib/api';
+import { ApiError, api } from '../lib/api';
 import { isAiWaking, retryWhileAiWakes } from '../lib/aiWake';
 import { invalidate, useApi } from '../lib/useApi';
 import { deviceWantsReducedMotion, useMotionPref } from '../lib/motionPref';
@@ -101,7 +101,10 @@ export function SettingsScreen() {
         tone: 'rose',
         text: isAiWaking(err)
           ? "The AI tutor didn't wake up in time, so nothing was changed. Please save again in a minute."
-          : 'Could not save. Check your connection and try again.',
+          : err instanceof ApiError && err.status === 400
+            ? // The only 400 a valid form can get: the server refused the display name.
+              'That display name isn’t allowed. Use up to 24 letters, numbers, spaces and . \' - — nothing offensive, and nothing that looks like the SkillQuest team.'
+            : 'Could not save. Check your connection and try again.',
       });
     } finally {
       setSaving(false);
@@ -130,7 +133,7 @@ export function SettingsScreen() {
             <input
               id="display-name"
               className={inputClass}
-              maxLength={40}
+              maxLength={24}
               value={form.displayName ?? ''}
               onChange={(e) => update({ displayName: e.target.value })}
               placeholder="Shown on the leaderboard — leave blank to stay anonymous"
@@ -169,6 +172,7 @@ export function SettingsScreen() {
               rows={3}
               className={cn(inputClass, 'min-h-[96px] py-3 leading-relaxed')}
               value={form.goalText}
+              maxLength={500}
               onChange={(e) => update({ goalText: e.target.value })}
               placeholder="e.g. Crack the Infosys and TCS coding rounds"
             />
