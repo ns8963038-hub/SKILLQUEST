@@ -75,7 +75,7 @@ real inputs: all junk → neutral plan; three very short real goals also → neu
 
 ## Verified
 
-Backend 178 tests, frontend 121, AI service 25 (+25 with the real model: all
+Backend 180 tests, frontend 123, AI service 25 (+25 with the real model: all
 junk inputs neutral, 9/9 real goals exact). All 57 levels and 20 lessons
 compiled and run on a JVM; the 12 quiz programs print exactly their answers;
 course order clean (now including prose). All 9 migrations applied to a fresh
