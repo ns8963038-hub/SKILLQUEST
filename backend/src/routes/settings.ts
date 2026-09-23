@@ -6,6 +6,7 @@ import { logEvent } from '../events';
 import { generateRoadmap, mapGoal } from '../aiClient';
 import { advanceRoadmap } from '../roadmap/advance';
 import { CONSENT_VERSION } from '../research/consent';
+import { assignParticipantCode } from '../research/participants';
 
 export const settingsRouter = Router();
 
@@ -93,6 +94,10 @@ settingsRouter.put(
       ? previous.testedOut.filter((s): s is string => typeof s === 'string')
       : [];
     const items = replan ? await generateRoadmap({ goalCategory, hoursPerWeek, testedOut }) : [];
+
+    // Rejoining the research: give them a participant code first, as the consent
+    // screen does (a consent recorded without one would leave them out of exports).
+    if (input.researchParticipation === true) await assignParticipantCode(userId);
 
     const validCompanies = input.targetCompanies
       ? await prisma.company.findMany({ where: { id: { in: input.targetCompanies } }, select: { id: true } })
