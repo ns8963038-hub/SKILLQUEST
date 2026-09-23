@@ -8,6 +8,9 @@ import { gradeQuiz, publicQuestion, skillLevelFromScore } from '../onboarding/qu
 
 export const onboardingRouter = Router();
 
+// Thrown inside the transaction when another request finished onboarding first.
+class AlreadyOnboarded extends Error {}
+
 // The published quiz questions, in the order the quiz shows them.
 const loadQuiz = () =>
   prisma.quizQuestion.findMany({ where: { published: true }, orderBy: { ordinal: 'asc' } });
@@ -52,7 +55,10 @@ onboardingRouter.post(
     // Onboarding happens once. Running it again would build a fresh roadmap with
     // only its first skill open (finished skills showing as locked) and store the
     // quiz answers twice. Weekly hours and the goal are changed in Settings.
-    const profile = await prisma.profile.findUnique({ where: { id: userId }, select: { onboardingStep: true } });
+    const profile = await prisma.profile.findUnique({
+      where: { id: userId },
+      select: { onboardingStep: true },
+    });
     if (profile && profile.onboardingStep >= 5) {
       res.status(409).json({ error: 'already_onboarded' });
       return;
@@ -83,61 +89,83 @@ onboardingRouter.post(
 
     // 3) Persist profile answers, quiz attempts, target companies, and the new
     //    roadmap — all in ONE transaction, so a failure leaves nothing half-done.
-    await prisma.$transaction(async (tx) => {
-      await tx.profile.update({
-        where: { id: userId },
-        data: {
-          branch: input.branch,
-          year: input.year,
-          skillLevel: skillLevelFromScore(quiz.totalCorrect, questions.length),
-          hoursPerWeek: input.hoursPerWeek,
-          goalText: input.goalText,
-          goalCategory,
-          onboardingStep: 5, // 5 = complete
-        },
-      });
-
-      // Replace the target-company set.
-      await tx.userTargetCompany.deleteMany({ where: { userId } });
-      if (validCompanies.length) {
-        await tx.userTargetCompany.createMany({
-          data: validCompanies.map((c) => ({ userId, companyId: c.id })),
-          skipDuplicates: true,
+    //    The FIRST write claims onboarding: it only matches a profile that isn't
+    //    onboarded yet. If two requests race past the check above (a true double
+    //    submit), the second one's claim waits for the first to commit, then
+    //    matches nothing — and its whole transaction rolls back (409).
+    try {
+      await prisma.$transaction(async (tx) => {
+        const claimed = await tx.profile.updateMany({
+          where: { id: userId, onboardingStep: { lt: 5 } },
+          data: {
+            branch: input.branch,
+            year: input.year,
+            skillLevel: skillLevelFromScore(quiz.totalCorrect, questions.length),
+            hoursPerWeek: input.hoursPerWeek,
+            goalText: input.goalText,
+            goalCategory,
+            onboardingStep: 5, // 5 = complete
+          },
         });
-      }
+        if (claimed.count !== 1) throw new AlreadyOnboarded();
 
-      // Store the quiz answers (evidence for the report + reproducible test-out).
-      if (quiz.attempts.length) {
-        await tx.quizAttempt.createMany({
-          data: quiz.attempts.map((q) => ({ userId, ...q })),
+        // Replace the target-company set.
+        await tx.userTargetCompany.deleteMany({ where: { userId } });
+        if (validCompanies.length) {
+          await tx.userTargetCompany.createMany({
+            data: validCompanies.map((c) => ({ userId, companyId: c.id })),
+            skipDuplicates: true,
+          });
+        }
+
+        // Store the quiz answers (evidence for the report + reproducible test-out).
+        if (quiz.attempts.length) {
+          await tx.quizAttempt.createMany({
+            data: quiz.attempts.map((q) => ({ userId, ...q })),
+          });
+        }
+
+        // Deactivate any previous roadmap, then insert the new one and its items.
+        await tx.roadmap.updateMany({
+          where: { userId, isActive: true },
+          data: { isActive: false },
         });
+        const roadmap = await tx.roadmap.create({
+          data: {
+            userId,
+            isActive: true,
+            params: { goalCategory, hoursPerWeek: input.hoursPerWeek, testedOut: quiz.testedOut },
+          },
+        });
+        // Start the student on the very first skill; everything else is locked
+        // until they progress (real unlock logic arrives with the game in M2).
+        await tx.roadmapItem.createMany({
+          data: items.map((it, idx) => ({
+            roadmapId: roadmap.id,
+            skillId: it.skillId,
+            weekNumber: it.weekNumber,
+            position: it.position,
+            status: idx === 0 ? ('current' as const) : ('locked' as const),
+          })),
+        });
+      });
+    } catch (err) {
+      if (err instanceof AlreadyOnboarded) {
+        res.status(409).json({ error: 'already_onboarded' });
+        return;
       }
-
-      // Deactivate any previous roadmap, then insert the new one and its items.
-      await tx.roadmap.updateMany({ where: { userId, isActive: true }, data: { isActive: false } });
-      const roadmap = await tx.roadmap.create({
-        data: {
-          userId,
-          isActive: true,
-          params: { goalCategory, hoursPerWeek: input.hoursPerWeek, testedOut: quiz.testedOut },
-        },
-      });
-      // Start the student on the very first skill; everything else is locked
-      // until they progress (real unlock logic arrives with the game in M2).
-      await tx.roadmapItem.createMany({
-        data: items.map((it, idx) => ({
-          roadmapId: roadmap.id,
-          skillId: it.skillId,
-          weekNumber: it.weekNumber,
-          position: it.position,
-          status: idx === 0 ? ('current' as const) : ('locked' as const),
-        })),
-      });
-    });
+      throw err;
+    }
 
     await logEvent(userId, 'onboarding_step', { step: 5, goalCategory });
 
     const totalWeeks = items.length ? Math.max(...items.map((i) => i.weekNumber)) : 0;
-    res.json({ ok: true, goalCategory, skills: items.length, weeks: totalWeeks, testedOut: quiz.testedOut });
+    res.json({
+      ok: true,
+      goalCategory,
+      skills: items.length,
+      weeks: totalWeeks,
+      testedOut: quiz.testedOut,
+    });
   }),
 );

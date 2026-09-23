@@ -551,7 +551,11 @@ export function Constellation({
                   {activeStar.status === 'completed' &&
                     showsMastery(activeStar) &&
                     activeStar.mastery < MASTERY_THRESHOLD && (
-                      <p className="mt-1.5 text-[11px] text-ember">Practise more to raise the tutor&apos;s confidence.</p>
+                      // Practising a finished topic again can't move the estimate (only a
+                      // level's first submit counts), so say how it was judged instead.
+                      <p className="mt-1.5 text-[11px] text-content-muted">
+                        The tutor judged this topic from your first submits and lesson answers.
+                      </p>
                     )}
                   {unlocks.length > 0 && (
                     <p className="mt-1.5 text-[11px] text-content-muted">

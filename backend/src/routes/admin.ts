@@ -195,7 +195,9 @@ adminRouter.get(
         'current_streak',
       ];
       const scores = await prisma.dropoutScore.findMany({ where: { userId: { in: ids } }, orderBy: { scoredAt: 'asc' } });
-      header = ['participant', 'scored_at', 'window_start', 'window_end', 'model_version', 'feature_set_version', 'probability', 'tier', ...featureNames];
+      // risk_score: for the live rule it is days away ÷ 21 (capped at 1) — a score,
+      // not a probability, so it isn't called one (stored in the `probability` column).
+      header = ['participant', 'scored_at', 'window_start', 'window_end', 'model_version', 'feature_set_version', 'risk_score', 'tier', ...featureNames];
       rows = scores.map((s) => {
         const f = (s.features ?? {}) as Record<string, number>;
         return [

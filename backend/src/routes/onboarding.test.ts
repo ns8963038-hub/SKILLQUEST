@@ -20,7 +20,11 @@ const QUESTIONS = ['java-basics', 'java-basics', 'java-basics', 'loops', 'loops'
 const db = vi.hoisted(() => ({
   quizQuestion: { findMany: vi.fn() },
   company: { findMany: vi.fn(async () => []) },
-  profile: { update: vi.fn(), findUnique: vi.fn(async () => ({ onboardingStep: 1 })) },
+  profile: {
+    // The claim: this request finishes onboarding.
+    updateMany: vi.fn(async (_args: { where: unknown; data: Record<string, unknown> }) => ({ count: 1 })),
+    findUnique: vi.fn(async () => ({ onboardingStep: 1 })),
+  },
   userTargetCompany: { deleteMany: vi.fn(), createMany: vi.fn() },
   quizAttempt: { createMany: vi.fn() },
   roadmap: { updateMany: vi.fn(), create: vi.fn(async () => ({ id: 1 })) },
@@ -80,7 +84,7 @@ describe('POST /api/onboarding/complete', () => {
     expect(stored).toHaveLength(5);
     expect(stored.find((a: { questionId: string }) => a.questionId === 'q4').isCorrect).toBe(false);
     // 4 of 6 right = 0.67 of the quiz -> intermediate.
-    expect(db.profile.update.mock.calls[0]![0].data.skillLevel).toBe('intermediate');
+    expect(db.profile.updateMany.mock.calls[0]![0].data.skillLevel).toBe('intermediate');
   });
 
   it('ignores a request that claims test-outs and correct answers it did not earn', async () => {
@@ -98,7 +102,7 @@ describe('POST /api/onboarding/complete', () => {
     expect(db.quizAttempt.createMany.mock.calls[0]![0].data).toEqual([
       { userId: 'student-1', questionId: 'q3', questionVersion: 1, topicSkillId: 'loops', chosenOption: 0, isCorrect: false },
     ]);
-    expect(db.profile.update.mock.calls[0]![0].data.skillLevel).toBe('beginner');
+    expect(db.profile.updateMany.mock.calls[0]![0].data.skillLevel).toBe('beginner');
   });
 
   it('refuses to run a second time (409) and changes nothing', async () => {
@@ -108,6 +112,16 @@ describe('POST /api/onboarding/complete', () => {
     expect(res.body.error).toBe('already_onboarded');
     expect(ai.generateRoadmap).not.toHaveBeenCalled();
     expect(db.$transaction).not.toHaveBeenCalled(); // no second roadmap, no duplicate quiz answers
+  });
+
+  it('a double submit that races past the first check still builds only one roadmap', async () => {
+    // Both requests saw onboardingStep 1; this one's claim finds the first already committed.
+    db.profile.updateMany.mockResolvedValueOnce({ count: 0 });
+    const res = await request(app()).post('/api/onboarding/complete').send({ ...base, quizAnswers: { q0: 0 } });
+    expect(res.status).toBe(409);
+    expect(db.roadmap.create).not.toHaveBeenCalled(); // the transaction stopped at the claim
+    expect(db.quizAttempt.createMany).not.toHaveBeenCalled();
+    expect(db.profile.updateMany.mock.calls[0]![0].where).toEqual({ id: 'student-1', onboardingStep: { lt: 5 } });
   });
 
   it('rejects oversized input before doing anything', async () => {

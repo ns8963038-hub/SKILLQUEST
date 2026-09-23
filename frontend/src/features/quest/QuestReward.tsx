@@ -157,8 +157,8 @@ export function QuestReward({
             className="mt-6 rounded-2xl border border-ion/20 bg-ion-tint/60 p-4 text-left text-xs text-content-muted"
           >
             <span className="font-medium text-content">Tutor · {mastery.title}: {after}%.</span> The tutor learns from
-            your first submit on each level, so solving this one again doesn’t move the estimate. Solve the next level
-            first time to raise it.
+            your first submit on each level and your lesson answers, so solving this one again doesn’t move the
+            estimate.
           </motion.p>
         )}
         {mastery && counted && (

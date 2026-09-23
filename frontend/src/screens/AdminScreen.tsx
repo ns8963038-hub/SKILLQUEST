@@ -235,7 +235,8 @@ export function AdminScreen() {
           Students
         </h2>
         <p className="mt-1 text-sm text-content-muted">
-          Select a row to see the exact features, window and versions behind its prediction.
+          Select a row to see the exact features, window and versions behind its prediction. The risk score is
+          days since last practice ÷ 21 (capped at 1) — a score from the rule, not a probability.
         </p>
         {!students ? (
           <Skeleton className="mt-4 h-64 rounded-3xl" />
