@@ -48,4 +48,18 @@ describe('App, once signed in', () => {
     // the browser pokes it — a minute or more before onboarding needs it.
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(AI_HEALTH, expect.objectContaining({ mode: 'no-cors' })));
   });
+
+  it.each([
+    [401, /please sign in again/i],
+    [503, /the server is waking up/i],
+    [500, /something went wrong on our side/i],
+  ])('says what went wrong when the profile fails to load (%i)', async (status, message) => {
+    auth.session = { access_token: 'token' };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(new Response(null, { status }))),
+    );
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: message })).toBeInTheDocument();
+  });
 });

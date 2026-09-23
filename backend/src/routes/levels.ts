@@ -11,7 +11,7 @@ import { HINT_COST, applyHintCost } from '../gamification/hints';
 import { lessonComesFirst, lessonStateBySkill } from '../lessons/progress';
 import { advanceRoadmap } from '../roadmap/advance';
 import { computePlacementForUser } from '../placement/compute';
-import { nextLevelAfter, nextLevelInSkill } from '../progress/levels';
+import { firstUnfinishedInSkill, nextLevelAfter, nextLevelInSkill } from '../progress/levels';
 import { guardSkill, existingSkill, skillOfLevel } from '../progress/access';
 import { DEFAULT_BKT, bktUpdate, isMastered } from '../tutor/bkt';
 
@@ -157,16 +157,19 @@ levelsRouter.post(
 );
 
 // GET /api/skills/:skillId/next-level — what to open for a skill: its lesson if
-// the student hasn't done (or skipped) it yet, and otherwise the first level they
-// haven't completed, else the first (re-practice). Skills have several levels,
-// so the frontend asks here instead of assuming `<skill>-01`.
+// the student hasn't done (or skipped) it yet — unless they have already
+// finished every level, when the lesson is optional (replay it from the play
+// screen) — and otherwise the first level they haven't completed, else the first
+// (re-practice). Skills have several levels, so the frontend asks here instead
+// of assuming `<skill>-01`.
 levelsRouter.get(
   '/skills/:skillId/next-level',
   asyncHandler(async (req, res) => {
     const userId = req.userId!;
     const skillId = req.params.skillId ?? '';
-    const [levelId, lessons] = await Promise.all([
+    const [levelId, unfinished, lessons] = await Promise.all([
       nextLevelInSkill(userId, skillId),
+      firstUnfinishedInSkill(userId, skillId),
       lessonStateBySkill(userId, [skillId]),
     ]);
     const lesson = lessons.get(skillId) ?? 'none';
@@ -174,7 +177,8 @@ levelsRouter.get(
       res.status(404).json({ error: 'this skill has no levels yet' });
       return;
     }
-    res.json({ levelId, lesson, lessonFirst: lessonComesFirst(lesson) });
+    const finished = levelId !== null && unfinished === null;
+    res.json({ levelId, lesson, lessonFirst: lessonComesFirst(lesson) && !finished });
   }),
 );
 

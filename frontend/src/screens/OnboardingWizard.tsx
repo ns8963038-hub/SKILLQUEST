@@ -31,12 +31,14 @@ const GOAL_IDEAS = [
   'Build solid Java fundamentals first',
 ];
 
-// What the backend really does when onboarding completes, shown while it works.
+// What the backend really does when onboarding completes, in order, shown while
+// it works (routes/onboarding.ts, then the AI service's roadmap engine). Every
+// line is a real step — nothing here is decoration.
 const BUILD_STAGES = [
+  'Grading your quiz',
   'Understanding your goal',
-  'Ordering the skill graph by prerequisites',
   'Skipping what you already know',
-  'Calibrating your mastery model',
+  'Ordering your topics by what they build on',
 ];
 
 // A radio/checkbox "card": the real input is visually hidden but still focusable,

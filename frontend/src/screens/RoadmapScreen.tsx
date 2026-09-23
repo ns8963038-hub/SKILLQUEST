@@ -37,7 +37,7 @@ export function RoadmapScreen({ onOpenSkill }: { onOpenSkill: (skillId: string) 
             Your skill <span className="text-gradient-ion">constellation</span>
           </>
         }
-        description="The tutor’s live model of what you know. Lines are prerequisites; brightness is mastery. It re-plans as you learn — select any lit star to practise."
+        description="The tutor’s live model of what you know. Lines are prerequisites; brightness is mastery. Topics unlock as you finish the ones before them — select any lit star to practise."
         actions={
           plan && (
             <>
@@ -141,9 +141,10 @@ function PlanRow({ node, onPlay }: { node: RoadmapNode; onPlay: () => void }) {
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline justify-between gap-2">
             <span className="truncate text-sm font-medium">{node.title}</span>
-            {/* A lesson waiting to be done comes first (Learn mode); otherwise the
-                level progress inside the skill (skills have 2–3 levels). */}
-            {!locked && (node.lesson === 'new' || node.lesson === 'started') ? (
+            {/* A lesson waiting to be done comes first (Learn mode) — but not on a
+                skill already finished, where it's optional; otherwise the level
+                progress inside the skill (skills have 2–3 levels). */}
+            {!locked && node.status !== 'completed' && (node.lesson === 'new' || node.lesson === 'started') ? (
               <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] text-ion">
                 <BookOpen size={11} aria-hidden /> lesson first
               </span>

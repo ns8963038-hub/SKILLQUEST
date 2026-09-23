@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { ApiError, api } from './lib/api';
+import { appProblem, type AppProblem } from './lib/loadProblems';
 import { rememberAiWakeUrl, wakeAi } from './lib/aiWake';
 import { invalidate } from './lib/useApi';
 import { signOut } from './lib/session';
@@ -59,21 +60,42 @@ function Splash() {
   );
 }
 
-// Shown when signed in but the API can't be reached (e.g. the database is paused).
-// Never a blank or endless spinner: explain, retry, or explore the demo.
-function ServerUnavailable({ onRetry }: { onRetry: () => void }) {
+// Shown when signed in but the profile couldn't be loaded. Never a blank or
+// endless spinner, and it says what actually went wrong (lib/loadProblems.ts):
+// an expired sign-in, a server still waking up, or a real error.
+const PROBLEM_TEXT: Record<AppProblem['kind'], { title: string; body: string }> = {
+  signin: {
+    title: 'Please sign in again',
+    body: 'Your sign-in has expired. Nothing you have saved is affected — sign in again to carry on.',
+  },
+  waking: {
+    title: 'The server is waking up',
+    body: 'SkillQuest runs on free hosting that pauses when nobody is using it, and it takes about a minute to start (or your connection dropped). Nothing you have saved is affected — try again in a moment.',
+  },
+  server: {
+    title: 'Something went wrong on our side',
+    body: 'The server hit an error loading your profile. Nothing you have saved is affected. Try again — if it keeps happening, tell the SkillQuest team.',
+  },
+};
+
+function ServerUnavailable({ problem, onRetry }: { problem: AppProblem; onRetry: () => void }) {
+  const text = PROBLEM_TEXT[problem.kind];
   return (
     <div className="relative grid min-h-screen place-items-center p-4">
       <AmbientBackground intensity={0.6} />
       <div className="glass edge w-full max-w-md rounded-3xl p-8 text-center">
-        <Nova mood="sleepy" size={72} className="mx-auto" />
-        <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight">Your tutor can’t reach the server</h1>
+        <Nova mood={problem.kind === 'waking' ? 'sleepy' : 'concerned'} size={72} className="mx-auto" />
+        <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight">{text.title}</h1>
         <p className="mt-2 text-sm text-content-muted">
-          The free database naps when it’s idle and may still be waking up. Your progress is safe — try again in a
-          moment, or explore the demo meanwhile.
+          {text.body}
+          {problem.kind === 'server' && <span className="font-mono"> (error {problem.status})</span>}
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button onClick={onRetry}>Try again</Button>
+          {problem.kind === 'signin' ? (
+            <Button onClick={() => void signOut()}>Sign in again</Button>
+          ) : (
+            <Button onClick={onRetry}>Try again</Button>
+          )}
           <Button
             variant="ghost"
             onClick={() => {
@@ -106,7 +128,7 @@ function AppInner() {
   const { session, loading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [profileFailed, setProfileFailed] = useState(false);
+  const [profileProblem, setProfileProblem] = useState<AppProblem | null>(null); // why /api/me failed
   // Which signed-in screen is showing.
   const [view, setView] = useState<NavView>('dashboard');
   // Company to preselect on the DSA prep screen (when opened from placement).
@@ -121,7 +143,7 @@ function AppInner() {
   // Fetch (creating on first login) the profile whenever we have a session.
   const loadProfile = useCallback(async () => {
     setProfileLoading(true);
-    setProfileFailed(false);
+    setProfileProblem(null);
     try {
       const me = await api<Profile>('/api/me');
       // Start waking the AI tutor now (free tier), long before onboarding or a
@@ -129,8 +151,8 @@ function AppInner() {
       rememberAiWakeUrl(me.aiWakeUrl);
       wakeAi();
       setProfile(me);
-    } catch {
-      setProfileFailed(true);
+    } catch (err) {
+      setProfileProblem(appProblem(err));
     } finally {
       setProfileLoading(false);
     }
@@ -164,7 +186,7 @@ function AppInner() {
 
   if (loading) return <Splash />;
   if (!session) return <AuthScreen />;
-  if (profileFailed) return <ServerUnavailable onRetry={() => void loadProfile()} />;
+  if (profileProblem) return <ServerUnavailable problem={profileProblem} onRetry={() => void loadProfile()} />;
   if (profileLoading || !profile) return <Splash />;
   // Consent gate (Backend Schema §5.1): answered before any research data is
   // collected — agreeing or declining both continue into the app.

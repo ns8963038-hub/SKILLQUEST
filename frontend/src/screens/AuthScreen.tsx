@@ -147,9 +147,11 @@ export function AuthScreen() {
     <div className="relative min-h-screen overflow-hidden">
       <AmbientBackground />
 
-      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-10 sm:px-8 lg:grid-cols-[1.15fr_1fr]">
+      {/* minmax(0, …): the columns keep their share. Without it the pitch's wide
+          content stretched its column and squeezed the sign-in card to ~170px. */}
+      <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-10 sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         {/* ---- The pitch (desktop) ---- */}
-        <motion.section initial="hidden" animate="show" variants={stagger} className="hidden lg:block">
+        <motion.section initial="hidden" animate="show" variants={stagger} className="hidden min-w-0 lg:block">
           <motion.div variants={rise} className="flex items-center gap-3">
             <BrandMark size={36} />
             <span className="font-display text-xl font-semibold tracking-tight">SkillQuest</span>
@@ -157,16 +159,16 @@ export function AuthScreen() {
               AI Tutor
             </span>
           </motion.div>
-          <motion.h1 variants={rise} className="mt-10 font-display text-6xl font-semibold leading-[0.98] tracking-tight">
+          <motion.h1 variants={rise} className="mt-10 font-display text-5xl font-semibold leading-[0.98] tracking-tight xl:text-6xl">
             An AI tutor that knows <span className="text-gradient-ion">what you know.</span>
           </motion.h1>
           <motion.p variants={rise} className="mt-5 max-w-lg text-lg leading-relaxed text-content-muted">
-            SkillQuest re-estimates your mastery of every Java &amp; DSA skill from your first try at each level, then plans the
-            shortest path to placement-ready.
+            SkillQuest keeps a mastery estimate for each Java &amp; DSA topic, updated from your first try at each level,
+            and orders your topics by what they build on and your placement goal.
           </motion.p>
           <motion.div variants={rise} className="glass mt-9 overflow-hidden rounded-3xl p-3" aria-hidden>
             <div className="dot-grid pointer-events-none rounded-2xl">
-              <Constellation nodes={PREVIEW_NODES} compact />
+              <Constellation nodes={PREVIEW_NODES} compact fit />
             </div>
           </motion.div>
           <motion.ul variants={rise} className="mt-7 grid grid-cols-3 gap-5">
