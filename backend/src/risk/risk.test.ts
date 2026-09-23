@@ -53,8 +53,16 @@ describe('what counts as practice', () => {
 });
 
 describe('featuresFromPractice', () => {
-  it('measures absence from the last practice, and the whole window if there was none', () => {
+  it('measures absence from the last practice', () => {
     expect(featuresFromPractice([], daysAgo(14), [], END, 28).days_since_last_activity).toBe(14);
+  });
+
+  it('counts a student who has never practised from when they started, not as 28 days away', () => {
+    // Joined 2 days ago, not practised yet: 2 days away (healthy), not "at risk".
+    expect(featuresFromPractice([], null, [], END, 28, daysAgo(2)).days_since_last_activity).toBe(2);
+    // Joined long ago and never practised: capped at the window.
+    expect(featuresFromPractice([], null, [], END, 28, daysAgo(90)).days_since_last_activity).toBe(28);
+    // No start date known: the whole window, as before.
     expect(featuresFromPractice([], null, [], END, 28).days_since_last_activity).toBe(28);
   });
 

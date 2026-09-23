@@ -1,9 +1,10 @@
 import { prisma } from '../db';
 
 // Compute the disengagement-risk feature row for one student (TRD 6.3.7).
-// Feature set fs-v3: "activity" is practice only (graded submissions and lesson
+// Feature set fs-v4: "activity" is practice only (graded submissions and lesson
 // answers), and every feature — scores included — is computed strictly inside
-// the observation window. The live scorer uses days_since_last_activity (the
+// the observation window; a student who has never practised counts as away
+// since they started, not for the whole window (fs-v3 lacked that last part). The live scorer uses days_since_last_activity (the
 // rule, ai-service/app/risk.py); the full row is stored for the report.
 
 const DAY_MS = 86_400_000;
@@ -61,6 +62,7 @@ export interface GradedAttempt {
  *   activity       timestamps of practice events INSIDE the window
  *   lastPractice   the latest practice event before the window end, or null
  *   attempts       graded level attempts INSIDE the window
+ *   startedAt      when the student's first plan was made (onboarding), or null
  *
  * Every feature is computed inside the observation window — including the
  * scores, so a student who leaves does not keep their old good scores forever.
@@ -71,6 +73,7 @@ export function featuresFromPractice(
   attempts: GradedAttempt[],
   windowEnd: Date,
   windowDays: number,
+  startedAt: Date | null = null,
 ): RiskFeatures {
   // Distinct practice days.
   const days = [...new Set(activity.map(utcDay))].sort((a, b) => a - b);
@@ -89,10 +92,15 @@ export function featuresFromPractice(
   const activity_trend = activity.length - firstHalf - firstHalf;
 
   // Days since the last practice before the window end (never anything after it
-  // — the same no-leakage rule as training). Never practised: the whole window.
+  // — the same no-leakage rule as training). Never practised: days since they
+  // started (onboarding), at most the window — a student who joined yesterday
+  // has been away one day, not 28. (Without a start date: the whole window.)
+  const daysSince = (from: Date) => Math.max(0, Math.floor((windowEnd.getTime() - from.getTime()) / DAY_MS));
   const days_since_last_activity = lastPractice
-    ? Math.floor((windowEnd.getTime() - lastPractice.getTime()) / DAY_MS)
-    : windowDays;
+    ? daysSince(lastPractice)
+    : startedAt
+      ? Math.min(windowDays, daysSince(startedAt))
+      : windowDays;
 
   // Scores from the levels worked on inside the window: the share passed, and
   // the average of each level's best result.
@@ -123,7 +131,7 @@ export async function computeRiskFeatures(
   const windowStart = new Date(windowEnd.getTime() - windowDays * DAY_MS);
   const practice = { userId, type: { in: [...ACTIVE_EVENT_TYPES] } };
 
-  const [inWindow, last, attempts] = await Promise.all([
+  const [inWindow, last, attempts, firstPlan] = await Promise.all([
     prisma.event.findMany({
       where: { ...practice, ts: { gte: windowStart, lt: windowEnd } },
       select: { ts: true },
@@ -138,6 +146,8 @@ export async function computeRiskFeatures(
       where: { userId, createdAt: { gte: windowStart, lt: windowEnd } },
       select: { levelId: true, passRatio: true, createdAt: true },
     }),
+    // When they started: their first plan (a re-plan in Settings never resets it).
+    prisma.roadmap.findFirst({ where: { userId }, orderBy: { generatedAt: 'asc' }, select: { generatedAt: true } }),
   ]);
 
   return featuresFromPractice(
@@ -146,5 +156,6 @@ export async function computeRiskFeatures(
     attempts.map((a) => ({ levelId: a.levelId, passRatio: a.passRatio, at: a.createdAt })),
     windowEnd,
     windowDays,
+    firstPlan?.generatedAt ?? null,
   );
 }

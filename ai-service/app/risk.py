@@ -50,9 +50,12 @@ ATRISK_DAYS = 14
 HORIZON_DAYS = 21  # the prediction horizon the score is expressed against
 RULE_VERSION = "rule-days-since-v1"
 RULE_THRESHOLDS = "thr-rule-7d-14d"
-# The app's feature row: activity now means level submissions and lesson
-# answers only, and scores are computed inside the 28-day window.
-FEATURE_SET = "fs-v3"
+# The app's feature row (computed in backend/src/risk/features.ts):
+#   fs-v3  practice = level submissions and lesson answers only; scores inside
+#          the 28-day window
+#   fs-v4  + a student who has never practised counts as away since they
+#          started (onboarding), not as away for the whole window
+FEATURE_SET = "fs-v4"
 
 
 def tier_from_probability(p: float, watch: float, atrisk: float) -> str:
@@ -108,14 +111,19 @@ def score_rule(features: dict) -> dict:
 
 
 def score_model(features: dict, model: dict) -> dict:
-    """The regression (experiment only): score one feature row with the exported model."""
+    """The regression (experiment only): score one feature row with the exported model.
+
+    The row is labelled with the feature set the APP computed (FEATURE_SET),
+    because that is what was scored. The model itself was trained on an older
+    definition (its own featureSetVersion, e.g. fs-v2); modelVersion identifies
+    it. Report that mismatch if this experiment is ever run live."""
     probability = _logistic(model, features)
     t = model["thresholds"]
     return {
         "probability": probability,
         "tier": tier_from_probability(probability, t["watch"], t["atrisk"]),
         "modelVersion": model["modelVersion"],
-        "featureSetVersion": model["featureSetVersion"],
+        "featureSetVersion": FEATURE_SET,
         "thresholdVersion": model["thresholdVersion"],
     }
 

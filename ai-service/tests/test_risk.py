@@ -4,6 +4,7 @@ import pytest
 
 from app.risk import (
     ATRISK_DAYS,
+    FEATURE_SET,
     FEATURE_ORDER,
     MODEL_PATH,
     WATCH_DAYS,
@@ -72,6 +73,8 @@ def test_score_is_the_absence_over_the_21_day_horizon_clamped():
 def test_the_regression_runs_only_when_asked_for(monkeypatch):
     monkeypatch.setenv("RISK_SCORER", "lr")
     assert score(row(25))["modelVersion"] == load_model()["modelVersion"]
+    # Labelled with the feature set the app computed, not the one the model was trained on.
+    assert score(row(25))["featureSetVersion"] == FEATURE_SET
     monkeypatch.setenv("RISK_SCORER", "rule")
     assert score(row(25))["modelVersion"] == "rule-days-since-v1"
 

@@ -33,12 +33,13 @@ export async function runWeeklyScoring(now: Date = new Date()): Promise<{
   const windowEndDate = utcDateOnly(now);
   const windowStartDate = utcDateOnly(new Date(now.getTime() - WINDOW_DAYS * DAY_MS));
 
-  // Only students who finished onboarding at least one full window ago. A newer
-  // student hasn't had 28 days to practise in, so any score would describe the
-  // calendar, not them (their first plan's date; a re-plan never resets it).
-  const cutoff = new Date(now.getTime() - WINDOW_DAYS * DAY_MS);
+  // Every student who has finished onboarding. (There used to be a 28-day wait:
+  // the old regression mis-scored new students, but the live rule only asks how
+  // long since they last practised — or since they started, if they haven't
+  // yet — which is fair from day one. The wait also meant nobody in a short
+  // study or a review demo could ever be scored.)
   const users = await prisma.profile.findMany({
-    where: { onboardingStep: { gte: 5 }, roadmaps: { some: { generatedAt: { lte: cutoff } } } },
+    where: { onboardingStep: { gte: 5 } },
     select: { id: true, riskTier: true },
   });
   let scored = 0;

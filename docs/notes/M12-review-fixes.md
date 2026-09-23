@@ -10,7 +10,7 @@ database, a throwaway local Postgres).
 
 | # | Area | Before | Now |
 |---|---|---|---|
-| 1 | Risk | The logistic regression ran live and flagged new students as at-risk, and students gone 2 weeks as healthy | The **days-since-last-practice rule** runs live (7 days watch, 14 at risk); "practice" = level submits and lesson answers only; students under 28 days aren't scored; each student scored separately |
+| 1 | Risk | The logistic regression ran live and flagged new students as at-risk, and students gone 2 weeks as healthy | The **days-since-last-practice rule** runs live (7 days watch, 14 at risk); "practice" = level submits and lesson answers only; every onboarded student is scored (one who hasn't practised yet counts from onboarding; the first version skipped students under 28 days, which meant nobody in a short study could ever be scored); each student scored separately |
 | 2 | Code runner | A Paiza failure counted as the student's wrong answer; no rate limits | Runner failure → 503, nothing recorded; 10 graded runs/min per student; at most 6 runs at once, queued up to 45 s; load-tested with 30 students |
 | 3 | Mastery | Every submit moved BKT, so one level submitted 3 times read "mastered" | **Run examples** (visible tests, recorded nowhere) + **Submit**; only a level's **first** submit updates mastery; untouched starter code is refused |
 | 4 | Quiz | Graded in the browser; the browser told the API what to skip; keyword questions | **Graded on the server** from a `quiz_questions` table; 12 "what does this print?" questions, each run on a real JVM in CI |

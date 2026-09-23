@@ -80,7 +80,7 @@ export function AdminScreen() {
     setNotice(null);
     try {
       const res = await api<{ scored: number; nudged: number; failed?: number }>('/api/admin/run-scoring', { method: 'POST' });
-      // Students with under 28 days since onboarding aren't scored yet (too new to judge).
+      // Every onboarded student is scored (a new one counts from when they started).
       setNotice(
         `Scored ${res.scored} students · ${res.nudged} new nudges` +
           (res.failed ? ` · ${res.failed} couldn't be scored (see the API log) — run it again.` : '.'),
