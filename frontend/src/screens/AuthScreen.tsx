@@ -22,7 +22,7 @@ const PREVIEW_NODES: RoadmapNode[] = SKILL_GRAPH.map((s, i) => ({
 }));
 
 const PROOF: { icon: LucideIcon; title: string; body: string }[] = [
-  { icon: Brain, title: 'Models your mastery', body: 'Bayesian Knowledge Tracing after every attempt' },
+  { icon: Brain, title: 'Models your mastery', body: 'Bayesian Knowledge Tracing on every first try' },
   { icon: Cpu, title: 'Runs real Java', body: 'Your code compiles and faces hidden tests' },
   { icon: Target, title: 'Placement-aware', body: 'Mapped to Infosys, TCS, Wipro & more' },
 ];
@@ -161,7 +161,7 @@ export function AuthScreen() {
             An AI tutor that knows <span className="text-gradient-ion">what you know.</span>
           </motion.h1>
           <motion.p variants={rise} className="mt-5 max-w-lg text-lg leading-relaxed text-content-muted">
-            SkillQuest re-estimates your mastery of every Java &amp; DSA skill after each attempt, then plans the
+            SkillQuest re-estimates your mastery of every Java &amp; DSA skill from your first try at each level, then plans the
             shortest path to placement-ready.
           </motion.p>
           <motion.div variants={rise} className="glass mt-9 overflow-hidden rounded-3xl p-3" aria-hidden>

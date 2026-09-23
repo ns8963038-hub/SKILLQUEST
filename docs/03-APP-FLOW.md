@@ -57,8 +57,12 @@ flowchart TD
     D[Dashboard or Roadmap] --> I[Level intro modal\ntitle, XP reward, concept tag]
     I --> G[S6 Game screen]
     G --> W[Student writes Java in Monaco]
-    W --> RUN[Run Tests]
-    RUN --> J{Judge0 verdict}
+    W --> EX[Run examples\nvisible tests only, recorded nowhere]
+    EX --> W
+    W --> RUN[Submit\nevery test, hidden included]
+    RUN -- untouched starter code --> REF[Refused: write a solution first\nnothing recorded]
+    REF --> W
+    RUN --> J{Runner verdict}
     J -- all pass --> XP[XP animation +50\nstreak update, badge check]
     XP --> N{Badge or level-up?}
     N -- yes --> POP[Badge popup]
@@ -73,7 +77,7 @@ flowchart TD
     CE --> W
 ```
 
-**Game screen (S6) layout:** left panel = problem statement, examples, constraints; right panel = Monaco (Java, dark theme) with starter code; bottom = Run Tests button + results drawer. Timer runs silently (analytics only — no visible countdown; time pressure kills learning).
+**Game screen (S6) layout:** left panel = problem statement, examples, constraints; right panel = Monaco (Java, dark theme) with starter code, results console below it. **Run examples** (Ctrl/⌘+Enter) and **Submit** sit in the top bar on desktop and in a bottom bar on phones. Only a level's first Submit updates the mastery estimate; Submit deliberately has no shortcut. Timer runs silently (analytics only — no visible countdown; time pressure kills learning).
 
 **States that must exist:** running (spinner on button, editor locked), Judge0 timeout/unavailable ("Our code runner is busy — try again in a minute", submission NOT counted), network lost (local draft of code kept in `localStorage` so work is never lost).
 

@@ -52,6 +52,10 @@ export interface MasteryUpdate {
   before: number; // 0..1
   after: number; // 0..1
   mastered: boolean; // crossed the mastery threshold
+  // Did this submit move the estimate? Only the FIRST graded submit on a level
+  // counts as evidence; re-solving a level leaves it where it was. (Absent from
+  // older responses, which always counted.)
+  counted?: boolean;
 }
 
 // The response from POST /api/levels/:id/submit.
@@ -66,4 +70,15 @@ export interface SubmitResult {
   cases: SubmitCase[];
   mastery?: MasteryUpdate; // present once the backend returns the BKT update
   nextLevelId?: string | null; // where "Next level" goes after a pass
+}
+
+// The response from POST /api/levels/:id/run ("Run examples"): the level's
+// VISIBLE tests only. The server records nothing for it — no attempt, no XP, no
+// mastery update, no streak.
+export interface ExampleRunResult {
+  mode: 'examples';
+  verdict: string;
+  passed: number;
+  total: number;
+  cases: SubmitCase[];
 }

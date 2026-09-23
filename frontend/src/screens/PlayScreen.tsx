@@ -1,19 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, BookOpen, Play, RotateCcw, Zap } from 'lucide-react';
+import { ArrowLeft, BookOpen, Play, RotateCcw, Send, Zap } from 'lucide-react';
 import { api } from '../lib/api';
 import { runProblemMessage } from '../lib/runProblems';
 import { invalidate } from '../lib/useApi';
 import { cn } from '../lib/cn';
+import { useMediaQuery } from '../lib/useMediaQuery';
 import { ProblemPanel } from '../features/play/ProblemPanel';
 import { ResultsPanel } from '../features/play/ResultsPanel';
 import { QuestReward } from '../features/quest/QuestReward';
-import type { HintResult, LevelView, SubmitResult } from '../features/play/types';
+import type { ExampleRunResult, HintResult, LevelView, SubmitResult } from '../features/play/types';
 import { AmbientBackground } from '../ui/AmbientBackground';
 import { Button, Chip, Skeleton } from '../ui/primitives';
 
 type Tab = 'problem' | 'code' | 'results';
+// The two ways to run code: the visible examples (recorded nowhere, run as often
+// as you like) or a graded submission (every test, hidden ones included).
+type RunMode = 'examples' | 'submit';
 const TABS: Tab[] = ['problem', 'code', 'results'];
 
 // Show the right shortcut for the student's keyboard.
@@ -59,8 +63,11 @@ const EDITOR_THEME = {
 
 // The play screen (S6) — a focused, full-screen "mission" view. Desktop: problem
 // on the left, editor + console on the right. Phone: Problem / Code / Results tabs.
-// Ctrl/Cmd+Enter runs the tests from anywhere. `onOpenLevel` lets the reward's
-// "Next level" button move straight on to the following level.
+// Two buttons: "Run examples" (Ctrl/Cmd+Enter, from anywhere) checks the visible
+// tests and records nothing; "Submit" runs every test and is what counts — and a
+// level's FIRST submit is what the tutor learns from. There is deliberately no
+// shortcut for Submit, so it is never pressed by accident. `onOpenLevel` lets the
+// reward's "Next level" button move straight on to the following level.
 export function PlayScreen({
   levelId,
   onBack,
@@ -75,14 +82,15 @@ export function PlayScreen({
   const [level, setLevel] = useState<LevelView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [code, setCode] = useState('');
-  const [running, setRunning] = useState(false);
+  const [running, setRunning] = useState<RunMode | null>(null); // which kind of run is in flight
   const [runError, setRunError] = useState<string | null>(null);
-  const [result, setResult] = useState<SubmitResult | null>(null);
+  const [result, setResult] = useState<SubmitResult | ExampleRunResult | null>(null);
   const [tab, setTab] = useState<Tab>('problem');
   const [showReward, setShowReward] = useState(false);
   const [revealing, setRevealing] = useState(false);
   const [hintError, setHintError] = useState<string | null>(null);
-  const runningRef = useRef(false); // guards against double submits (button + shortcut)
+  const runningRef = useRef(false); // guards against double runs (button + shortcut)
+  const isPhone = useMediaQuery('(max-width: 767px)'); // below Tailwind's md: the tabbed phone layout
 
   // Load the level, restoring any code the student left unsubmitted.
   useEffect(() => {
@@ -111,16 +119,26 @@ export function PlayScreen({
     }
   };
 
-  // Submit the code, show results, refresh XP/mastery everywhere, and open the
-  // vault on a full pass.
-  async function runTests() {
+  // Run the code one of two ways and show the results.
+  //   examples: the visible tests only; nothing is recorded, nothing refreshes.
+  //   submit:   every test; refresh XP/mastery everywhere and open the vault on
+  //             a full pass.
+  async function runCode(mode: RunMode) {
     if (runningRef.current || !level) return;
     runningRef.current = true;
-    setRunning(true);
+    setRunning(mode);
     setResult(null);
     setRunError(null);
     setTab('results'); // on phones, jump to the results tab
     try {
+      if (mode === 'examples') {
+        const res = await api<ExampleRunResult>(`/api/levels/${levelId}/run`, {
+          method: 'POST',
+          body: { sourceCode: code },
+        });
+        setResult(res);
+        return;
+      }
       const res = await api<SubmitResult>(`/api/levels/${levelId}/submit`, {
         method: 'POST',
         body: { sourceCode: code },
@@ -134,7 +152,7 @@ export function PlayScreen({
       setRunError(runProblemMessage(err));
     } finally {
       runningRef.current = false;
-      setRunning(false);
+      setRunning(null);
     }
   }
 
@@ -154,9 +172,9 @@ export function PlayScreen({
     }
   }
 
-  // The keyboard shortcut always calls the latest runTests.
-  const runRef = useRef(runTests);
-  runRef.current = runTests;
+  // The keyboard shortcut (Run examples) always calls the latest runCode.
+  const runRef = useRef(() => runCode('examples'));
+  runRef.current = () => runCode('examples');
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -191,11 +209,57 @@ export function PlayScreen({
     );
   }
 
+  // The last graded submission, if the console is showing one (an examples run
+  // has no XP, badges, mastery or next level).
+  const graded = result && !('mode' in result) ? result : null;
   // Where "Next level" goes after a pass (never back to this same level).
-  const nextLevelId = result?.nextLevelId && result.nextLevelId !== levelId ? result.nextLevelId : null;
+  const nextLevelId = graded?.nextLevelId && graded.nextLevelId !== levelId ? graded.nextLevelId : null;
 
   const difficulty = Math.max(1, Math.min(3, level.difficulty));
   const difficultyLabel = difficulty === 1 ? 'Easy' : difficulty === 2 ? 'Medium' : 'Hard';
+
+  // The two run buttons. On a wide screen they sit at the right of the mission
+  // bar; on a phone they move to a bar at the bottom — within thumb reach, and
+  // leaving the narrow mission bar room for the level's title.
+  const runButtons = (
+    <>
+      {/* Run examples: the visible tests, as often as you like, recorded nowhere. */}
+      <Button
+        variant="ghost"
+        onClick={() => void runCode('examples')}
+        disabled={running !== null}
+        title="Run the visible examples — nothing is recorded"
+        aria-keyshortcuts={IS_MAC ? 'Meta+Enter' : 'Control+Enter'}
+        className={isPhone ? 'flex-1' : undefined}
+      >
+        {running === 'examples' ? (
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-content/30 border-t-content" aria-hidden />
+        ) : (
+          <Play size={15} aria-hidden className="fill-current" />
+        )}
+        Run examples
+        {/* The shortcut is announced by aria-keyshortcuts, so keep it out of the name. */}
+        <kbd aria-hidden className="ml-1 hidden rounded-md border border-line bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] lg:inline">
+          {IS_MAC ? '⌘↵' : 'Ctrl ↵'}
+        </kbd>
+      </Button>
+
+      {/* Submit: every test, hidden ones too. This is what counts. */}
+      <Button
+        onClick={() => void runCode('submit')}
+        disabled={running !== null}
+        title="Run every test, hidden ones too. Your first submit on a level is what the tutor learns from."
+        className={isPhone ? 'flex-1' : 'min-w-[112px]'}
+      >
+        {running === 'submit' ? (
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/30 border-t-ink" aria-hidden />
+        ) : (
+          <Send size={15} aria-hidden />
+        )}
+        Submit
+      </Button>
+    </>
+  );
 
   return (
     <div className="relative flex h-[100dvh] flex-col">
@@ -239,22 +303,7 @@ export function PlayScreen({
           {level.xpReward} XP
         </Chip>
 
-        <Button onClick={() => void runTests()} disabled={running} className="min-w-[132px]">
-          {running ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/30 border-t-ink" aria-hidden />
-              Running…
-            </>
-          ) : (
-            <>
-              <Play size={15} aria-hidden className="fill-current" />
-              Run tests
-              <kbd className="ml-1 hidden rounded-md border border-ink/15 bg-ink/10 px-1.5 py-0.5 font-mono text-[10px] lg:inline">
-                {IS_MAC ? '⌘↵' : 'Ctrl ↵'}
-              </kbd>
-            </>
-          )}
-        </Button>
+        {!isPhone && runButtons}
       </header>
 
       {/* ---- Phone tabs ---- */}
@@ -373,13 +422,23 @@ export function PlayScreen({
         </div>
       </div>
 
+      {/* ---- Phone action bar ---- */}
+      {isPhone && (
+        <div
+          aria-hidden={showReward || undefined}
+          className="relative z-20 flex gap-3 border-t border-white/[0.05] bg-base/70 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl"
+        >
+          {runButtons}
+        </div>
+      )}
+
       {/* The vault opens when every test passes. */}
       <AnimatePresence>
-        {showReward && result && (
+        {showReward && graded && (
           <QuestReward
-            xp={result.xpAwarded}
-            badges={result.newBadges ?? []}
-            mastery={result.mastery}
+            xp={graded.xpAwarded}
+            badges={graded.newBadges ?? []}
+            mastery={graded.mastery}
             onContinue={() => setShowReward(false)}
             onBackToMap={onBack}
             onNextLevel={nextLevelId && onOpenLevel ? () => onOpenLevel(nextLevelId) : undefined}

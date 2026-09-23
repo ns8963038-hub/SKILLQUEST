@@ -1,3 +1,4 @@
+import { ApiError } from './apiError';
 import { SKILL_GRAPH } from '../features/constellation/skillGraph';
 import { bktUpdate, LESSON_BKT, MASTERY_THRESHOLD } from '../features/tutor/bkt';
 import type { RoadmapNode, SkillStatus } from '../features/roadmap/types';
@@ -73,6 +74,8 @@ const state = {
   activeToday: false,
   badges: ['first_quest', 'code_master'],
   solved: new Set<string>(['java-basics-01', 'conditionals-01', 'loops-01']),
+  // Levels already submitted once: only a level's first submit moves mastery.
+  judged: new Set<string>(['java-basics-01', 'conditionals-01', 'loops-01']),
   hintsUsed: {} as Record<string, number>,
   surveyDone: false,
   nudgeClosed: false,
@@ -331,16 +334,32 @@ function revealHint(levelId: string) {
   return { hint: lvl.hints[used], index: used, hintsUsed: used + 1, hintCount: lvl.hints.length, xpCost: deducted, totalXp: state.totalXp };
 }
 
-// ---- POST /api/levels/:id/submit --------------------------------------------
+// ---- POST /api/levels/:id/run ("Run examples") -------------------------------
 const squash = (s: string) => s.replace(/\s+/g, '');
 
+// The visible examples only, recorded nowhere. The untouched starter code
+// "fails" all but the first example (so the failure state can be shown); any
+// real edit passes.
+function runExamples(levelId: string, sourceCode: string) {
+  const lvl = levelData(levelId);
+  const edited = squash(sourceCode) !== squash(lvl.starterCode);
+  const cases = lvl.samples.map((t, i) => {
+    const passed = edited || i === 0;
+    return { hidden: false, passed, stdin: t.stdin, expectedOutput: t.expectedOutput, actualOutput: passed ? t.expectedOutput : '0' };
+  });
+  const passed = cases.filter((c) => c.passed).length;
+  return { mode: 'examples', verdict: passed === cases.length ? 'accepted' : 'wrong_answer', passed, total: cases.length, cases };
+}
+
+// ---- POST /api/levels/:id/submit --------------------------------------------
 function submitLevel(levelId: string, sourceCode: string) {
   const view = levelView(levelId);
   const lvl = levelData(levelId);
 
-  // In the demo, submitting the untouched starter code "fails" (so the failure
-  // state can be shown); any real edit passes.
-  const allPass = squash(sourceCode) !== squash(lvl.starterCode);
+  // Like the real backend, the untouched starter code is refused (422), not
+  // graded; any real edit passes in the demo.
+  if (squash(sourceCode) === squash(lvl.starterCode)) throw new ApiError(`/api/levels/${levelId}/submit`, 422);
+  const allPass = true;
 
   const cases = [
     ...lvl.samples.map((t, i) => {
@@ -380,14 +399,17 @@ function submitLevel(levelId: string, sourceCode: string) {
     newBadges.push({ id: 'week_warrior', title: BADGES.week_warrior!.title, icon: null });
   }
 
-  // The adaptive tutor: one Bayesian Knowledge Tracing update for this skill.
+  // The adaptive tutor: one Bayesian Knowledge Tracing update for this skill,
+  // from the level's FIRST submit only (as on the real backend).
   // Like the real backend, a skill is COMPLETED when its level passes (demo skills
   // have one level each); mastery is the tutor's separate estimate.
   const skill = state.skills[view.skillId];
   let mastery;
   if (skill && skill.status !== 'tested-out') {
+    const counted = !state.judged.has(levelId);
+    state.judged.add(levelId);
     const before = skill.mastery;
-    const after = bktUpdate(before, allPass);
+    const after = counted ? bktUpdate(before, allPass) : before;
     skill.mastery = after;
     if (allPass && skill.status !== 'completed') {
       skill.status = 'completed';
@@ -399,6 +421,7 @@ function submitLevel(levelId: string, sourceCode: string) {
       before,
       after,
       mastered: after >= MASTERY_THRESHOLD,
+      counted,
     };
   }
 
@@ -788,7 +811,7 @@ export async function demoApi<T>(
 ): Promise<T> {
   const method = options.method ?? 'GET';
   const body = (options.body ?? {}) as Record<string, unknown>;
-  await wait(path.endsWith('/submit') ? 1500 : 260);
+  await wait(path.endsWith('/submit') || path.endsWith('/run') ? 1500 : 260);
 
   if (path === '/api/me')
     return as<T>({
@@ -834,6 +857,9 @@ export async function demoApi<T>(
 
   const hint = path.match(/^\/api\/levels\/([^/]+)\/hint$/);
   if (hint?.[1] && method === 'POST') return as<T>(revealHint(hint[1]));
+
+  const examples = path.match(/^\/api\/levels\/([^/]+)\/run$/);
+  if (examples?.[1] && method === 'POST') return as<T>(runExamples(examples[1], (body.sourceCode as string) ?? ''));
 
   const submit = path.match(/^\/api\/levels\/([^/]+)\/submit$/);
   if (submit?.[1] && method === 'POST') return as<T>(submitLevel(submit[1], (body.sourceCode as string) ?? ''));

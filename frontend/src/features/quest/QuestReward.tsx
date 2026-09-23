@@ -82,6 +82,9 @@ export function QuestReward({
 
   const before = mastery ? Math.round(mastery.before * 100) : 0;
   const after = mastery ? Math.round(mastery.after * 100) : 0;
+  // Only a level's first submit is evidence; a re-solve leaves the estimate as it
+  // was, and the panel says so rather than showing a "72% → 72%" non-update.
+  const counted = mastery?.counted !== false;
 
   return (
     <motion.div
@@ -144,7 +147,19 @@ export function QuestReward({
         )}
 
         {/* The adaptive tutor's update: how this solve moved the mastery estimate. */}
-        {mastery && (
+        {mastery && !counted && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="mt-6 rounded-2xl border border-ion/20 bg-ion-tint/60 p-4 text-left text-xs text-content-muted"
+          >
+            <span className="font-medium text-content">Tutor · {mastery.title}: {after}%.</span> The tutor learns from
+            your first submit on each level, so solving this one again doesn’t move the estimate. Solve the next level
+            first time to raise it.
+          </motion.p>
+        )}
+        {mastery && counted && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -174,7 +189,7 @@ export function QuestReward({
             <p className="mt-2 text-xs text-content-muted">
               {mastery.mastered
                 ? `${mastery.title} mastered — the tutor is now confident you know this skill.`
-                : 'Bayesian Knowledge Tracing raised its estimate after this solve. The line marks mastery.'}
+                : 'Bayesian Knowledge Tracing raised its estimate from this first submit. The line marks mastery.'}
             </p>
           </motion.div>
         )}

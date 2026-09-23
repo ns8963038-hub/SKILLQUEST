@@ -19,7 +19,7 @@ describe('BKT mirror (frontend)', () => {
     expect(bktUpdate(0.2, false)).toBeCloseTo(0.176, 2);
   });
 
-  it('counts the clean solves needed to reach mastery', () => {
+  it('counts the first-time solves needed to reach mastery', () => {
     expect(solvesToMastery(0.58)).toBe(2);
     expect(solvesToMastery(0.99)).toBe(0);
   });
@@ -52,9 +52,17 @@ describe('buildBriefing', () => {
     };
     const text = buildBriefing({ currentStreak: 6, activeToday: false, currentQuest: { title: 'Methods' } }, plan);
     expect(text).toContain('58%');
-    expect(text).toContain('About 2 clean solves');
+    expect(text).toContain('about 2 more of its levels on the first submit');
     expect(text).toContain('4 of 19');
     expect(text).toContain('6-day run alive');
+  });
+
+  it('does not promise more first-time solves than the skill has levels left', () => {
+    const frontier = { ...node('recursion', 'current', 0.2), levelsTotal: 2, levelsCompleted: 1 }; // 1 left, 3 needed
+    const plan = { total: 19, completed: 4, testedOut: 1, frontier, frontierMastery: 0.2 };
+    const text = buildBriefing({ currentStreak: 0, activeToday: false, currentQuest: { title: 'Recursion' } }, plan);
+    expect(text).not.toMatch(/about \d+ more/);
+    expect(text).toContain('first submit on each level and from your lesson answers');
   });
 
   it('never invents a percentage when there is no mastery estimate', () => {

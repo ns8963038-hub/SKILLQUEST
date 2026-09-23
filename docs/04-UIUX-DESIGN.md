@@ -138,7 +138,7 @@ The "Continue your quest" card is the single primary CTA. **When the dropout mod
 Vertical skill-tree (top = start, down = advanced), branches where prerequisites fork. Nodes use `SkillNode` states. Current node pulses. Tap a node → side panel: concept description, levels inside it, XP available, "Start" CTA. Supports `?focus=<skillId>` deep-link from the placement tracker (auto-scroll + highlight). On mobile: the tree becomes a vertical stepper (avoid pan/zoom pain).
 
 ### 7.6 Play Screen (S6) — the core, and the responsive challenge
-**Desktop:** split view — left 40% problem panel (statement, examples, constraints, in `leading-relaxed`), right 60% Monaco (JetBrains Mono, dark). Bottom drawer: "Run Tests" (primary) + results. Silent timer (analytics only — never shown).
+**Desktop:** split view — left 40% problem panel (statement, examples, constraints, in `leading-relaxed`), right 60% Monaco (JetBrains Mono, dark). Top bar: "Run examples" (secondary, Ctrl/⌘+Enter, visible tests, recorded nowhere) and "Submit" (primary, every test; the first submit per level is what the tutor learns from). Results console under the editor. On phones the two buttons move to a bottom bar. Silent timer (analytics only — never shown).
 
 **Mobile:** tabs — [ Problem | Code | Results ] — because a split view is unusable on a phone. Code tab is default once the student has read the problem. This is explicitly called out because it's the highest-risk layout in the app.
 
@@ -197,7 +197,7 @@ Function over form — plain table, risk tiers color-coded (`risk-*` tokens), so
 - **Modals trap focus** (badge popups, confirm dialogs), restore it to the trigger on close, and close on `Esc`.
 - **`aria-live="polite"`** on the test-results drawer and toasts, so a screen-reader user hears "3 of 5 tests passed" without hunting for it. XP counters use `aria-live="polite"` too; celebrations are `aria-hidden` decoration.
 - A **skip-to-content link** as the first focusable element on every page.
-- Monaco ships its own a11y support — verify the full Run Tests flow is completable with keyboard only.
+- Monaco ships its own a11y support — verify the full Run examples → Submit flow is completable with keyboard only.
 
 **Motion**
 - `prefers-reduced-motion` honored for all celebrations (confetti, XP count-up degrade to a static state change).

@@ -2,7 +2,7 @@
 //
 // Used for two things only:
 //   1. demo mode, so the offline demo updates mastery exactly like the real tutor;
-//   2. estimating "how many more clean solves until mastered" for the briefing.
+//   2. estimating "how many more levels solved first time until mastered" for the briefing.
 // The backend implementation (and its unit tests) is the source of truth.
 
 export const BKT = { pT: 0.15, pS: 0.1, pG: 0.2 }; // learn, slip, guess
@@ -22,7 +22,8 @@ export function bktUpdate(pPrev: number, correct: boolean, params = BKT): number
   return Math.min(1, Math.max(0, pObs + (1 - pObs) * pT));
 }
 
-// How many consecutive correct attempts would take `p` past the mastery threshold.
+// How many levels solved on the first submit (each one correct observation)
+// would take `p` past the mastery threshold.
 // Capped so a pathological value can't loop forever.
 export function solvesToMastery(p: number, cap = 9): number {
   let estimate = p;

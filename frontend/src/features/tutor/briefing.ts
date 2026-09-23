@@ -47,10 +47,23 @@ export function buildBriefing(input: BriefingInput, plan: PlanSummary | null): s
   if (plan?.frontierMastery != null) {
     const pct = Math.round(plan.frontierMastery * 100);
     parts.push(`${title} is your frontier — the tutor estimates your mastery at ${pct}%.`);
+    // Only a level's FIRST submit is evidence, so "solves" means new levels solved
+    // first time — and a skill may not have that many levels left.
     const needed = solvesToMastery(plan.frontierMastery);
-    parts.push(
-      needed <= 1 ? 'One more clean solve should lock it in.' : `About ${needed} clean solves should lock it in.`,
-    );
+    const frontier = plan.frontier;
+    const left =
+      frontier?.levelsTotal != null ? frontier.levelsTotal - (frontier.levelsCompleted ?? 0) : null;
+    if (needed === 0) parts.push('The tutor is confident you know it — finish its levels to move on.');
+    else if (left !== null && needed > left)
+      parts.push(
+        'The tutor learns from your first submit on each level and from your lesson answers, so check with Run examples before you submit.',
+      );
+    else
+      parts.push(
+        needed === 1
+          ? 'Solving its next level on the first submit should lock it in.'
+          : `Solving about ${needed} more of its levels on the first submit should lock it in.`,
+      );
   } else {
     parts.push(`${title} is next on your map.`);
   }

@@ -176,7 +176,7 @@ export function DashboardScreen({
               </h2>
               <p className="mt-1.5 max-w-xl text-sm text-content-muted">
                 Each star is a skill. It glows brighter as the tutor grows confident you’ve mastered it —
-                re-estimated after every attempt.
+                re-estimated from your first submit on each level and your lesson answers.
               </p>
             </div>
             <Button variant="subtle" size="sm" onClick={onViewRoadmap}>

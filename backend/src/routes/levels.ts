@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db';
 import { asyncHandler } from '../http';
-import { codeRunLimit } from '../rateLimits';
+import { codeRunLimit, exampleRunLimit } from '../rateLimits';
 import { logEvent } from '../events';
 import { getExecutor } from '../execution';
 import { computeStreak } from '../gamification/streak';
@@ -168,6 +168,51 @@ const SubmitBody = z.object({
   sourceCode: z.string().max(64 * 1024),
 });
 
+// Same code, same whitespace-insensitive comparison the fill-in check uses.
+const normalizeCode = (code: string) => code.replace(/\s+/g, '');
+
+// POST /api/levels/:id/run — "Run examples": the VISIBLE tests only, so a
+// student can check their work while writing it. Records nothing at all: not an
+// attempt, not a submission, not evidence for the mastery estimate, not
+// activity for the streak. Students used to press the graded button to test a
+// half-written draft, so their first recorded attempt was usually a failure
+// that said nothing about what they knew.
+levelsRouter.post(
+  '/levels/:id/run',
+  exampleRunLimit, // debugging runs: 20 a minute per student
+  asyncHandler(async (req, res) => {
+    const levelId = req.params.id;
+    const { sourceCode } = SubmitBody.parse(req.body);
+    const level = await prisma.level.findUnique({
+      where: { id: levelId },
+      include: { testCases: { where: { isHidden: false }, orderBy: { ordinal: 'asc' } } },
+    });
+    if (!level || !level.published) {
+      res.status(404).json({ error: 'level not found' });
+      return;
+    }
+    const run = await getExecutor().run(
+      sourceCode,
+      level.testCases.map((t) => ({ stdin: t.stdin, expectedOutput: t.expectedOutput, isHidden: false })),
+      level.timeLimitMs,
+    );
+    const passed = run.results.filter((r) => r.passed).length;
+    res.json({
+      mode: 'examples',
+      verdict: run.verdict,
+      passed,
+      total: level.testCases.length,
+      cases: level.testCases.map((t, i) => ({
+        hidden: false,
+        passed: run.results[i]?.passed ?? false,
+        stdin: t.stdin,
+        expectedOutput: t.expectedOutput,
+        actualOutput: run.results[i]?.actualOutput ?? '',
+      })),
+    });
+  }),
+);
+
 // POST /api/levels/:id/submit — run the submission and, on a full pass, award XP.
 levelsRouter.post(
   '/levels/:id/submit',
@@ -188,6 +233,17 @@ levelsRouter.post(
     });
     if (!level || !level.published) {
       res.status(404).json({ error: 'level not found' });
+      return;
+    }
+
+    // Submitting the untouched starter program is not an attempt at the level:
+    // refuse it before anything runs, so it can't count as evidence or keep a
+    // streak alive.
+    if (normalizeCode(sourceCode) === normalizeCode(level.starterCode)) {
+      res.status(422).json({
+        error: 'unchanged_starter',
+        message: 'That is still the starter code — write your solution first, then submit.',
+      });
       return;
     }
 
@@ -217,6 +273,7 @@ levelsRouter.post(
     let currentStreak = 0;
     let masteryBefore = DEFAULT_BKT.pL0;
     let masteryAfter = DEFAULT_BKT.pL0;
+    let masteryCounted = false; // was this the level's first graded submit?
     await prisma.$transaction(async (tx) => {
       // Ensure the user_level row exists and count this attempt.
       const ul = await tx.userLevel.upsert({
@@ -301,33 +358,41 @@ levelsRouter.post(
         }
       }
 
-      // --- Adaptive tutor (M4): one Bayesian Knowledge Tracing update for this
-      // skill. The observation is binary: did EVERY test pass? A student with no
-      // row yet starts from the BKT prior pL0. (Submits are sequential per student —
-      // the Run button is disabled while running — so a read-then-write is safe.)
+      // --- Adaptive tutor (M4): one Bayesian Knowledge Tracing update per LEVEL,
+      // from the student's FIRST graded submit on it. The observation is binary:
+      // did every test pass? Later submits of the same level are not new
+      // evidence — counting them let a student solve once and press Submit twice
+      // more to reach "mastered" (0.20 -> 0.60 -> 0.89 -> 0.98), or drag their
+      // estimate down by debugging on the graded button. ("Run examples" never
+      // counts.) This is the usual first-attempt rule in knowledge tracing.
+      // (Submits are sequential per student — the button is disabled while
+      // running — so a read-then-write is safe.)
       const prior = await tx.skillMastery.findUnique({
         where: { userId_skillId: { userId, skillId: level.skillId } },
         select: { pMastery: true },
       });
       masteryBefore = prior?.pMastery ?? DEFAULT_BKT.pL0;
-      masteryAfter = bktUpdate(masteryBefore, allPass);
-      await tx.skillMastery.upsert({
-        where: { userId_skillId: { userId, skillId: level.skillId } },
-        create: {
-          userId,
-          skillId: level.skillId,
-          pMastery: masteryAfter,
-          attempts: 1,
-          correct: allPass ? 1 : 0,
-          lastResult: allPass,
-        },
-        update: {
-          pMastery: masteryAfter,
-          attempts: { increment: 1 },
-          correct: { increment: allPass ? 1 : 0 },
-          lastResult: allPass,
-        },
-      });
+      masteryCounted = ul.attempts === 1; // this upsert just recorded the first graded submit
+      masteryAfter = masteryCounted ? bktUpdate(masteryBefore, allPass) : masteryBefore;
+      if (masteryCounted) {
+        await tx.skillMastery.upsert({
+          where: { userId_skillId: { userId, skillId: level.skillId } },
+          create: {
+            userId,
+            skillId: level.skillId,
+            pMastery: masteryAfter,
+            attempts: 1,
+            correct: allPass ? 1 : 0,
+            lastResult: allPass,
+          },
+          update: {
+            pMastery: masteryAfter,
+            attempts: { increment: 1 },
+            correct: { increment: allPass ? 1 : 0 },
+            lastResult: allPass,
+          },
+        });
+      }
 
       // Record the submission itself.
       await tx.submission.create({
@@ -413,6 +478,7 @@ levelsRouter.post(
         before: masteryBefore,
         after: masteryAfter,
         mastered: isMastered(masteryAfter),
+        counted: masteryCounted, // false: the tutor already judged this level on the first submit
       },
     });
   }),
