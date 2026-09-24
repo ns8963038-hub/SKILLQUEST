@@ -1,6 +1,6 @@
 # M12 — Fixing what the external review found
 
-**Status:** BUILT (2026-09-23), not yet deployed. A senior developer reviewed the
+**Status:** Round 1 deployed 2026-09-23; round 2 built 2026-09-24. A senior developer reviewed the
 whole project; we checked every claim against the code, agreed a "before UAT"
 list, and fixed it in order. Each fix was checked before moving on (tests, a
 deliberate break to prove the test catches it, and where it touches the
@@ -73,9 +73,27 @@ real inputs: all junk → neutral plan; three very short real goals also → neu
   lines of copy still overclaimed ("re-plans as you learn", "re-practice keeps
   raising the mastery estimate"). Fixed.
 
+## Round 2: the reviewer's verdict on these fixes (2026-09-24)
+
+The reviewer re-checked the code and accepted the fixes, then found more. All
+confirmed against the code first. **Decision: there is no UAT** — the project
+goes straight to review — so the risk rule keeps its documented 7 / 14 days.
+
+| Finding | What changed | Commit |
+|---|---|---|
+| A 429 while polling Paiza skipped the deadline check, so a throttled run could loop forever and hold its queue slot (my bug from item 2) | Deadline checked at the top of every poll; test: every poll throttled → the run fails at its deadline and the next run gets the slot | `7aa7db3` |
+| The 28-day wait meant nobody in a short study or a review demo could be scored | Every onboarded student is scored; one who hasn't practised counts from onboarding (capped at 28), not as 28 days away. Feature set fs-v4 | `00207d6` |
+| `RISK_SCORER=lr` labelled rows with the model's old feature set | Rows carry the feature set the app computed | `00207d6` |
+| On a shared lab PC, closing the tab left the next student signed in | "This is a shared computer" checkbox: the session is kept for the tab only (sessionStorage); remembered per computer | `334d22e` |
+| "Practise more to raise the tutor's confidence" on a finished topic — impossible under the first-submit rule | Now says the tutor judged it from first submits and lesson answers | `c3530b8` |
+| The rule's number was called a probability | "Risk score" (days away ÷ 21) in the admin view and the CSV | `c3530b8` |
+| A true double submit could race past the onboarding check | The check is the transaction's first write; the loser rolls back (409) | `c3530b8` |
+| An hour of debugging on Run examples lost the streak and looked inactive | An examples run of written code counts as practice (streak + `level_run` activity); never an attempt; the starter code counts for nothing | `0e30852` |
+| Test accounts in production get participant codes | Team action: delete them in Supabase (deleting the user removes all their data) | — |
+
 ## Verified
 
-Backend 180 tests, frontend 123, AI service 25 (+25 with the real model: all
+(Round 1; after round 2: backend 185, frontend 128.) Backend 180 tests, frontend 123, AI service 25 (+25 with the real model: all
 junk inputs neutral, 9/9 real goals exact). All 57 levels and 20 lessons
 compiled and run on a JVM; the 12 quiz programs print exactly their answers;
 course order clean (now including prose). All 9 migrations applied to a fresh
